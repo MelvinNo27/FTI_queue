@@ -81,7 +81,6 @@
 
   <!-- SETTINGS VIEW -->
   <div id="view-settings" style="display:none;">
-
     <div class="section-card">
       <div class="section-title">⚙ Schedule &amp; Time Window Settings <span>Changes apply immediately for all users</span></div>
 
@@ -96,7 +95,6 @@
 
       <div class="settings-grid">
 
-        <!-- Claiming Window -->
         <div class="settings-block">
           <h3><span class="icon">🕐</span> Ticket Claiming Window</h3>
           <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">Set the time range when users are allowed to claim/generate their priority number.</p>
@@ -112,7 +110,6 @@
           </div>
         </div>
 
-        <!-- AM Validity Window -->
         <div class="settings-block">
           <h3><span class="icon">🌅</span> AM Ticket Validity</h3>
           <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">AM ticket holders (#001–#150) are valid to be served within this time range.</p>
@@ -128,7 +125,6 @@
           </div>
         </div>
 
-        <!-- PM Validity Window -->
         <div class="settings-block">
           <h3><span class="icon">🌇</span> PM Ticket Validity</h3>
           <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">PM ticket holders (#151–#300) are valid to be served within this time range.</p>
@@ -149,7 +145,6 @@
       <button class="btn-save-settings" onclick="saveSettings()">💾 Save All Settings</button>
       <div class="settings-status" id="settings-status" style="display:none;"></div>
     </div>
-
   </div><!-- /view-settings -->
 </div>
 
@@ -380,6 +375,7 @@
     renderGrid(); refreshStats(); renderTicketList();
   }
 
+  // ── Ticket list — display only, no clickable disable/enable buttons ──
   function renderTicketList() {
     const container = document.getElementById('ticket-list-content');
     const disabledForDate = disabledNums[currentDate] || {};
@@ -409,17 +405,15 @@
       const timeBadge = t.time === 'AM'
         ? '<span class="badge badge-am">🌅 AM</span>'
         : '<span class="badge badge-pm">🌇 PM</span>';
-      const disBtn = isDisabled
-        ? '<button class="btn-disable do-enable" onclick="toggleNumber(' + t.number + ')">Enable</button>'
-        : '<button class="btn-disable do-disable" onclick="toggleNumber(' + t.number + ')">Disable</button>';
-      return '<div class="ticket-row">' +
+
+      // No disable/enable button — read-only list
+      return '<div class="ticket-row" style="cursor:default;">' +
         '<div class="tr-num">#' + pad3(t.number) + '</div>' +
         '<div class="tr-info">' +
           '<div class="tr-name">' + t.name + '</div>' +
           '<div class="tr-meta">Issued: ' + issuedLbl + ' &nbsp;' + timeBadge + '&nbsp;' + statusBadge + '</div>' +
           '<div class="tr-meta" style="color:var(--blue);font-weight:700;margin-top:2px;">⏰ ' + windowLbl + '</div>' +
         '</div>' +
-        '<div class="tr-actions">' + disBtn + '</div>' +
       '</div>';
     }).join('');
   }
@@ -433,17 +427,31 @@
     document.getElementById('tab-settings').className = 'tab-btn' + (tab === 'settings' ? ' active' : '');
   }
 
-  // ── AUTO-PURGE expired tickets at midnight + clean up slots ──
+  // ── AUTO-PURGE all expired tickets at midnight + clean up slots & disabled numbers ──
   async function purgeAllExpiredTickets() {
     const nowMs = Date.now();
 
+    // Step 1: Scan all tickets and collect those past 23:59:59 of their date
     const snap = await db.ref('tickets').once('value');
+
+    // Step 2: Also purge orphaned disabledNumbers for expired dates (no tickets needed)
+    const disSnap = await db.ref('disabledNumbers').once('value');
+    if (disSnap.exists()) {
+      disSnap.forEach(function(dateNode) {
+        const dateStr  = dateNode.key;
+        const expiryMs = new Date(dateStr + 'T23:59:59').getTime();
+        if (nowMs > expiryMs) {
+          // Wipe entire disabledNumbers/DATE node — covers all orphaned disabled entries
+          db.ref('disabledNumbers/' + dateStr).remove();
+        }
+      });
+    }
+
     if (!snap.exists()) return;
 
     const deletes = [];
     snap.forEach(function(child) {
-      const t = child.val();
-      // Expired = past 23:59:59 of the ticket's date
+      const t        = child.val();
       const expiryMs = new Date(t.date + 'T23:59:59').getTime();
       if (nowMs > expiryMs) {
         deletes.push({ key: child.key, date: t.date, number: t.number, time: t.time });
@@ -456,30 +464,23 @@
       // 1. Delete ticket record
       await db.ref('tickets/' + d.key).remove();
 
-      // 2. Clean up disabledNumbers entry
-      await db.ref('disabledNumbers/' + d.date + '/' + d.number).remove();
-
-      // 3. Decrement slot count (AM or PM); remove node if it hits 0
+      // 2. Decrement slot count (AM or PM); remove node if it hits 0
       await db.ref('slots/' + d.date + '/' + d.time).transaction(function(cur) {
         const next = (cur || 1) - 1;
         return next <= 0 ? null : next;
       });
     }
 
-    // 4. Clean up empty date-level nodes
+    // 3. Clean up empty slots date nodes for all affected dates
     const uniqueDates = [...new Set(deletes.map(function(d){ return d.date; }))];
     for (const date of uniqueDates) {
       const slotSnap = await db.ref('slots/' + date).once('value');
       if (!slotSnap.exists()) {
         await db.ref('slots/' + date).remove();
       }
-      const disSnap = await db.ref('disabledNumbers/' + date).once('value');
-      if (!disSnap.exists()) {
-        await db.ref('disabledNumbers/' + date).remove();
-      }
     }
 
-    // 5. Reload current view if affected
+    // 4. Reload current view if any deleted tickets matched the viewed date
     if (currentDate && deletes.some(function(d){ return d.date === currentDate; })) {
       await loadTicketsForDate(currentDate);
       refreshStats(); renderGrid(); renderTicketList();

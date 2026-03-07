@@ -115,7 +115,6 @@
   let slotsData = {}, disabledNumbers = {};
   let myTickets = [], myTicketIds = JSON.parse(localStorage.getItem('pq_my_ticket_ids') || '[]');
 
-  // Default schedule settings (overwritten by Firebase)
   let scheduleSettings = {
     claimStart: '06:00', claimEnd: '10:00',
     amStart:    '08:00', amEnd:    '12:00',
@@ -181,18 +180,17 @@
 
   function isClaimingOpen() {
     const now = new Date();
-    const curMin = now.getHours() * 60 + now.getMinutes();
+    const curMin   = now.getHours() * 60 + now.getMinutes();
     const startMin = timeStrToMinutes(scheduleSettings.claimStart);
     const endMin   = timeStrToMinutes(scheduleSettings.claimEnd);
     return curMin >= startMin && curMin < endMin;
   }
 
   function isTicketCurrentlyValid(ticket) {
-    const now = new Date();
-    const curMin = now.getHours() * 60 + now.getMinutes();
-    const ticketDateStr = ticket.date;
+    const now      = new Date();
+    const curMin   = now.getHours() * 60 + now.getMinutes();
     const todayStr = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate());
-    const ticketDate = new Date(ticketDateStr + 'T00:00:00');
+    const ticketDate = new Date(ticket.date + 'T00:00:00');
     const today      = new Date(todayStr + 'T00:00:00');
 
     if (ticketDate < today) return 'expired';
@@ -266,12 +264,12 @@
       el.className = 'cal-day';
       el.innerHTML = '<div class="day-num">' + d + '</div><div class="day-dot"></div>';
 
-      if (isPast)         { el.classList.add('past'); }
-      else if (!isToday)  { el.classList.add('disabled-day'); el.title = 'Only today is available'; }
-      else if (myTicket)  { el.classList.add('has-my-ticket'); el.title = 'You already have a ticket today'; }
-      else if (hasActive) { el.classList.add('has-my-ticket'); el.title = 'You already have an active number'; }
+      if (isPast)               { el.classList.add('past'); }
+      else if (!isToday)        { el.classList.add('disabled-day'); el.title = 'Only today is available'; }
+      else if (myTicket)        { el.classList.add('has-my-ticket'); el.title = 'You already have a ticket today'; }
+      else if (hasActive)       { el.classList.add('has-my-ticket'); el.title = 'You already have an active number'; }
       else if (!isClaimingOpen()) { el.classList.add('disabled-day'); el.title = 'Claiming is currently closed'; }
-      else if (isFull)    { el.classList.add('disabled-day', 'day-full'); }
+      else if (isFull)          { el.classList.add('disabled-day', 'day-full'); }
       else {
         if (total > 0) el.classList.add('day-open');
         el.onclick = (function(ds){ return function(){ selectDate(ds); }; })(dateStr);
@@ -284,10 +282,7 @@
   }
 
   function selectDate(dateStr) {
-    if (!isClaimingOpen()) {
-      toast('⚠ Ticket claiming is currently closed');
-      return;
-    }
+    if (!isClaimingOpen()) { toast('⚠ Ticket claiming is currently closed'); return; }
     const alreadyToday = myTickets.find(function(t){ return t.date === dateStr; });
     if (alreadyToday) {
       toast('⚠ You already have ticket #' + pad3(alreadyToday.number) + ' for today');
@@ -419,6 +414,7 @@
     count.textContent = used + '/' + max;
   }
 
+  // ── Render tickets — display only, no clickable actions ──────
   function renderTickets() {
     const list = document.getElementById('tickets-list');
     if (!myTickets.length) {
@@ -434,11 +430,10 @@
       const dateLabel  = MONTHS[d.getMonth()].slice(0, 3) + ' ' + d.getDate() + ', ' + d.getFullYear();
       const issuedLbl  = issued.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-      const startKey = t.time === 'AM' ? 'amStart' : 'pmStart';
-      const endKey   = t.time === 'AM' ? 'amEnd'   : 'pmEnd';
+      const startKey  = t.time === 'AM' ? 'amStart' : 'pmStart';
+      const endKey    = t.time === 'AM' ? 'amEnd'   : 'pmEnd';
       const windowLbl = '⏰ ' + fmt(scheduleSettings[startKey]) + ' – ' + fmt(scheduleSettings[endKey]);
-
-      const isFaded = isDisabled || validity === 'expired';
+      const isFaded   = isDisabled || validity === 'expired';
 
       let statusClass, statusText;
       if (isDisabled)                   { statusClass = 'status-disabled'; statusText = '⊘ Disabled'; }
@@ -447,7 +442,7 @@
       else if (validity === 'future')   { statusClass = 'status-valid';    statusText = '📅 Upcoming'; }
       else                              { statusClass = 'status-expired';  statusText = '✕ Expired'; }
 
-      return '<div class="ticket-card ' + (isFaded ? 'expired' : '') + '">' +
+      return '<div class="ticket-card ' + (isFaded ? 'expired' : '') + '" style="cursor:default;pointer-events:none;user-select:none;">' +
         '<div class="ticket-top">' +
           '<div class="ticket-number">' + pad3(t.number) + '</div>' +
           '<div class="ticket-divider"></div>' +
@@ -474,11 +469,11 @@
     }) || null;
   }
 
-  // ── AUTO-DELETE expired tickets at midnight + clean up slots ──
+  // ── AUTO-DELETE expired tickets at midnight + clean up slots & disabled numbers ──
   async function purgeExpiredTickets() {
     const nowMs = Date.now();
 
-    // A ticket is expired if we are past 23:59:59 of its date
+    // Tickets whose date has fully passed (after 23:59:59)
     const toDelete = myTickets.filter(function(t) {
       return nowMs > new Date(t.date + 'T23:59:59').getTime();
     });
@@ -487,13 +482,10 @@
 
     for (const t of toDelete) {
       try {
-        // 1. Delete the ticket record
+        // 1. Delete the ticket record from Firebase
         await db.ref('tickets/' + t.id).remove();
 
-        // 2. Clean up disabledNumbers entry
-        await db.ref('disabledNumbers/' + t.date + '/' + t.number).remove();
-
-        // 3. Decrement the slot count (AM or PM); remove node if it hits 0
+        // 2. Decrement slot count for AM or PM; remove node if it reaches 0
         await db.ref('slots/' + t.date + '/' + t.time).transaction(function(cur) {
           const next = (cur || 1) - 1;
           return next <= 0 ? null : next;
@@ -503,21 +495,21 @@
       }
     }
 
-    // 4. If both AM and PM slots for that date are now gone, remove the date node too
+    // 3. For each expired date: wipe ALL disabledNumbers (including orphaned entries)
+    //    and remove the slots date node if now empty
     const uniqueDates = [...new Set(toDelete.map(function(t){ return t.date; }))];
     for (const date of uniqueDates) {
+      // Remove entire disabledNumbers/DATE node — clears all disabled entries for that day
+      await db.ref('disabledNumbers/' + date).remove();
+
+      // Remove slots/DATE if empty
       const slotSnap = await db.ref('slots/' + date).once('value');
       if (!slotSnap.exists()) {
         await db.ref('slots/' + date).remove();
       }
-      // Clean up empty disabledNumbers date node
-      const disSnap = await db.ref('disabledNumbers/' + date).once('value');
-      if (!disSnap.exists()) {
-        await db.ref('disabledNumbers/' + date).remove();
-      }
     }
 
-    // 5. Remove from local state and localStorage
+    // 4. Remove from local state and localStorage
     const deleteIds = new Set(toDelete.map(function(t){ return t.id; }));
     myTickets   = myTickets.filter(function(t){ return !deleteIds.has(t.id); });
     myTicketIds = myTicketIds.filter(function(id){ return !deleteIds.has(id); });
@@ -542,6 +534,7 @@
   // Run purge on load, then every minute
   purgeExpiredTickets();
   setInterval(function() {
+    now = new Date();
     updateClaimingClosedBanner();
     renderCalendar();
     renderTickets();

@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Priority Queue</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue:#2563eb;--blue-light:#eff6ff;--blue-mid:#dbeafe;
+    --green:#16a34a;--green-light:#f0fdf4;
+    --red:#dc2626;--red-light:#fef2f2;
+    --orange:#ea580c;--border:#e2e8f0;--bg:#f8fafc;
+    --white:#fff;--text:#1e293b;--muted:#94a3b8;--gray:#64748b;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:48px;}
+  .header{background:var(--blue);color:white;padding:18px 20px;text-align:center;box-shadow:0 2px 8px rgba(37,99,235,.3);}
+  .header h1{font-size:20px;font-weight:800;}
+  .header p{font-size:12px;opacity:.75;margin-top:2px;}
+  .header-actions{display:flex;justify-content:flex-end;padding:8px 16px 0;}
+  .btn-admin-link{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:white;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;cursor:pointer;text-decoration:none;}
+  .btn-admin-link:hover{background:rgba(255,255,255,.25);}
+  .wrap{max-width:480px;margin:0 auto;padding:24px 16px 0;}
+  .loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:12px;}
+  .loading-overlay.hide{display:none;}
+  .spinner{width:36px;height:36px;border:4px solid var(--blue-mid);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-overlay p{font-size:14px;font-weight:700;color:var(--gray);}
+  .calendar-card{background:var(--white);border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.07);overflow:hidden;margin-bottom:20px;}
+  .cal-header{background:var(--blue);color:white;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;}
+  .cal-header .month-year{font-size:16px;font-weight:800;}
+  .cal-nav{background:rgba(255,255,255,.2);border:none;color:white;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+  .cal-nav:hover{background:rgba(255,255,255,.35);}
+  .cal-days-header{display:grid;grid-template-columns:repeat(7,1fr);background:var(--blue-mid);padding:8px 10px 6px;}
+  .cal-days-header span{text-align:center;font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:10px 10px 14px;}
+  .cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;font-weight:700;border-radius:10px;cursor:pointer;transition:all .15s;color:var(--text);position:relative;gap:2px;}
+  .cal-day .day-num{line-height:1;}
+  .cal-day .day-dot{width:18px;height:5px;border-radius:3px;}
+  .cal-day:hover:not(.empty):not(.past):not(.disabled-day):not(.has-my-ticket){background:var(--blue-mid);color:var(--blue);}
+  .cal-day.today{border:2px solid var(--blue);color:var(--blue);}
+  .cal-day.selected{background:var(--blue)!important;color:white!important;}
+  .cal-day.selected .day-dot{opacity:.7;}
+  .cal-day.past{color:var(--muted);cursor:default;}
+  .cal-day.empty{cursor:default;}
+  .cal-day.day-full .day-dot{background:var(--red);}
+  .cal-day.day-open .day-dot{background:var(--green);}
+  .cal-day.has-my-ticket{cursor:not-allowed;background:#f1f5f9;color:var(--muted);}
+  .cal-day.has-my-ticket .day-dot{background:var(--blue);opacity:.4;}
+  .cal-day.disabled-day{cursor:not-allowed;color:var(--muted);background:var(--red-light);}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;padding:0 10px 14px;justify-content:center;}
+  .legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--gray);}
+  .legend-dot{width:10px;height:10px;border-radius:3px;}
+
+  /* Schedule info banner */
+  .schedule-info{background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:1.5px solid #bfdbfe;border-radius:12px;padding:12px 16px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:12px;font-weight:700;}
+  .sch-item{display:flex;align-items:center;gap:5px;color:var(--text);}
+  .sch-item .sch-label{color:var(--muted);font-weight:600;}
+  .sch-item strong{color:var(--blue);}
+  .claiming-closed-banner{background:var(--red-light);border:1.5px solid #fecaca;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px;font-weight:700;color:var(--red);text-align:center;display:none;}
+  .claiming-closed-banner.show{display:block;}
+
+  .slot-banner{display:none;background:var(--white);border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.07);padding:14px 16px;margin-bottom:16px;animation:slideDown .3s ease-out;}
+  .slot-banner.show{display:block;}
+  .slot-banner-title{font-size:12px;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+  .slot-bars{display:flex;flex-direction:column;gap:8px;}
+  .slot-row{display:flex;align-items:center;gap:10px;}
+  .slot-label{font-size:12px;font-weight:700;width:38px;color:var(--text);}
+  .slot-bar-wrap{flex:1;height:10px;background:#e2e8f0;border-radius:100px;overflow:hidden;}
+  .slot-bar-fill{height:100%;border-radius:100px;transition:width .4s;}
+  .slot-bar-fill.green{background:var(--green);}
+  .slot-bar-fill.orange{background:var(--orange);}
+  .slot-bar-fill.red{background:var(--red);}
+  .slot-count{font-size:11px;font-weight:700;width:52px;text-align:right;}
+  .slot-count.green{color:var(--green);}
+  .slot-count.orange{color:var(--orange);}
+  .slot-count.red{color:var(--red);}
+  .form-card{background:var(--white);border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.07);padding:22px 20px;margin-bottom:20px;display:none;animation:slideDown .3s ease-out;}
+  .form-card.show{display:block;}
+  @keyframes slideDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+  .form-date-label{background:var(--blue-light);color:var(--blue);font-size:13px;font-weight:700;padding:8px 12px;border-radius:8px;margin-bottom:18px;text-align:center;}
+  .form-card h2{font-size:15px;font-weight:800;margin-bottom:16px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12px;font-weight:700;color:var(--gray);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+  .field input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Nunito',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border-color .2s;}
+  .field input:focus{border-color:var(--blue);}
+  .time-row{display:flex;gap:10px;}
+  .time-btn{flex:1;padding:12px;border:1.5px solid var(--border);border-radius:10px;background:white;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;color:var(--gray);}
+  .time-btn.active{border-color:var(--blue);background:var(--blue);color:white;}
+  .time-btn.full{background:var(--red-light);border-color:#fca5a5;color:var(--red);cursor:not-allowed;pointer-events:none;}
+  .time-btn .slot-tag{display:block;font-size:10px;font-weight:600;margin-top:2px;opacity:.8;}
+  .time-btn .window-tag{display:block;font-size:10px;font-weight:700;margin-top:1px;color:var(--green);}
+  .time-btn.full .slot-tag{opacity:1;font-weight:800;}
+  .time-btn.active .window-tag{color:rgba(255,255,255,.8);}
+  .btn-generate{width:100%;padding:13px;background:var(--blue);color:white;border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;margin-top:4px;transition:all .2s;}
+  .btn-generate:hover{background:#1d4ed8;transform:translateY(-1px);box-shadow:0 4px 14px rgba(37,99,235,.35);}
+  .btn-generate:active{transform:translateY(0);}
+  .btn-generate:disabled{background:var(--muted);cursor:not-allowed;transform:none;box-shadow:none;}
+  .tickets-section{margin-bottom:20px;}
+  .tickets-title{font-size:13px;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;}
+  .ticket-card{background:var(--white);border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.07);margin-bottom:12px;overflow:hidden;animation:slideDown .35s ease-out;position:relative;}
+  .ticket-card.expired{opacity:.55;}
+  .ticket-top{display:flex;align-items:center;padding:16px 18px;gap:16px;}
+  .ticket-number{font-family:'Courier Prime',monospace;font-size:42px;font-weight:700;color:var(--blue);line-height:1;min-width:80px;text-align:center;}
+  .ticket-card.expired .ticket-number{color:var(--muted);}
+  .ticket-divider{width:1px;height:60px;background:var(--border);flex-shrink:0;}
+  .ticket-info{flex:1;}
+  .ticket-name{font-size:16px;font-weight:800;margin-bottom:3px;}
+  .ticket-time-badge{display:inline-block;background:var(--blue-light);color:var(--blue);font-size:11px;font-weight:700;padding:2px 8px;border-radius:100px;margin-bottom:4px;}
+  .ticket-card.expired .ticket-time-badge{background:#f1f5f9;color:var(--muted);}
+  .ticket-date-row{font-size:11px;color:var(--muted);}
+  .ticket-window-row{font-size:11px;font-weight:700;color:var(--green);margin-top:2px;}
+  .ticket-card.expired .ticket-window-row{color:var(--muted);}
+  .ticket-bottom{border-top:1.5px dashed var(--border);padding:10px 18px;display:flex;align-items:center;justify-content:space-between;}
+  .expiry-info{font-size:11px;color:var(--gray);}
+  .expiry-info span{font-weight:700;}
+  .status-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;}
+  .status-valid{background:var(--green-light);color:var(--green);}
+  .status-active{background:#fef3c7;color:#92400e;}
+  .status-expired{background:var(--red-light);color:var(--red);}
+  .status-disabled{background:#fef3c7;color:#92400e;}
+  .ticket-card::before{content:'';position:absolute;left:90px;top:0;bottom:0;width:1.5px;background:repeating-linear-gradient(to bottom,var(--border) 0px,var(--border) 6px,transparent 6px,transparent 12px);}
+  .empty-tickets{text-align:center;padding:32px 16px;color:var(--muted);background:var(--white);border-radius:16px;font-size:14px;box-shadow:0 2px 12px rgba(0,0,0,.05);}
+  .empty-tickets .icon{font-size:36px;margin-bottom:8px;}
+  .fb-status{display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;font-weight:700;color:var(--gray);margin-bottom:16px;}
+  .fb-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);}
+  .fb-dot.connected{background:var(--green);animation:fbPulse 2s infinite;}
+  @keyframes fbPulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(70px);background:#1e293b;color:white;padding:11px 22px;border-radius:10px;font-size:13px;font-weight:700;z-index:99;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;}
+  .toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><p>Connecting to Firebase...</p></div>
+
+<div class="header">
+  <div class="header-actions"><a href="admin.html" class="btn-admin-link">🔐 Admin</a></div>
+  <h1>🎫 Priority Queue System</h1>
+  <p>Select today's date to get your priority number</p>
+</div>
+
+<div class="wrap">
+  <div class="fb-status"><div class="fb-dot" id="fb-dot"></div><span id="fb-status-text">Connecting...</span></div>
+
+  <!-- Live schedule info bar -->
+  <div class="schedule-info" id="schedule-info">
+    <div class="sch-item"><span class="sch-label">🕐 Claiming:</span> <strong id="sch-claim">—</strong></div>
+    <div class="sch-item"><span class="sch-label">🌅 AM valid:</span> <strong id="sch-am">—</strong></div>
+    <div class="sch-item"><span class="sch-label">🌇 PM valid:</span> <strong id="sch-pm">—</strong></div>
+  </div>
+
+  <!-- Claiming closed notice -->
+  <div class="claiming-closed-banner" id="claiming-closed-banner">
+    🚫 Ticket claiming is currently closed. Come back during the claiming window!
+  </div>
+
+  <div class="calendar-card">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="changeMonth(-1)">&#8249;</button>
+      <div class="month-year" id="month-year"></div>
+      <button class="cal-nav" onclick="changeMonth(1)">&#8250;</button>
+    </div>
+    <div class="cal-days-header">
+      <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Available</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Full</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--blue);opacity:.5"></div>My Ticket</div>
+    </div>
+  </div>
+
+  <div class="slot-banner" id="slot-banner">
+    <div class="slot-banner-title" id="slot-banner-title">Slots for —</div>
+    <div class="slot-bars">
+      <div class="slot-row"><div class="slot-label">Total</div><div class="slot-bar-wrap"><div class="slot-bar-fill" id="bar-total"></div></div><div class="slot-count" id="count-total"></div></div>
+      <div class="slot-row"><div class="slot-label">AM</div><div class="slot-bar-wrap"><div class="slot-bar-fill" id="bar-am"></div></div><div class="slot-count" id="count-am"></div></div>
+      <div class="slot-row"><div class="slot-label">PM</div><div class="slot-bar-wrap"><div class="slot-bar-fill" id="bar-pm"></div></div><div class="slot-count" id="count-pm"></div></div>
+    </div>
+  </div>
+
+  <div class="form-card" id="form-card">
+    <div class="form-date-label" id="form-date-label">📅 —</div>
+    <h2>Fill in your details</h2>
+    <div class="field"><label>Full Name</label><input type="text" id="inp-name" placeholder="Enter your full name"/></div>
+    <div class="field">
+      <label>Preferred Time</label>
+      <div class="time-row">
+        <button class="time-btn" id="btn-am" onclick="selectTime('AM')">
+          🌅 AM
+          <span class="slot-tag" id="tag-am"></span>
+          <span class="window-tag" id="win-am"></span>
+        </button>
+        <button class="time-btn" id="btn-pm" onclick="selectTime('PM')">
+          🌇 PM
+          <span class="slot-tag" id="tag-pm"></span>
+          <span class="window-tag" id="win-pm"></span>
+        </button>
+      </div>
+    </div>
+    <button class="btn-generate" id="btn-generate" onclick="generateNumber()">Generate Priority Number</button>
+  </div>
+
+  <div class="tickets-section">
+    <div class="tickets-title">My Priority Numbers</div>
+    <div id="tickets-list"><div class="empty-tickets"><div class="icon">🎟</div><div>No tickets yet.<br>Pick today on the calendar above.</div></div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase Compat SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey:            "AIzaSyAiRK64ZYzF8lBKnxmubCZEO9qrCN42B1g",
+    authDomain:        "fti-queue.firebaseapp.com",
+    databaseURL:       "https://fti-queue-default-rtdb.firebaseio.com",
+    projectId:         "fti-queue",
+    storageBucket:     "fti-queue.firebasestorage.app",
+    messagingSenderId: "794859488896",
+    appId:             "1:794859488896:web:4e7dcb7e830fc4bf334865"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  const LIMIT_TOTAL = 300, LIMIT_SLOT = 150;
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  let now = new Date(), viewYear = now.getFullYear(), viewMonth = now.getMonth();
+  let selectedDate = null, selectedTime = null;
+  let slotsData = {}, disabledNumbers = {};
+  let myTickets = [], myTicketIds = JSON.parse(localStorage.getItem('pq_my_ticket_ids') || '[]');
+
+  // Default schedule settings (overwritten by Firebase)
+  let scheduleSettings = {
+    claimStart: '06:00', claimEnd: '10:00',
+    amStart:    '08:00', amEnd:    '12:00',
+    pmStart:    '12:00', pmEnd:    '17:00'
+  };
+
+  // ── Firebase connection ─────────────────────────────────────
+  db.ref('.info/connected').on('value', function(snap) {
+    const ok = snap.val();
+    document.getElementById('fb-dot').className = 'fb-dot' + (ok ? ' connected' : '');
+    document.getElementById('fb-status-text').textContent = ok ? 'Connected to Firebase' : 'Reconnecting...';
+    if (ok) document.getElementById('loading-overlay').classList.add('hide');
+  });
+
+  // ── Realtime schedule settings ──────────────────────────────
+  db.ref('scheduleSettings').on('value', function(snap) {
+    if (snap.exists()) {
+      scheduleSettings = Object.assign({}, scheduleSettings, snap.val());
+    }
+    updateScheduleBar();
+    updateClaimingClosedBanner();
+    renderTickets(); // re-render to update validity indicators
+    // Update window tags on form buttons if date is selected
+    if (selectedDate) updateFormWindowTags();
+  });
+
+  // ── Realtime slots ──────────────────────────────────────────
+  db.ref('slots').on('value', function(snap) {
+    slotsData = snap.val() || {};
+    renderCalendar();
+    if (selectedDate) updateSlotBanner(selectedDate);
+  });
+
+  // ── Realtime disabled numbers ───────────────────────────────
+  db.ref('disabledNumbers').on('value', function(snap) {
+    disabledNumbers = snap.val() || {};
+    renderTickets();
+  });
+
+  async function loadMyTickets() {
+    myTickets = [];
+    for (const id of myTicketIds) {
+      const snap = await db.ref('tickets/' + id).once('value');
+      if (snap.exists()) myTickets.push({ id, ...snap.val() });
+    }
+    renderTickets();
+    renderCalendar();
+  }
+  loadMyTickets();
+
+  // ── Schedule helpers ────────────────────────────────────────
+  function fmt(t) {
+    if (!t) return '—';
+    const [h, m] = t.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const hr   = h % 12 || 12;
+    return hr + ':' + String(m).padStart(2,'0') + ' ' + ampm;
+  }
+
+  function timeStrToMinutes(t) {
+    const [h, m] = t.split(':').map(Number);
+    return h * 60 + m;
+  }
+
+  function isClaimingOpen() {
+    const now = new Date();
+    const curMin = now.getHours() * 60 + now.getMinutes();
+    const startMin = timeStrToMinutes(scheduleSettings.claimStart);
+    const endMin   = timeStrToMinutes(scheduleSettings.claimEnd);
+    return curMin >= startMin && curMin < endMin;
+  }
+
+  function isTicketCurrentlyValid(ticket) {
+    // Returns 'valid' | 'active' | 'expired' | 'not-yet'
+    const now = new Date();
+    const curMin = now.getHours() * 60 + now.getMinutes();
+    const ticketDateStr = ticket.date;
+    const todayStr = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate());
+    const ticketDate = new Date(ticketDateStr + 'T00:00:00');
+    const today      = new Date(todayStr + 'T00:00:00');
+
+    if (ticketDate < today) return 'expired';
+    if (ticketDate > today) return 'future';
+
+    const startKey = ticket.time === 'AM' ? 'amStart' : 'pmStart';
+    const endKey   = ticket.time === 'AM' ? 'amEnd'   : 'pmEnd';
+    const startMin = timeStrToMinutes(scheduleSettings[startKey]);
+    const endMin   = timeStrToMinutes(scheduleSettings[endKey]);
+
+    if (curMin < startMin) return 'not-yet';
+    if (curMin >= endMin)  return 'expired';
+    return 'active'; // within service window today
+  }
+
+  function updateScheduleBar() {
+    document.getElementById('sch-claim').textContent = fmt(scheduleSettings.claimStart) + ' – ' + fmt(scheduleSettings.claimEnd);
+    document.getElementById('sch-am').textContent    = fmt(scheduleSettings.amStart)    + ' – ' + fmt(scheduleSettings.amEnd);
+    document.getElementById('sch-pm').textContent    = fmt(scheduleSettings.pmStart)    + ' – ' + fmt(scheduleSettings.pmEnd);
+  }
+
+  function updateClaimingClosedBanner() {
+    const banner = document.getElementById('claiming-closed-banner');
+    if (isClaimingOpen()) {
+      banner.classList.remove('show');
+    } else {
+      banner.innerHTML = '🚫 Ticket claiming is closed. Claiming opens at <strong>' +
+        fmt(scheduleSettings.claimStart) + '</strong> and closes at <strong>' +
+        fmt(scheduleSettings.claimEnd) + '</strong>.';
+      banner.classList.add('show');
+    }
+  }
+
+  function updateFormWindowTags() {
+    document.getElementById('win-am').textContent = fmt(scheduleSettings.amStart) + '–' + fmt(scheduleSettings.amEnd);
+    document.getElementById('win-pm').textContent = fmt(scheduleSettings.pmStart) + '–' + fmt(scheduleSettings.pmEnd);
+  }
+
+  // ── Calendar ─────────────────────────────────────────────────
+  function changeMonth(dir) {
+    viewMonth += dir;
+    if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+    if (viewMonth < 0)  { viewMonth = 11; viewYear--; }
+    renderCalendar();
+  }
+
+  function renderCalendar() {
+    document.getElementById('month-year').textContent = MONTHS[viewMonth] + ' ' + viewYear;
+    const grid = document.getElementById('cal-grid');
+    grid.innerHTML = '';
+    const firstDay    = new Date(viewYear, viewMonth, 1).getDay();
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    const todayStr    = toDateStr(now);
+    const hasActive   = myActiveTicket();
+
+    for (let i = 0; i < firstDay; i++) {
+      const e = document.createElement('div'); e.className = 'cal-day empty'; grid.appendChild(e);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr  = viewYear + '-' + pad(viewMonth + 1) + '-' + pad(d);
+      const cellDate = new Date(viewYear, viewMonth, d);
+      const isPast   = cellDate < new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const isToday  = dateStr === todayStr;
+      const slots    = slotsData[dateStr] || { AM: 0, PM: 0 };
+      const total    = (slots.AM || 0) + (slots.PM || 0);
+      const isFull   = total >= LIMIT_TOTAL;
+      const myTicket = myTickets.find(function(t){ return t.date === dateStr; });
+
+      const el = document.createElement('div');
+      el.className = 'cal-day';
+      el.innerHTML = '<div class="day-num">' + d + '</div><div class="day-dot"></div>';
+
+      if (isPast)         { el.classList.add('past'); }
+      else if (!isToday)  { el.classList.add('disabled-day'); el.title = 'Only today is available'; }
+      else if (myTicket)  { el.classList.add('has-my-ticket'); el.title = 'You already have a ticket today'; }
+      else if (hasActive) { el.classList.add('has-my-ticket'); el.title = 'You already have an active number'; }
+      else if (!isClaimingOpen()) { el.classList.add('disabled-day'); el.title = 'Claiming is currently closed'; }
+      else if (isFull)    { el.classList.add('disabled-day', 'day-full'); }
+      else {
+        if (total > 0) el.classList.add('day-open');
+        el.onclick = (function(ds){ return function(){ selectDate(ds); }; })(dateStr);
+      }
+
+      if (dateStr === todayStr)     el.classList.add('today');
+      if (dateStr === selectedDate) el.classList.add('selected');
+      grid.appendChild(el);
+    }
+  }
+
+  function selectDate(dateStr) {
+    // Guard: claiming window
+    if (!isClaimingOpen()) {
+      toast('⚠ Ticket claiming is currently closed');
+      return;
+    }
+    // Guard: 1 ticket per day
+    const alreadyToday = myTickets.find(function(t){ return t.date === dateStr; });
+    if (alreadyToday) {
+      toast('⚠ You already have ticket #' + pad3(alreadyToday.number) + ' for today');
+      return;
+    }
+    selectedDate = dateStr; selectedTime = null;
+    const slots  = slotsData[dateStr] || { AM: 0, PM: 0 };
+    const amFull = (slots.AM || 0) >= LIMIT_SLOT;
+    const pmFull = (slots.PM || 0) >= LIMIT_SLOT;
+    const d = new Date(dateStr + 'T00:00:00');
+    document.getElementById('form-date-label').textContent =
+      '📅 ' + DAYS[d.getDay()] + ', ' + MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+    const btnAM = document.getElementById('btn-am'), btnPM = document.getElementById('btn-pm');
+    btnAM.classList.remove('active', 'full'); btnPM.classList.remove('active', 'full');
+    document.getElementById('tag-am').textContent = amFull ? 'FULL (150/150)' : (slots.AM || 0) + '/150 slots';
+    document.getElementById('tag-pm').textContent = pmFull ? 'FULL (150/150)' : (slots.PM || 0) + '/150 slots';
+    if (amFull) btnAM.classList.add('full');
+    if (pmFull) btnPM.classList.add('full');
+    updateFormWindowTags();
+    document.getElementById('inp-name').value = '';
+    updateSlotBanner(dateStr);
+    document.getElementById('slot-banner').classList.add('show');
+    document.getElementById('form-card').classList.add('show');
+    document.getElementById('form-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    renderCalendar();
+  }
+
+  function selectTime(t) {
+    if (!selectedDate) return;
+    if (!isClaimingOpen()) { toast('⚠ Claiming is currently closed'); return; }
+    const slots = slotsData[selectedDate] || { AM: 0, PM: 0 };
+    if (t === 'AM' && (slots.AM || 0) >= LIMIT_SLOT) return;
+    if (t === 'PM' && (slots.PM || 0) >= LIMIT_SLOT) return;
+    selectedTime = t;
+    document.getElementById('btn-am').classList.toggle('active', t === 'AM');
+    document.getElementById('btn-pm').classList.toggle('active', t === 'PM');
+  }
+
+  async function generateNumber() {
+    if (!isClaimingOpen()) { toast('⚠ Ticket claiming is currently closed'); return; }
+    const name = document.getElementById('inp-name').value.trim();
+    if (!name)         return toast('⚠ Please enter your name');
+    if (!selectedTime) return toast('⚠ Please select AM or PM');
+
+    // 1-per-day check
+    const todayStr = toDateStr(new Date());
+    const alreadyToday = myTickets.find(function(t){ return t.date === todayStr; });
+    if (alreadyToday) {
+      toast('⚠ You already have a ticket for today (#' + pad3(alreadyToday.number) + ')');
+      document.getElementById('form-card').classList.remove('show');
+      document.getElementById('slot-banner').classList.remove('show');
+      selectedDate = null; selectedTime = null;
+      renderCalendar();
+      return;
+    }
+
+    const btn = document.getElementById('btn-generate');
+    btn.disabled = true; btn.textContent = 'Saving...';
+
+    try {
+      const slotRef = db.ref('slots/' + selectedDate + '/' + selectedTime);
+      const result = await slotRef.transaction(function(cur) {
+        const c = cur || 0;
+        if (c >= LIMIT_SLOT) return;
+        return c + 1;
+      });
+
+      if (!result.committed) {
+        toast('⚠ Slot just filled up! Please choose another.');
+        btn.disabled = false; btn.textContent = 'Generate Priority Number'; return;
+      }
+
+      const slotPos   = result.snapshot.val();
+      const ticketNum = selectedTime === 'AM' ? slotPos : 150 + slotPos;
+
+      // Expiry uses PM end time (covers the whole day's service)
+      const issued = new Date();
+      const expiry = new Date(selectedDate + 'T' + (scheduleSettings.pmEnd || '17:00') + ':00');
+
+      const ticketData = {
+        number:    ticketNum,
+        name:      name,
+        time:      selectedTime,
+        date:      selectedDate,
+        issuedAt:  issued.toISOString(),
+        expiresAt: expiry.toISOString(),
+        createdAt: firebase.database.ServerValue.TIMESTAMP,
+        disabled:  false
+      };
+
+      const newRef = db.ref('tickets').push();
+      await newRef.set(ticketData);
+
+      myTicketIds.push(newRef.key);
+      localStorage.setItem('pq_my_ticket_ids', JSON.stringify(myTicketIds));
+      myTickets.unshift({ id: newRef.key, ...ticketData });
+
+      renderCalendar(); renderTickets();
+      toast('✅ Priority #' + ticketNum + ' generated!');
+      document.getElementById('form-card').classList.remove('show');
+      document.getElementById('slot-banner').classList.remove('show');
+      selectedDate = null; selectedTime = null;
+      renderCalendar();
+    } catch (err) {
+      console.error(err);
+      toast('❌ Error. Please try again.');
+    }
+
+    btn.disabled = false; btn.textContent = 'Generate Priority Number';
+  }
+
+  function updateSlotBanner(dateStr) {
+    const slots = slotsData[dateStr] || { AM: 0, PM: 0 };
+    const total = (slots.AM || 0) + (slots.PM || 0);
+    const d = new Date(dateStr + 'T00:00:00');
+    document.getElementById('slot-banner-title').textContent =
+      'Slots for ' + MONTHS[d.getMonth()].slice(0, 3) + ' ' + d.getDate();
+    setBar('total', total, LIMIT_TOTAL);
+    setBar('am',    slots.AM || 0, LIMIT_SLOT);
+    setBar('pm',    slots.PM || 0, LIMIT_SLOT);
+  }
+
+  function setBar(id, used, max) {
+    const pct   = Math.min((used / max) * 100, 100);
+    const fill  = document.getElementById('bar-' + id);
+    const count = document.getElementById('count-' + id);
+    fill.style.width = pct + '%';
+    const cls = pct >= 100 ? 'red' : pct >= 70 ? 'orange' : 'green';
+    fill.className  = 'slot-bar-fill ' + cls;
+    count.className = 'slot-count ' + cls;
+    count.textContent = used + '/' + max;
+  }
+
+  function renderTickets() {
+    const list = document.getElementById('tickets-list');
+    if (!myTickets.length) {
+      list.innerHTML = '<div class="empty-tickets"><div class="icon">🎟</div><div>No tickets yet.<br>Pick today on the calendar above.</div></div>';
+      return;
+    }
+
+    list.innerHTML = myTickets.map(function(t) {
+      const validity   = isTicketCurrentlyValid(t);
+      const isDisabled = disabledNumbers[t.date] && disabledNumbers[t.date][t.number];
+      const d          = new Date(t.date + 'T00:00:00');
+      const issued     = new Date(t.issuedAt);
+      const dateLabel  = MONTHS[d.getMonth()].slice(0, 3) + ' ' + d.getDate() + ', ' + d.getFullYear();
+      const issuedLbl  = issued.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+      // Validity window label
+      const startKey = t.time === 'AM' ? 'amStart' : 'pmStart';
+      const endKey   = t.time === 'AM' ? 'amEnd'   : 'pmEnd';
+      const windowLbl = '⏰ ' + fmt(scheduleSettings[startKey]) + ' – ' + fmt(scheduleSettings[endKey]);
+
+      const isFaded = isDisabled || validity === 'expired';
+
+      let statusClass, statusText;
+      if (isDisabled)           { statusClass = 'status-disabled'; statusText = '⊘ Disabled'; }
+      else if (validity === 'active')   { statusClass = 'status-active';  statusText = '🟢 Now Serving'; }
+      else if (validity === 'not-yet')  { statusClass = 'status-valid';   statusText = '⏳ Not Yet'; }
+      else if (validity === 'future')   { statusClass = 'status-valid';   statusText = '📅 Upcoming'; }
+      else                              { statusClass = 'status-expired';  statusText = '✕ Expired'; }
+
+      return '<div class="ticket-card ' + (isFaded ? 'expired' : '') + '">' +
+        '<div class="ticket-top">' +
+          '<div class="ticket-number">' + pad3(t.number) + '</div>' +
+          '<div class="ticket-divider"></div>' +
+          '<div class="ticket-info">' +
+            '<div class="ticket-name">' + t.name + '</div>' +
+            '<span class="ticket-time-badge">' + t.time + ' — ' + dateLabel + '</span>' +
+            '<div class="ticket-date-row">Issued: ' + issuedLbl + '</div>' +
+            '<div class="ticket-window-row">' + windowLbl + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="ticket-bottom">' +
+          '<div class="expiry-info">Service window: <span>' + fmt(scheduleSettings[startKey]) + ' – ' + fmt(scheduleSettings[endKey]) + '</span></div>' +
+          '<span class="status-badge ' + statusClass + '">' + statusText + '</span>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function myActiveTicket() {
+    return myTickets.find(function(t) {
+      const validity = isTicketCurrentlyValid(t);
+      return (validity === 'active' || validity === 'not-yet' || validity === 'future') &&
+             !(disabledNumbers[t.date] && disabledNumbers[t.date][t.number]);
+    }) || null;
+  }
+
+  // ── AUTO-DELETE expired tickets (1 hour grace after service window ends) ──
+  const GRACE_MS = 5 * 60 * 60 * 1000; // 5 hours in milliseconds
+
+  function getTicketExpiryMs(ticket) {
+    // Expiry = service window end time on the ticket's date
+    const endKey = ticket.time === 'AM' ? 'amEnd' : 'pmEnd';
+    const endTime = scheduleSettings[endKey] || (ticket.time === 'AM' ? '12:00' : '17:00');
+    return new Date(ticket.date + 'T' + endTime + ':00').getTime();
+  }
+
+  async function purgeExpiredTickets() {
+    const nowMs = Date.now();
+    const toDelete = myTickets.filter(function(t) {
+      const expiryMs = getTicketExpiryMs(t);
+      return (nowMs - expiryMs) >= GRACE_MS; // expired more than 1 hour ago
+    });
+
+    if (!toDelete.length) return;
+
+    for (const t of toDelete) {
+      try {
+        // Delete ticket record from Firebase
+        await db.ref('tickets/' + t.id).remove();
+        // Also clean up disabledNumbers entry if present
+        await db.ref('disabledNumbers/' + t.date + '/' + t.number).remove();
+      } catch(err) {
+        console.warn('Failed to delete ticket ' + t.id, err);
+      }
+    }
+
+    // Remove from local state
+    const deleteIds = new Set(toDelete.map(function(t){ return t.id; }));
+    myTickets  = myTickets.filter(function(t){ return !deleteIds.has(t.id); });
+    myTicketIds = myTicketIds.filter(function(id){ return !deleteIds.has(id); });
+    localStorage.setItem('pq_my_ticket_ids', JSON.stringify(myTicketIds));
+
+    renderCalendar();
+    renderTickets();
+  }
+
+  function toDateStr(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function pad(n)  { return String(n).padStart(2, '0'); }
+  function pad3(n) { return String(n).padStart(3, '0'); }
+  function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg; el.classList.add('show');
+    setTimeout(function(){ el.classList.remove('show'); }, 2800);
+  }
+
+  renderCalendar();
+  renderTickets();
+  // Run purge on load, then every minute
+  purgeExpiredTickets();
+  setInterval(function() {
+    updateClaimingClosedBanner();
+    renderCalendar();
+    renderTickets();
+    purgeExpiredTickets();
+  }, 60000);
+</script>
+</body>
+</html>

@@ -137,8 +137,7 @@
     }
     updateScheduleBar();
     updateClaimingClosedBanner();
-    renderTickets(); // re-render to update validity indicators
-    // Update window tags on form buttons if date is selected
+    renderTickets();
     if (selectedDate) updateFormWindowTags();
   });
 
@@ -189,7 +188,6 @@
   }
 
   function isTicketCurrentlyValid(ticket) {
-    // Returns 'valid' | 'active' | 'expired' | 'not-yet'
     const now = new Date();
     const curMin = now.getHours() * 60 + now.getMinutes();
     const ticketDateStr = ticket.date;
@@ -207,7 +205,7 @@
 
     if (curMin < startMin) return 'not-yet';
     if (curMin >= endMin)  return 'expired';
-    return 'active'; // within service window today
+    return 'active';
   }
 
   function updateScheduleBar() {
@@ -286,12 +284,10 @@
   }
 
   function selectDate(dateStr) {
-    // Guard: claiming window
     if (!isClaimingOpen()) {
       toast('⚠ Ticket claiming is currently closed');
       return;
     }
-    // Guard: 1 ticket per day
     const alreadyToday = myTickets.find(function(t){ return t.date === dateStr; });
     if (alreadyToday) {
       toast('⚠ You already have ticket #' + pad3(alreadyToday.number) + ' for today');
@@ -336,7 +332,6 @@
     if (!name)         return toast('⚠ Please enter your name');
     if (!selectedTime) return toast('⚠ Please select AM or PM');
 
-    // 1-per-day check
     const todayStr = toDateStr(new Date());
     const alreadyToday = myTickets.find(function(t){ return t.date === todayStr; });
     if (alreadyToday) {
@@ -367,7 +362,6 @@
       const slotPos   = result.snapshot.val();
       const ticketNum = selectedTime === 'AM' ? slotPos : 150 + slotPos;
 
-      // Expiry uses PM end time (covers the whole day's service)
       const issued = new Date();
       const expiry = new Date(selectedDate + 'T' + (scheduleSettings.pmEnd || '17:00') + ':00');
 
@@ -440,7 +434,6 @@
       const dateLabel  = MONTHS[d.getMonth()].slice(0, 3) + ' ' + d.getDate() + ', ' + d.getFullYear();
       const issuedLbl  = issued.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-      // Validity window label
       const startKey = t.time === 'AM' ? 'amStart' : 'pmStart';
       const endKey   = t.time === 'AM' ? 'amEnd'   : 'pmEnd';
       const windowLbl = '⏰ ' + fmt(scheduleSettings[startKey]) + ' – ' + fmt(scheduleSettings[endKey]);
@@ -448,10 +441,10 @@
       const isFaded = isDisabled || validity === 'expired';
 
       let statusClass, statusText;
-      if (isDisabled)           { statusClass = 'status-disabled'; statusText = '⊘ Disabled'; }
-      else if (validity === 'active')   { statusClass = 'status-active';  statusText = '🟢 Now Serving'; }
-      else if (validity === 'not-yet')  { statusClass = 'status-valid';   statusText = '⏳ Not Yet'; }
-      else if (validity === 'future')   { statusClass = 'status-valid';   statusText = '📅 Upcoming'; }
+      if (isDisabled)                   { statusClass = 'status-disabled'; statusText = '⊘ Disabled'; }
+      else if (validity === 'active')   { statusClass = 'status-active';   statusText = '🟢 Now Serving'; }
+      else if (validity === 'not-yet')  { statusClass = 'status-valid';    statusText = '⏳ Not Yet'; }
+      else if (validity === 'future')   { statusClass = 'status-valid';    statusText = '📅 Upcoming'; }
       else                              { statusClass = 'status-expired';  statusText = '✕ Expired'; }
 
       return '<div class="ticket-card ' + (isFaded ? 'expired' : '') + '">' +
@@ -481,39 +474,52 @@
     }) || null;
   }
 
-  // ── AUTO-DELETE expired tickets (1 hour grace after service window ends) ──
-  const GRACE_MS = 5 * 60 * 60 * 1000; // 5 hours in milliseconds
-
-  function getTicketExpiryMs(ticket) {
-    // Expiry = service window end time on the ticket's date
-    const endKey = ticket.time === 'AM' ? 'amEnd' : 'pmEnd';
-    const endTime = scheduleSettings[endKey] || (ticket.time === 'AM' ? '12:00' : '17:00');
-    return new Date(ticket.date + 'T' + endTime + ':00').getTime();
-  }
-
+  // ── AUTO-DELETE expired tickets at midnight + clean up slots ──
   async function purgeExpiredTickets() {
     const nowMs = Date.now();
+
+    // A ticket is expired if we are past 23:59:59 of its date
     const toDelete = myTickets.filter(function(t) {
-      const expiryMs = getTicketExpiryMs(t);
-      return (nowMs - expiryMs) >= GRACE_MS; // expired more than 1 hour ago
+      return nowMs > new Date(t.date + 'T23:59:59').getTime();
     });
 
     if (!toDelete.length) return;
 
     for (const t of toDelete) {
       try {
-        // Delete ticket record from Firebase
+        // 1. Delete the ticket record
         await db.ref('tickets/' + t.id).remove();
-        // Also clean up disabledNumbers entry if present
+
+        // 2. Clean up disabledNumbers entry
         await db.ref('disabledNumbers/' + t.date + '/' + t.number).remove();
+
+        // 3. Decrement the slot count (AM or PM); remove node if it hits 0
+        await db.ref('slots/' + t.date + '/' + t.time).transaction(function(cur) {
+          const next = (cur || 1) - 1;
+          return next <= 0 ? null : next;
+        });
       } catch(err) {
         console.warn('Failed to delete ticket ' + t.id, err);
       }
     }
 
-    // Remove from local state
+    // 4. If both AM and PM slots for that date are now gone, remove the date node too
+    const uniqueDates = [...new Set(toDelete.map(function(t){ return t.date; }))];
+    for (const date of uniqueDates) {
+      const slotSnap = await db.ref('slots/' + date).once('value');
+      if (!slotSnap.exists()) {
+        await db.ref('slots/' + date).remove();
+      }
+      // Clean up empty disabledNumbers date node
+      const disSnap = await db.ref('disabledNumbers/' + date).once('value');
+      if (!disSnap.exists()) {
+        await db.ref('disabledNumbers/' + date).remove();
+      }
+    }
+
+    // 5. Remove from local state and localStorage
     const deleteIds = new Set(toDelete.map(function(t){ return t.id; }));
-    myTickets  = myTickets.filter(function(t){ return !deleteIds.has(t.id); });
+    myTickets   = myTickets.filter(function(t){ return !deleteIds.has(t.id); });
     myTicketIds = myTicketIds.filter(function(id){ return !deleteIds.has(id); });
     localStorage.setItem('pq_my_ticket_ids', JSON.stringify(myTicketIds));
 
@@ -532,6 +538,7 @@
 
   renderCalendar();
   renderTickets();
+
   // Run purge on load, then every minute
   purgeExpiredTickets();
   setInterval(function() {

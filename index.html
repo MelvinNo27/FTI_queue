@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Priority Queue</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+--blue:#2563eb;--blue-light:#eff6ff;--blue-mid:#dbeafe;
+--green:#16a34a;--green-light:#f0fdf4;
+--red:#dc2626;--red-light:#fef2f2;
+--orange:#ea580c;--border:#e2e8f0;--bg:#f8fafc;
+--white:#fff;--text:#1e293b;--muted:#94a3b8;--gray:#64748b;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:48px;}
+.header{background:var(--blue);color:white;padding:18px 20px;text-align:center;box-shadow:0 2px 8px rgba(37,99,235,.3);}
+.header h1{font-size:20px;font-weight:800;}
+.header p{font-size:12px;opacity:.75;margin-top:2px;}
+.wrap{max-width:480px;margin:0 auto;padding:24px 16px 0;}
+.loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:12px;}
+.loading-overlay.hide{display:none;}
+.spinner{width:36px;height:36px;border:4px solid var(--blue-mid);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-overlay p{font-size:14px;font-weight:700;color:var(--gray);}
+
+/* ── DATE CARD ── */
+.date-card{background:var(--white);border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.07);padding:28px 20px;margin-bottom:16px;display:flex;flex-direction:column;align-items:center;}
+.cal-icon{width:180px;border-radius:18px;overflow:hidden;box-shadow:0 10px 32px rgba(0,0,0,.18);border:1.5px solid #e2e8f0;}
+.cal-icon-month{background:#e53e3e;color:white;text-align:center;font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:2px;padding:10px 0 8px;}
+.cal-icon-day{background:white;text-align:center;font-size:80px;font-weight:800;color:#1a202c;line-height:1;padding:12px 0 6px;}
+.cal-icon-dayname{background:white;text-align:center;font-size:14px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:0 0 14px;}
+/* ── TODAY ACTION CARD ── */
+.today-card{background:var(--white);border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.07);padding:20px;margin-bottom:20px;}
+.today-status-body{}
+.today-status-row{display:flex;gap:10px;margin-bottom:14px;}
+.today-slot-pill{flex:1;border-radius:12px;padding:12px 14px;text-align:center;}
+.today-slot-pill.am{background:var(--blue-light);border:1.5px solid #bfdbfe;}
+.today-slot-pill.pm{background:#fef3c7;border:1.5px solid #fde68a;}
+.today-slot-pill .pill-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.today-slot-pill.am .pill-label{color:var(--blue);}
+.today-slot-pill.pm .pill-label{color:#92400e;}
+.today-slot-pill .pill-count{font-size:20px;font-weight:800;color:var(--text);}
+.today-slot-pill .pill-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+.today-slot-pill.full-slot .pill-count{color:var(--red);}
+.btn-get-number{width:100%;padding:13px;background:var(--blue);color:white;border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;}
+.btn-get-number:hover:not(:disabled){background:#1d4ed8;transform:translateY(-1px);box-shadow:0 4px 14px rgba(37,99,235,.35);}
+.btn-get-number:disabled{background:var(--muted);cursor:not-allowed;}
+.btn-get-number.full-btn{background:var(--red);}
+.today-closed-msg{background:var(--red-light);border:1.5px solid #fecaca;border-radius:10px;padding:12px 14px;font-size:13px;font-weight:700;color:var(--red);text-align:center;}
+
+.schedule-info{background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:1.5px solid #bfdbfe;border-radius:12px;padding:12px 16px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:12px;font-weight:700;}
+.sch-item{display:flex;align-items:center;gap:5px;color:var(--text);}
+.sch-item .sch-label{color:var(--muted);font-weight:600;}
+.sch-item strong{color:var(--blue);}
+.claiming-closed-banner{background:var(--red-light);border:1.5px solid #fecaca;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px;font-weight:700;color:var(--red);text-align:center;display:none;}
+.claiming-closed-banner.show{display:block;}
+.slot-banner{display:none;background:var(--white);border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.07);padding:14px 16px;margin-bottom:16px;animation:slideDown .3s ease-out;}
+.slot-banner.show{display:block;}
+.slot-banner-title{font-size:12px;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+.slot-bars{display:flex;flex-direction:column;gap:8px;}
+.slot-row{display:flex;align-items:center;gap:10px;}
+.slot-label{font-size:12px;font-weight:700;width:38px;color:var(--text);}
+.slot-bar-wrap{flex:1;height:10px;background:#e2e8f0;border-radius:100px;overflow:hidden;}
+.slot-bar-fill{height:100%;border-radius:100px;transition:width .4s;}
+.slot-bar-fill.green{background:var(--green);}
+.slot-bar-fill.orange{background:var(--orange);}
+.slot-bar-fill.red{background:var(--red);}
+.slot-count{font-size:11px;font-weight:700;width:52px;text-align:right;}
+.slot-count.green{color:var(--green);}
+.slot-count.orange{color:var(--orange);}
+.slot-count.red{color:var(--red);}
+.form-card{background:var(--white);border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.07);padding:22px 20px;margin-bottom:20px;display:none;animation:slideDown .3s ease-out;}
+.form-card.show{display:block;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+.form-date-label{background:var(--blue-light);color:var(--blue);font-size:13px;font-weight:700;padding:8px 12px;border-radius:8px;margin-bottom:18px;text-align:center;}
+.form-card h2{font-size:15px;font-weight:800;margin-bottom:16px;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--gray);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+.field label .opt{font-size:10px;color:var(--muted);font-weight:600;text-transform:none;margin-left:4px;}
+.field input[type=text]{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Nunito',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border-color .2s;}
+.field input[type=text]:focus{border-color:var(--blue);}
+.field select{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Nunito',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border-color .2s;background:white;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;}
+.field select:focus{border-color:var(--blue);}
+.field select optgroup{font-weight:800;font-size:12px;color:var(--blue);}
+.field select option{font-weight:600;font-size:14px;color:var(--text);}
+.id-info-box{background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:10px 14px;margin-top:8px;font-size:12px;color:var(--green);display:flex;align-items:center;gap:8px;font-weight:700;}
+.person-section{border:1.5px solid #bfdbfe;border-radius:14px;padding:16px 16px 4px;margin-bottom:16px;background:var(--blue-light);}
+.person-section-label{font-size:12px;font-weight:800;color:var(--blue);text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px;padding-bottom:8px;border-bottom:1.5px solid #bfdbfe;}
+.claimant-section{background:#f0fdf4;border-color:#bbf7d0;}
+.claimant-section .person-section-label{color:var(--green);border-bottom-color:#bbf7d0;}
+.time-row{display:flex;gap:10px;}
+.time-btn{flex:1;padding:12px;border:1.5px solid var(--border);border-radius:10px;background:white;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;color:var(--gray);}
+.time-btn.active{border-color:var(--blue);background:var(--blue);color:white;}
+.time-btn.full{background:var(--red-light);border-color:#fca5a5;color:var(--red);cursor:not-allowed;pointer-events:none;}
+.time-btn .slot-tag{display:block;font-size:10px;font-weight:600;margin-top:2px;opacity:.8;}
+.time-btn .window-tag{display:block;font-size:10px;font-weight:700;margin-top:1px;color:var(--green);}
+.time-btn.full .slot-tag{opacity:1;font-weight:800;}
+.time-btn.active .window-tag{color:rgba(255,255,255,.8);}
+.btn-generate{width:100%;padding:13px;background:var(--blue);color:white;border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;margin-top:4px;transition:all .2s;}
+.btn-generate:hover:not(:disabled){background:#1d4ed8;transform:translateY(-1px);box-shadow:0 4px 14px rgba(37,99,235,.35);}
+.btn-generate:disabled{background:var(--muted);cursor:not-allowed;}
+.btn-add-another{width:100%;padding:11px;background:var(--green-light);color:var(--green);border:1.5px solid #bbf7d0;border-radius:12px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;margin-bottom:16px;transition:all .2s;}
+.btn-add-another:hover{background:#dcfce7;}
+.tickets-section{margin-bottom:20px;}
+.tickets-title{font-size:13px;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;}
+.ticket-card{background:var(--white);border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.07);margin-bottom:12px;overflow:hidden;animation:slideDown .35s ease-out;position:relative;}
+.ticket-card.expired{opacity:.55;}
+.ticket-top{display:flex;align-items:center;padding:16px 18px;gap:16px;}
+.ticket-number{font-family:'Courier Prime',monospace;font-size:42px;font-weight:700;color:var(--blue);line-height:1;min-width:80px;text-align:center;}
+.ticket-card.expired .ticket-number{color:var(--muted);}
+.ticket-divider{width:1px;height:60px;background:var(--border);flex-shrink:0;}
+.ticket-info{flex:1;}
+.ticket-name{font-size:16px;font-weight:800;margin-bottom:3px;}
+.ticket-time-badge{display:inline-block;background:var(--blue-light);color:var(--blue);font-size:11px;font-weight:700;padding:2px 8px;border-radius:100px;margin-bottom:4px;}
+.ticket-card.expired .ticket-time-badge{background:#f1f5f9;color:var(--muted);}
+.ticket-date-row{font-size:11px;color:var(--muted);}
+.ticket-id-row{font-size:11px;color:var(--gray);margin-top:2px;font-weight:600;}
+.ticket-id2-row{font-size:11px;color:var(--gray);margin-top:1px;font-weight:600;opacity:.8;}
+.ticket-window-row{font-size:11px;font-weight:700;color:var(--green);margin-top:2px;}
+.ticket-card.expired .ticket-window-row{color:var(--muted);}
+.ticket-bottom{border-top:1.5px dashed var(--border);padding:10px 18px;display:flex;align-items:center;justify-content:space-between;}
+.expiry-info{font-size:11px;color:var(--gray);}
+.expiry-info span{font-weight:700;}
+.status-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;}
+.status-valid{background:var(--green-light);color:var(--green);}
+.status-active{background:#fef3c7;color:#92400e;}
+.status-expired{background:var(--red-light);color:var(--red);}
+.status-disabled{background:#fef3c7;color:#92400e;}
+.ticket-card::before{content:'';position:absolute;left:90px;top:0;bottom:0;width:1.5px;background:repeating-linear-gradient(to bottom,var(--border) 0,var(--border) 6px,transparent 6px,transparent 12px);}
+.empty-tickets{text-align:center;padding:32px 16px;color:var(--muted);background:var(--white);border-radius:16px;font-size:14px;box-shadow:0 2px 12px rgba(0,0,0,.05);}
+.empty-tickets .icon{font-size:36px;margin-bottom:8px;}
+.fb-status{display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;font-weight:700;color:var(--gray);margin-bottom:16px;}
+.fb-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);}
+.fb-dot.connected{background:var(--green);animation:fbPulse 2s infinite;}
+@keyframes fbPulse{0%,100%{opacity:1}50%{opacity:.4}}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(70px);background:#1e293b;color:white;padding:11px 22px;border-radius:10px;font-size:13px;font-weight:700;z-index:99;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+
+<div class="header">
+<h1 id="header-title" onclick="handleTitleTap()" style="cursor:default;user-select:none;text-decoration:none;">Kadiwa Control Number</h1>
+<p>Get your priority number for today</p>
+</div>
+
+<div class="wrap">
+
+<div class="schedule-info">
+<div class="sch-item"><span class="sch-label"> Claiming:</span> <strong id="sch-claim">—</strong></div>
+<div class="sch-item"><span class="sch-label">AM valid:</span> <strong id="sch-am">—</strong></div>
+<div class="sch-item"><span class="sch-label">PM valid:</span> <strong id="sch-pm">—</strong></div>
+</div>
+
+<div class="claiming-closed-banner" id="claiming-closed-banner"></div>
+
+<!-- DATE CARD — large centered calendar icon -->
+<div class="date-card">
+<div class="cal-icon">
+<div class="cal-icon-month" id="today-month-str">—</div>
+<div class="cal-icon-day" id="today-day-num">—</div>
+<div class="cal-icon-dayname" id="today-day-name">—</div>
+</div>
+</div>
+
+<!-- SLOT + ACTION CARD -->
+<div class="today-card" id="today-card">
+<div class="today-status-body">
+<div class="today-status-row">
+<div class="today-slot-pill am" id="pill-am">
+<div class="pill-label">AM Slots</div>
+<div class="pill-count" id="pill-am-count">—</div>
+<div class="pill-sub" id="pill-am-sub">of 150</div>
+</div>
+<div class="today-slot-pill pm" id="pill-pm">
+<div class="pill-label">PM Slots</div>
+<div class="pill-count" id="pill-pm-count">—</div>
+<div class="pill-sub" id="pill-pm-sub">of 150</div>
+</div>
+</div>
+<button class="btn-get-number" id="btn-get-number" onclick="openForm()">Get My Priority Number</button>
+<div class="today-closed-msg" id="today-closed-msg" style="display:none;"></div>
+</div>
+</div>
+
+<div class="slot-banner" id="slot-banner">
+<div class="slot-banner-title" id="slot-banner-title">Slots for Today</div>
+<div class="slot-bars">
+<div class="slot-row"><div class="slot-label">Total</div><div class="slot-bar-wrap"><div class="slot-bar-fill" id="bar-total"></div></div><div class="slot-count" id="count-total"></div></div>
+<div class="slot-row"><div class="slot-label">AM</div><div class="slot-bar-wrap"><div class="slot-bar-fill" id="bar-am"></div></div><div class="slot-count" id="count-am"></div></div>
+<div class="slot-row"><div class="slot-label">PM</div><div class="slot-bar-wrap"><div class="slot-bar-fill" id="bar-pm"></div></div><div class="slot-count" id="count-pm"></div></div>
+</div>
+</div>
+
+<div class="form-card" id="form-card">
+<div class="form-date-label" id="form-date-label">—</div>
+<h2>Fill in details</h2>
+
+<!-- CLAIMANT -->
+<div class="person-section claimant-section">
+<div class="person-section-label">Claimant</div>
+<div class="field">
+<label>Claimant Full Name</label>
+<input type="text" id="inp-name" placeholder="Enter claimant's full name"/>
+</div>
+</div>
+
+<!-- BENEFICIARY 1 -->
+<div class="person-section">
+<div class="person-section-label">Beneficiary 1</div>
+<div class="field">
+<label>Full Name <span class="opt">(as it appears on ID)</span></label>
+<input type="text" id="inp-ben1-name" placeholder="Enter full name from ID"/>
+</div>
+<div class="field">
+<label>ID Classification</label>
+<select id="inp-id-type">
+<option value="">— Select ID Classification —</option>
+<optgroup label=" Government-Issued (Primary)">
+<option>PhilSys (National ID)</option><option>Passport</option>
+<option>Driver's License (LTO)</option><option>Unified Multi-Purpose ID (UMID)</option>
+<option>SSS ID</option><option>GSIS ID</option><option>PhilHealth ID</option>
+<option>Pag-IBIG (HDMF) ID</option><option>Voter's ID / COMELEC ID</option>
+<option>PRC ID</option><option>NBI Clearance</option><option>Police Clearance</option>
+</optgroup>
+<optgroup label=" Government-Issued (Secondary)">
+<option>Postal ID</option><option>TIN ID (BIR)</option><option>Barangay ID</option>
+<option>Senior Citizen ID (OSCA)</option><option>PWD ID</option>
+<option>OFW ID / iDOLE Card</option><option>OWWA ID</option><option>MARINA ID</option>
+<option>AFP ID</option><option>PNP ID</option><option>BFP ID</option><option>BJMP ID</option>
+<option>DFA ID</option><option>DOLE ID</option><option>DSWD ID</option><option>DAR ID</option>
+<option>DILG ID</option><option>Land Bank ID</option><option>DBP ID</option><option>PhilPost ID</option>
+</optgroup>
+<optgroup label=" School / Work">
+<option>School ID</option><option>College / University ID</option><option>Company / Employee ID</option>
+</optgroup>
+<optgroup label=" Foreign / Other">
+<option>Foreign Passport</option><option>ACR I-Card (Alien Certificate)</option>
+<option>SRRV ID (Retirement Visa)</option><option>Other</option>
+</optgroup>
+</select>
+</div>
+<div class="field">
+<label>ID Number</label>
+<input type="text" id="inp-id-number" placeholder="Enter ID number"/>
+</div>
+</div>
+
+<!-- BENEFICIARY 2 -->
+<div class="person-section">
+<div class="person-section-label">Beneficiary 2 <span style="font-size:10px;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0;">(optional)</span></div>
+<div class="field">
+<label>Full Name <span class="opt">(as it appears on ID)</span></label>
+<input type="text" id="inp-ben2-name" placeholder="Enter full name from ID"/>
+</div>
+<div class="field">
+<label>ID Classification <span class="opt">(optional)</span></label>
+<select id="inp-id-type2">
+<option value="">— Select ID Classification —</option>
+<optgroup label=" Government-Issued (Primary)">
+<option>PhilSys (National ID)</option><option>Passport</option>
+<option>Driver's License (LTO)</option><option>Unified Multi-Purpose ID (UMID)</option>
+<option>SSS ID</option><option>GSIS ID</option><option>PhilHealth ID</option>
+<option>Pag-IBIG (HDMF) ID</option><option>Voter's ID / COMELEC ID</option>
+<option>PRC ID</option><option>NBI Clearance</option><option>Police Clearance</option>
+</optgroup>
+<optgroup label=" Government-Issued (Secondary)">
+<option>Postal ID</option><option>TIN ID (BIR)</option><option>Barangay ID</option>
+<option>Senior Citizen ID (OSCA)</option><option>PWD ID</option>
+<option>OFW ID / iDOLE Card</option><option>OWWA ID</option><option>MARINA ID</option>
+<option>AFP ID</option><option>PNP ID</option><option>BFP ID</option><option>BJMP ID</option>
+<option>DFA ID</option><option>DOLE ID</option><option>DSWD ID</option><option>DAR ID</option>
+<option>DILG ID</option><option>Land Bank ID</option><option>DBP ID</option><option>PhilPost ID</option>
+</optgroup>
+<optgroup label=" School / Work">
+<option>School ID</option><option>College / University ID</option><option>Company / Employee ID</option>
+</optgroup>
+<optgroup label=" Foreign / Other">
+<option>Foreign Passport</option><option>ACR I-Card (Alien Certificate)</option>
+<option>SRRV ID (Retirement Visa)</option><option>Other</option>
+</optgroup>
+</select>
+</div>
+<div class="field">
+<label>ID Number <span class="opt">(optional)</span></label>
+<input type="text" id="inp-id-number2" placeholder="Enter ID number"/>
+</div>
+</div>
+
+<div class="id-info-box" style="margin-bottom:14px;">IDs will be verified in person by staff upon arrival.</div>
+
+<div class="field">
+<label>Preferred Time</label>
+<div class="time-row">
+<button class="time-btn" id="btn-am" onclick="selectTime('AM')">
+AM<span class="slot-tag" id="tag-am"></span><span class="window-tag" id="win-am"></span>
+</button>
+<button class="time-btn" id="btn-pm" onclick="selectTime('PM')">
+PM<span class="slot-tag" id="tag-pm"></span><span class="window-tag" id="win-pm"></span>
+</button>
+</div>
+</div>
+
+<button class="btn-generate" id="btn-generate" onclick="generateNumber()">Generate Priority Number</button>
+</div>
+
+<button class="btn-add-another" id="btn-add-another" style="display:none;" onclick="showFormAgain()"> Add Another Person</button>
+
+<div class="tickets-section">
+<div class="tickets-title">My Priority Numbers</div>
+<div id="tickets-list">
+<div class="empty-tickets"><div class="icon"></div><div>No tickets yet.<br>Click the button above to get your number.</div></div>
+</div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+apiKey:"AIzaSyAiRK64ZYzF8lBKnxmubCZEO9qrCN42B1g",authDomain:"fti-queue.firebaseapp.com",
+databaseURL:"https://fti-queue-default-rtdb.firebaseio.com",projectId:"fti-queue",
+storageBucket:"fti-queue.firebasestorage.app",messagingSenderId:"794859488896",
+appId:"1:794859488896:web:4e7dcb7e830fc4bf334865"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const LIMIT_TOTAL=300,LIMIT_SLOT=150;
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+let now=new Date();
+let todayStr=toDateStr(now);
+let selectedTime=null;
+let slotsData={},disabledNumbers={};
+let myTickets=[],myTicketIds=JSON.parse(localStorage.getItem('pq_my_ticket_ids')||'[]');
+let scheduleSettings={claimStart:'06:00',claimEnd:'10:00',amStart:'08:00',amEnd:'12:00',pmStart:'12:00',pmEnd:'17:00'};
+
+db.ref('scheduleSettings').on('value',function(s){
+if(s.exists()) scheduleSettings=Object.assign({},scheduleSettings,s.val());
+updateScheduleBar();updateClaimingClosedBanner();renderTodayCard();renderTickets();
+});
+db.ref('slots').on('value',function(s){
+slotsData=s.val()||{};
+renderTodayCard();
+updateSlotBanner(todayStr);
+});
+db.ref('disabledNumbers').on('value',function(s){disabledNumbers=s.val()||{};renderTickets();});
+
+async function loadMyTickets(){
+myTickets=[];
+for(const id of myTicketIds){
+const s=await db.ref('tickets/'+id).once('value');
+if(s.exists()) myTickets.push({id,...s.val()});
+}
+renderTickets();
+}
+loadMyTickets();
+
+function fmt(t){if(!t)return'—';const[h,m]=t.split(':').map(Number);const ap=h>=12?'PM':'AM';const hr=h%12||12;return hr+':'+String(m).padStart(2,'0')+' '+ap;}
+function toMin(t){const[h,m]=t.split(':').map(Number);return h*60+m;}
+function isClaimingOpen(){const n=new Date();const c=n.getHours()*60+n.getMinutes();return c>=toMin(scheduleSettings.claimStart)&&c<toMin(scheduleSettings.claimEnd);}
+function isTicketValid(t){
+const n=new Date();const cur=n.getHours()*60+n.getMinutes();
+const ts=n.getFullYear()+'-'+pad(n.getMonth()+1)+'-'+pad(n.getDate());
+const td=new Date(t.date+'T00:00:00'),today=new Date(ts+'T00:00:00');
+if(td<today) return'expired';if(td>today) return'future';
+const sk=t.time==='AM'?'amStart':'pmStart',ek=t.time==='AM'?'amEnd':'pmEnd';
+if(cur<toMin(scheduleSettings[sk])) return'not-yet';
+if(cur>=toMin(scheduleSettings[ek])) return'expired';
+return'active';
+}
+function updateScheduleBar(){
+document.getElementById('sch-claim').textContent=fmt(scheduleSettings.claimStart)+' – '+fmt(scheduleSettings.claimEnd);
+document.getElementById('sch-am').textContent=fmt(scheduleSettings.amStart)+' – '+fmt(scheduleSettings.amEnd);
+document.getElementById('sch-pm').textContent=fmt(scheduleSettings.pmStart)+' – '+fmt(scheduleSettings.pmEnd);
+}
+function updateClaimingClosedBanner(){
+const b=document.getElementById('claiming-closed-banner');
+if(isClaimingOpen()){b.classList.remove('show');}
+else{b.innerHTML='Ticket claiming is closed. Opens at <strong>'+fmt(scheduleSettings.claimStart)+'</strong>, closes at <strong>'+fmt(scheduleSettings.claimEnd)+'</strong>.';b.classList.add('show');}
+}
+function updateFormWindowTags(){
+document.getElementById('win-am').textContent=fmt(scheduleSettings.amStart)+'–'+fmt(scheduleSettings.amEnd);
+document.getElementById('win-pm').textContent=fmt(scheduleSettings.pmStart)+'–'+fmt(scheduleSettings.pmEnd);
+}
+
+// ── TODAY CARD ──
+function renderTodayCard(){
+const d=now;
+const MONTH_SHORT=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+document.getElementById('today-month-str').textContent=MONTH_SHORT[d.getMonth()];
+document.getElementById('today-day-num').textContent=String(d.getDate()).padStart(2,'0');
+document.getElementById('today-day-name').textContent=DAYS[d.getDay()];
+
+const sl=slotsData[todayStr]||{AM:0,PM:0};
+const amTaken=sl.AM||0, pmTaken=sl.PM||0;
+const amLeft=LIMIT_SLOT-amTaken, pmLeft=LIMIT_SLOT-pmTaken;
+const totalLeft=(LIMIT_TOTAL)-(amTaken+pmTaken);
+const allFull=totalLeft<=0;
+
+// AM pill
+document.getElementById('pill-am-count').textContent=amLeft>0?amLeft+' left':'FULL';
+document.getElementById('pill-am-sub').textContent=amTaken+'/150 taken';
+document.getElementById('pill-am').classList.toggle('full-slot',amLeft<=0);
+
+// PM pill
+document.getElementById('pill-pm-count').textContent=pmLeft>0?pmLeft+' left':'FULL';
+document.getElementById('pill-pm-sub').textContent=pmTaken+'/150 taken';
+document.getElementById('pill-pm').classList.toggle('full-slot',pmLeft<=0);
+
+const btn=document.getElementById('btn-get-number');
+const closedMsg=document.getElementById('today-closed-msg');
+
+if(!isClaimingOpen()){
+btn.style.display='none';
+closedMsg.style.display='block';
+closedMsg.innerHTML='Claiming closed. Opens <strong>'+fmt(scheduleSettings.claimStart)+'</strong>';
+} else if(allFull){
+btn.style.display='block';
+btn.disabled=true;
+btn.textContent='All Slots Full for Today';
+btn.classList.add('full-btn');
+closedMsg.style.display='none';
+} else {
+btn.style.display='block';
+btn.disabled=false;
+btn.textContent='Get My Priority Number';
+btn.classList.remove('full-btn');
+closedMsg.style.display='none';
+}
+}
+
+function openForm(){
+if(!isClaimingOpen()){toast('Ticket claiming is currently closed');return;}
+const sl=slotsData[todayStr]||{AM:0,PM:0};
+const aF=(sl.AM||0)>=LIMIT_SLOT,pF=(sl.PM||0)>=LIMIT_SLOT;
+selectedTime=null;
+const d=now;
+document.getElementById('form-date-label').textContent=''+DAYS[d.getDay()]+', '+MONTHS[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();
+const ba=document.getElementById('btn-am'),bp=document.getElementById('btn-pm');
+ba.classList.remove('active','full');bp.classList.remove('active','full');
+document.getElementById('tag-am').textContent=aF?'FULL (150/150)':(sl.AM||0)+'/150 slots';
+document.getElementById('tag-pm').textContent=pF?'FULL (150/150)':(sl.PM||0)+'/150 slots';
+if(aF) ba.classList.add('full');
+if(pF) bp.classList.add('full');
+updateFormWindowTags();
+document.getElementById('inp-name').value='';
+document.getElementById('inp-ben1-name').value='';
+document.getElementById('inp-id-type').value='';
+document.getElementById('inp-id-number').value='';
+document.getElementById('inp-ben2-name').value='';
+document.getElementById('inp-id-type2').value='';
+document.getElementById('inp-id-number2').value='';
+updateSlotBanner(todayStr);
+document.getElementById('slot-banner').classList.add('show');
+document.getElementById('form-card').classList.add('show');
+document.getElementById('btn-add-another').style.display='none';
+document.getElementById('form-card').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function showFormAgain(){
+if(!isClaimingOpen()) return;
+const sl=slotsData[todayStr]||{AM:0,PM:0};
+const aF=(sl.AM||0)>=LIMIT_SLOT,pF=(sl.PM||0)>=LIMIT_SLOT;
+if(aF&&pF){toast('All slots are full for today');return;}
+selectedTime=null;
+const ba=document.getElementById('btn-am'),bp=document.getElementById('btn-pm');
+ba.classList.remove('active','full');bp.classList.remove('active','full');
+document.getElementById('tag-am').textContent=aF?'FULL (150/150)':(sl.AM||0)+'/150 slots';
+document.getElementById('tag-pm').textContent=pF?'FULL (150/150)':(sl.PM||0)+'/150 slots';
+if(aF) ba.classList.add('full');
+if(pF) bp.classList.add('full');
+document.getElementById('inp-name').value='';
+document.getElementById('inp-ben1-name').value='';
+document.getElementById('inp-id-type').value='';
+document.getElementById('inp-id-number').value='';
+document.getElementById('inp-ben2-name').value='';
+document.getElementById('inp-id-type2').value='';
+document.getElementById('inp-id-number2').value='';
+document.getElementById('form-card').classList.add('show');
+document.getElementById('btn-add-another').style.display='none';
+document.getElementById('form-card').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function selectTime(t){
+if(!isClaimingOpen()) return;
+const sl=slotsData[todayStr]||{AM:0,PM:0};
+if(t==='AM'&&(sl.AM||0)>=LIMIT_SLOT) return;
+if(t==='PM'&&(sl.PM||0)>=LIMIT_SLOT) return;
+selectedTime=t;
+document.getElementById('btn-am').classList.toggle('active',t==='AM');
+document.getElementById('btn-pm').classList.toggle('active',t==='PM');
+}
+
+async function checkDuplicateIdNumber(idNumber,dateStr){
+if(!idNumber) return null;
+const norm=idNumber.trim().toLowerCase();
+const snap=await db.ref('tickets').orderByChild('date').equalTo(dateStr).once('value');
+if(!snap.exists()) return null;
+let found=null;
+snap.forEach(c=>{
+const t=c.val();
+if(t.idNumber&&t.idNumber.trim().toLowerCase()===norm) found={id:c.key,...t};
+if(t.idNumber2&&t.idNumber2.trim().toLowerCase()===norm) found={id:c.key,...t};
+});
+return found;
+}
+
+async function generateNumber(){
+if(!isClaimingOpen()){toast('Ticket claiming is currently closed');return;}
+const name=document.getElementById('inp-name').value.trim();
+const ben1Name=document.getElementById('inp-ben1-name').value.trim();
+const idType=document.getElementById('inp-id-type').value;
+const idNumber=document.getElementById('inp-id-number').value.trim();
+const ben2Name=document.getElementById('inp-ben2-name').value.trim();
+const idType2=document.getElementById('inp-id-type2').value;
+const idNumber2=document.getElementById('inp-id-number2').value.trim();
+if(!name) return toast('Please enter the claimant name');
+if(!ben1Name) return toast('Please enter Beneficiary 1 full name');
+if(!selectedTime) return toast('Please select AM or PM');
+
+const btn=document.getElementById('btn-generate');
+btn.disabled=true;btn.textContent='Checking...';
+
+if(idNumber){
+const dupId=await checkDuplicateIdNumber(idNumber,todayStr);
+if(dupId){toast('ID number already used by '+dupId.name+' (#'+pad3(dupId.number)+') today');btn.disabled=false;btn.textContent='Generate Priority Number';return;}
+}
+if(idNumber2){
+const dupId2=await checkDuplicateIdNumber(idNumber2,todayStr);
+if(dupId2){toast('2nd ID number already used by '+dupId2.name+' (#'+pad3(dupId2.number)+') today');btn.disabled=false;btn.textContent='Generate Priority Number';return;}
+}
+
+btn.textContent='Saving...';
+try{
+const slotRef=db.ref('slots/'+todayStr+'/'+selectedTime);
+const result=await slotRef.transaction(c=>{const v=c||0;if(v>=LIMIT_SLOT) return;return v+1;});
+if(!result.committed){toast('Slot just filled up! Choose another.');btn.disabled=false;btn.textContent='Generate Priority Number';return;}
+const pos=result.snapshot.val();
+const num=selectedTime==='AM'?pos:150+pos;
+const issued=new Date();
+const expiry=new Date(todayStr+'T'+(scheduleSettings.pmEnd||'17:00')+':00');
+const td={
+number:num,name,
+ben1Name:ben1Name||'',idType:idType||'',idNumber:idNumber||'',
+ben2Name:ben2Name||'',idType2:idType2||'',idNumber2:idNumber2||'',
+time:selectedTime,date:todayStr,
+issuedAt:issued.toISOString(),expiresAt:expiry.toISOString(),
+createdAt:firebase.database.ServerValue.TIMESTAMP,disabled:false
+};
+const ref=db.ref('tickets').push();
+await ref.set(td);
+myTicketIds.push(ref.key);
+localStorage.setItem('pq_my_ticket_ids',JSON.stringify(myTicketIds));
+myTickets.unshift({id:ref.key,...td});
+renderTickets();
+toast('Priority #'+pad3(num)+' generated for '+name+'!');
+document.getElementById('form-card').classList.remove('show');
+document.getElementById('btn-add-another').style.display='block';
+document.getElementById('btn-add-another').scrollIntoView({behavior:'smooth',block:'nearest'});
+} catch(e){console.error(e);toast(' Error. Please try again.');}
+btn.disabled=false;btn.textContent='Generate Priority Number';
+}
+
+function updateSlotBanner(ds){
+const sl=slotsData[ds]||{AM:0,PM:0};const tot=(sl.AM||0)+(sl.PM||0);
+document.getElementById('slot-banner-title').textContent='Slot Availability — Today';
+setBar('total',tot,LIMIT_TOTAL);setBar('am',sl.AM||0,LIMIT_SLOT);setBar('pm',sl.PM||0,LIMIT_SLOT);
+}
+function setBar(id,used,max){
+const pct=Math.min((used/max)*100,100);
+const fill=document.getElementById('bar-'+id);const count=document.getElementById('count-'+id);
+fill.style.width=pct+'%';
+const cls=pct>=100?'red':pct>=70?'orange':'green';
+fill.className='slot-bar-fill '+cls;count.className='slot-count '+cls;count.textContent=used+'/'+max;
+}
+
+function renderTickets(){
+const list=document.getElementById('tickets-list');
+if(!myTickets.length){
+list.innerHTML='<div class="empty-tickets"><div class="icon"></div><div>No tickets yet.<br>Click the button above to get your number.</div></div>';return;
+}
+const sorted=[...myTickets].sort((a,b)=>{
+const va=isTicketValid(a),vb=isTicketValid(b);
+const order={active:0,'not-yet':1,future:2,expired:3};
+return (order[va]||3)-(order[vb]||3)||a.number-b.number;
+});
+list.innerHTML=sorted.map(t=>{
+const v=isTicketValid(t);
+const dis=disabledNumbers[t.date]&&disabledNumbers[t.date][t.number];
+const d=new Date(t.date+'T00:00:00');
+const iss=new Date(t.issuedAt);
+const dl=MONTHS[d.getMonth()].slice(0,3)+' '+d.getDate()+', '+d.getFullYear();
+const il=iss.toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+const sk=t.time==='AM'?'amStart':'pmStart',ek=t.time==='AM'?'amEnd':'pmEnd';
+const wl='⏰ Valid For '+fmt(scheduleSettings[sk])+' – '+fmt(scheduleSettings[ek]);
+const faded=dis||v==='expired';
+let sc,st;
+if(dis){sc='status-disabled';st='Disabled';}
+else if(v==='active'){sc='status-active';st='Now Serving';}
+else if(v==='not-yet'){sc='status-valid';st='Not Yet';}
+else if(v==='future'){sc='status-valid';st='Upcoming';}
+else{sc='status-expired';st=' Expired';}
+const ben1Line=t.ben1Name?'ID.1: '+t.ben1Name+(t.idType?' · '+t.idType:'')+(t.idNumber?' · #'+t.idNumber:''):'';
+const ben2Line=t.ben2Name?'ID.2: '+t.ben2Name+(t.idType2?' · '+t.idType2:'')+(t.idNumber2?' · #'+t.idNumber2:''):'';
+return'<div class="ticket-card'+(faded?' expired':'')+'" style="cursor:default;">'+
+'<div class="ticket-top">'+
+'<div class="ticket-number">'+pad3(t.number)+'</div>'+
+'<div class="ticket-divider"></div>'+
+'<div class="ticket-info">'+
+'<div class="ticket-name">'+t.name+'</div>'+
+'<span class="ticket-time-badge">'+t.time+' — '+dl+'</span>'+
+'<div class="ticket-date-row">Issued: '+il+'</div>'+
+(ben1Line?'<div class="ticket-id-row">'+ben1Line+'</div>':'')+
+(ben2Line?'<div class="ticket-id2-row">'+ben2Line+'</div>':'')+
+'<div class="ticket-window-row">'+wl+'</div>'+
+'</div>'+
+'</div>'+
+'</div>';
+}).join('');
+}
+
+async function purgeExpiredTickets(){
+const nowMs=Date.now();
+const del=myTickets.filter(t=>nowMs>new Date(t.date+'T23:59:59').getTime());
+if(!del.length) return;
+for(const t of del){
+try{
+await db.ref('tickets/'+t.id).remove();
+await db.ref('slots/'+t.date+'/'+t.time).transaction(c=>{const n=(c||1)-1;return n<=0?null:n;});
+}catch(e){console.warn(e);}
+}
+const ud=[...new Set(del.map(t=>t.date))];
+for(const date of ud){
+await db.ref('disabledNumbers/'+date).remove();
+const s=await db.ref('slots/'+date).once('value');
+if(!s.exists()) await db.ref('slots/'+date).remove();
+}
+const ids=new Set(del.map(t=>t.id));
+myTickets=myTickets.filter(t=>!ids.has(t.id));
+myTicketIds=myTicketIds.filter(id=>!ids.has(id));
+localStorage.setItem('pq_my_ticket_ids',JSON.stringify(myTicketIds));
+renderTickets();
+}
+
+function toDateStr(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function pad(n){return String(n).padStart(2,'0');}
+function pad3(n){return String(n).padStart(3,'0');}
+function toast(msg){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2800);}
+
+renderTodayCard();renderTickets();purgeExpiredTickets();
+setInterval(()=>{now=new Date();todayStr=toDateStr(now);updateClaimingClosedBanner();renderTodayCard();renderTickets();purgeExpiredTickets();},60000);
+
+// ── SECRET ADMIN TAP ──
+let tapCount=0,tapTimer=null;
+function handleTitleTap(){
+tapCount++;
+if(tapTimer) clearTimeout(tapTimer);
+if(tapCount>=5){
+tapCount=0;
+window.location.href='admin.html';
+return;
+}
+// Flash feedback on tap
+const t=document.getElementById('header-title');
+t.style.opacity='.6';
+setTimeout(()=>t.style.opacity='1',120);
+// Reset count if no tap within 2 seconds
+tapTimer=setTimeout(()=>{tapCount=0;},2000);
+}
+</script>
+</body>
+</html>

@@ -5,7 +5,145 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin — Priority Queue</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="admin.css" />
+<style>
+  :root{
+    --blue:#2563eb;--blue-light:#eff6ff;--blue-mid:#dbeafe;
+    --green:#16a34a;--green-light:#f0fdf4;
+    --red:#dc2626;--red-light:#fef2f2;
+    --orange:#ea580c;--border:#e2e8f0;--bg:#f1f5f9;
+    --white:#fff;--text:#1e293b;--muted:#94a3b8;--gray:#64748b;--dark:#0f172a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:48px;}
+  .login-screen{position:fixed;inset:0;background:var(--dark);display:flex;align-items:center;justify-content:center;z-index:900;}
+  .login-screen.hide{display:none;}
+  .login-box{background:#1e293b;border:1px solid #334155;border-radius:20px;padding:40px 32px;width:320px;text-align:center;}
+  .login-box h2{color:white;font-size:20px;font-weight:800;margin-bottom:6px;}
+  .login-box p{color:#94a3b8;font-size:13px;margin-bottom:28px;}
+  .login-box input{width:100%;padding:12px 14px;border:1.5px solid #334155;border-radius:10px;background:#0f172a;color:white;font-family:'Nunito',sans-serif;font-size:15px;outline:none;margin-bottom:12px;transition:border-color .2s;}
+  .login-box input:focus{border-color:var(--blue);}
+  .login-box button{width:100%;padding:13px;background:var(--blue);color:white;border:none;border-radius:10px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;}
+  .login-box button:hover{background:#1d4ed8;}
+  .login-error{color:#f87171;font-size:12px;margin-top:8px;display:none;}
+  .login-error.show{display:block;}
+  .loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:12px;}
+  .loading-overlay.hide{display:none;}
+  .spinner{width:36px;height:36px;border:4px solid var(--blue-mid);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-overlay p{font-size:14px;font-weight:700;color:var(--gray);}
+  .header{background:var(--dark);color:white;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.3);}
+  .header-left{display:flex;align-items:center;gap:10px;}
+  .header h1{font-size:18px;font-weight:800;}
+  .admin-badge{background:var(--blue);color:white;font-size:10px;font-weight:800;padding:3px 8px;border-radius:100px;letter-spacing:.5px;}
+  .btn-back{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:white;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;padding:6px 12px;border-radius:20px;cursor:pointer;text-decoration:none;}
+  .btn-back:hover{background:rgba(255,255,255,.2);}
+  .btn-logout{background:rgba(220,38,38,.2);border:1px solid rgba(220,38,38,.4);color:#fca5a5;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;padding:6px 12px;border-radius:20px;cursor:pointer;}
+  .btn-logout:hover{background:rgba(220,38,38,.35);}
+  .wrap{max-width:960px;margin:0 auto;padding:24px 16px 0;}
+  .fb-status{display:flex;align-items:center;justify-content:flex-end;gap:6px;font-size:11px;font-weight:700;color:var(--gray);margin-bottom:16px;}
+  .fb-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);}
+  .fb-dot.connected{background:var(--green);animation:fbPulse 2s infinite;}
+  @keyframes fbPulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .date-bar{background:var(--white);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.07);padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .date-bar label{font-size:12px;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;}
+  .date-bar input[type=date]{padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:'Nunito',sans-serif;font-size:14px;color:var(--text);outline:none;}
+  .date-bar input[type=date]:focus{border-color:var(--blue);}
+  .btn-load{padding:9px 18px;background:var(--blue);color:white;border:none;border-radius:10px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;}
+  .btn-load:hover{background:#1d4ed8;}
+  .search-bar{background:var(--white);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.07);padding:16px 20px;margin-bottom:20px;}
+  .search-bar-title{font-size:12px;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;}
+  .search-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .search-input{flex:1;min-width:200px;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Nunito',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border-color .2s;}
+  .search-input:focus{border-color:var(--blue);}
+  .btn-search{padding:10px 20px;background:var(--blue);color:white;border:none;border-radius:10px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;}
+  .btn-search:hover{background:#1d4ed8;}
+  .btn-clear-search{padding:10px 14px;background:#f1f5f9;color:var(--gray);border:1.5px solid var(--border);border-radius:10px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+  .search-results{margin-top:14px;}
+  /* Search result card */
+  .search-result-card{background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+  .search-result-card.found{border-color:#bfdbfe;background:var(--blue-light);}
+  .src-top{display:flex;align-items:flex-start;gap:14px;}
+  .sr-num{font-family:'Courier Prime',monospace;font-size:32px;font-weight:700;color:var(--blue);min-width:64px;text-align:center;padding-top:2px;}
+  .sr-info{flex:1;}
+  .sr-name{font-size:15px;font-weight:800;}
+  .sr-meta{font-size:12px;color:var(--gray);margin-top:3px;}
+  .sr-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+  /* Persons sub-section in search result */
+  .sr-persons{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
+  .sr-person-card{background:white;border:1.5px solid #bfdbfe;border-radius:10px;padding:10px 12px;}
+  .sr-person-card.ben{border-color:#bbf7d0;background:#f0fdf4;}
+  .sr-person-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--blue);margin-bottom:4px;}
+  .sr-person-card.ben .sr-person-label{color:var(--green);}
+  .sr-person-name{font-size:13px;font-weight:800;color:var(--text);}
+  .sr-person-id{font-size:11px;color:var(--gray);font-weight:600;margin-top:2px;}
+  .badge{font-size:10px;font-weight:800;padding:3px 9px;border-radius:100px;}
+  .badge-am{background:var(--blue-light);color:var(--blue);}
+  .badge-pm{background:#fef3c7;color:#92400e;}
+  .badge-disabled-b{background:#fef3c7;color:#92400e;}
+  .badge-valid{background:var(--green-light);color:var(--green);}
+  .badge-expired{background:var(--red-light);color:var(--red);}
+  .search-empty{text-align:center;padding:20px;font-size:13px;color:var(--muted);}
+  .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+  @media(max-width:600px){.stats-row{grid-template-columns:1fr 1fr;}}
+  .stat-card{background:var(--white);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.07);padding:16px 18px;}
+  .stat-card .s-label{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+  .stat-card .s-val{font-size:30px;font-weight:800;line-height:1;}
+  .stat-card .s-sub{font-size:11px;color:var(--muted);margin-top:3px;}
+  .s-val.green{color:var(--green);}.s-val.red{color:var(--red);}.s-val.blue{color:var(--blue);}
+  .tabs{display:flex;gap:4px;background:var(--white);border-radius:12px;padding:5px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:20px;width:fit-content;flex-wrap:wrap;}
+  .tab-btn{padding:8px 18px;border-radius:9px;border:none;background:transparent;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--gray);cursor:pointer;transition:all .2s;}
+  .tab-btn.active{background:var(--blue);color:white;}
+  .section-card{background:var(--white);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.07);padding:20px;margin-bottom:20px;}
+  .section-title{font-size:13px;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+  .section-title span{font-size:11px;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0;}
+  .num-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:6px;}
+  .num-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:10px;font-family:'Courier Prime',monospace;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;border:2px solid transparent;}
+  .num-cell.available{background:var(--green-light);color:var(--green);border-color:#bbf7d0;}
+  .num-cell.available:hover{background:#dcfce7;transform:scale(1.08);}
+  .num-cell.taken{background:var(--red-light);color:var(--red);border-color:#fca5a5;cursor:default;}
+  .num-cell.disabled-num{background:#fef3c7;color:#92400e;border-color:#fde68a;}
+  .num-cell.disabled-num:hover{background:#fef9c3;transform:scale(1.08);}
+  .grid-legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;}
+  .gl-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gray);}
+  .gl-dot{width:12px;height:12px;border-radius:4px;}
+  /* Ticket list row */
+  .ticket-row{padding:14px 0;border-bottom:1px solid var(--border);}
+  .ticket-row:last-child{border:none;}
+  .ticket-row-top{display:flex;align-items:flex-start;gap:12px;}
+  .tr-num{font-family:'Courier Prime',monospace;font-size:20px;font-weight:700;color:var(--blue);min-width:52px;}
+  .tr-info{flex:1;}
+  .tr-name{font-size:14px;font-weight:700;}
+  .tr-meta{font-size:11px;color:var(--muted);}
+  /* Person cards inside ticket list */
+  .tr-persons{margin-top:8px;display:flex;flex-direction:column;gap:5px;}
+  .tr-person-card{background:#f8fafc;border:1.5px solid var(--border);border-radius:9px;padding:8px 12px;}
+  .tr-person-card.ben{border-color:#bbf7d0;background:#f0fdf4;}
+  .tr-person-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--blue);margin-bottom:3px;}
+  .tr-person-card.ben .tr-person-label{color:var(--green);}
+  .tr-person-name{font-size:13px;font-weight:700;color:var(--text);}
+  .tr-person-id{font-size:11px;color:var(--gray);font-weight:600;margin-top:2px;}
+  .empty-msg{text-align:center;padding:32px;color:var(--muted);font-size:13px;}
+  .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:640px){.settings-grid{grid-template-columns:1fr;}}
+  .settings-block{background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:18px;}
+  .settings-block h3{font-size:13px;font-weight:800;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+  .settings-block h3 .icon{font-size:16px;}
+  .field-row{margin-bottom:12px;}
+  .field-row:last-child{margin-bottom:0;}
+  .field-row label{display:block;font-size:11px;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
+  .field-row input[type=time]{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;color:var(--text);outline:none;background:white;}
+  .field-row input[type=time]:focus{border-color:var(--blue);}
+  .field-row .hint{font-size:11px;color:var(--muted);margin-top:4px;}
+  .btn-save-settings{width:100%;padding:11px;background:var(--green);color:white;border:none;border-radius:10px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;margin-top:16px;}
+  .btn-save-settings:hover{background:#15803d;}
+  .settings-status{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;margin-top:10px;}
+  .settings-status.ok{color:var(--green);}.settings-status.err{color:var(--red);}
+  .current-settings-bar{background:var(--blue-light);border:1.5px solid var(--blue-mid);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:var(--blue);font-weight:700;display:flex;flex-wrap:wrap;gap:12px;align-items:center;}
+  .cs-item{display:flex;align-items:center;gap:5px;}
+  .cs-sep{color:var(--blue-mid);}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(70px);background:#1e293b;color:white;padding:11px 22px;border-radius:10px;font-size:13px;font-weight:700;z-index:99;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;}
+  .toast.show{transform:translateX(-50%) translateY(0);}
+</style>
 </head>
 <body>
 
@@ -13,8 +151,8 @@
   <div class="login-box">
     <h2>🔐 Admin Login</h2>
     <p>Enter admin credentials to continue</p>
-    <input type="text" id="login-user" placeholder="Username" />
-    <input type="password" id="login-pass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()" />
+    <input type="text" id="login-user" placeholder="Username"/>
+    <input type="password" id="login-pass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()"/>
     <button onclick="doLogin()">Login</button>
     <div class="login-error" id="login-error">Invalid username or password.</div>
   </div>
@@ -35,17 +173,27 @@
 
   <div class="date-bar">
     <label>View Date</label>
-    <input type="date" id="date-input" />
+    <input type="date" id="date-input"/>
     <button class="btn-load" onclick="loadDate()">Load</button>
   </div>
 
+  <div class="search-bar">
+    <div class="search-bar-title">🔍 Search by Claimant Name, Beneficiary Name, Priority Number, or ID Number</div>
+    <div class="search-row">
+      <input class="search-input" type="text" id="search-input" placeholder="Enter name, priority number, or ID number" onkeydown="if(event.key==='Enter')doSearch()"/>
+      <button class="btn-search" onclick="doSearch()">Search</button>
+      <button class="btn-clear-search" onclick="clearSearch()">Clear</button>
+    </div>
+    <div class="search-results" id="search-results" style="display:none;"></div>
+  </div>
+
   <div class="stats-row">
-    <div class="stat-card"><div class="s-label">Total Slots</div><div class="s-val blue" id="s-total">—</div><div class="s-sub">of 300 max</div></div>
+    <div class="stat-card"><div class="s-label">Total Taken</div><div class="s-val blue" id="s-total">—</div><div class="s-sub">of 300 max</div></div>
     <div class="stat-card"><div class="s-label">AM Taken</div><div class="s-val green" id="s-am">—</div><div class="s-sub">of 150 (1–150)</div></div>
     <div class="stat-card"><div class="s-label">PM Taken</div><div class="s-val green" id="s-pm">—</div><div class="s-sub">of 150 (151–300)</div></div>
     <div class="stat-card"><div class="s-label">Available</div><div class="s-val green" id="s-avail">—</div><div class="s-sub">slots remaining</div></div>
     <div class="stat-card"><div class="s-label">Disabled</div><div class="s-val red" id="s-dis">0</div><div class="s-sub">by admin</div></div>
-    <div class="stat-card"><div class="s-label">Tickets</div><div class="s-val blue" id="s-tick">0</div><div class="s-sub">issued</div></div>
+    <div class="stat-card"><div class="s-label">Tickets</div><div class="s-val blue" id="s-tick">0</div><div class="s-sub">issued today</div></div>
   </div>
 
   <div class="tabs">
@@ -54,24 +202,22 @@
     <button class="tab-btn" onclick="switchTab('settings')" id="tab-settings">⚙ Schedule Settings</button>
   </div>
 
-  <!-- GRID VIEW -->
   <div id="view-grid">
     <div class="section-card">
-      <div class="section-title">🌅 AM — Numbers 1 to 150 <span>Click a number to disable/enable</span></div>
+      <div class="section-title">🌅 AM — Numbers 1 to 150 <span>🟢 Green = Available &nbsp;|&nbsp; 🔴 Red = Taken &nbsp;|&nbsp; 🟡 Yellow = Disabled</span></div>
       <div class="grid-legend">
-        <div class="gl-item"><div class="gl-dot" style="background:var(--green-light);border:2px solid #bbf7d0"></div>Available</div>
-        <div class="gl-item"><div class="gl-dot" style="background:var(--blue-light);border:2px solid #bfdbfe"></div>Taken</div>
-        <div class="gl-item"><div class="gl-dot" style="background:var(--red-light);border:2px solid #fecaca"></div>Disabled</div>
+        <div class="gl-item"><div class="gl-dot" style="background:var(--green-light);border:2px solid #bbf7d0"></div>Available (click to disable)</div>
+        <div class="gl-item"><div class="gl-dot" style="background:var(--red-light);border:2px solid #fca5a5"></div>Taken</div>
+        <div class="gl-item"><div class="gl-dot" style="background:#fef3c7;border:2px solid #fde68a"></div>Disabled by Admin (click to re-enable)</div>
       </div>
       <div class="num-grid" id="grid-am"></div>
     </div>
     <div class="section-card">
-      <div class="section-title">🌇 PM — Numbers 151 to 300 <span>Click a number to disable/enable</span></div>
+      <div class="section-title">🌇 PM — Numbers 151 to 300</div>
       <div class="num-grid" id="grid-pm"></div>
     </div>
   </div>
 
-  <!-- LIST VIEW -->
   <div id="view-list" style="display:none;">
     <div class="section-card">
       <div class="section-title">All Tickets <span id="ticket-count-label"></span></div>
@@ -79,12 +225,10 @@
     </div>
   </div>
 
-  <!-- SETTINGS VIEW -->
   <div id="view-settings" style="display:none;">
     <div class="section-card">
       <div class="section-title">⚙ Schedule &amp; Time Window Settings <span>Changes apply immediately for all users</span></div>
-
-      <div class="current-settings-bar" id="current-settings-bar">
+      <div class="current-settings-bar">
         <span>Current:</span>
         <div class="cs-item">🕐 Claiming: <strong id="cs-claim">—</strong></div>
         <div class="cs-sep">|</div>
@@ -92,414 +236,402 @@
         <div class="cs-sep">|</div>
         <div class="cs-item">🌇 PM valid: <strong id="cs-pm">—</strong></div>
       </div>
-
       <div class="settings-grid">
-
         <div class="settings-block">
           <h3><span class="icon">🕐</span> Ticket Claiming Window</h3>
-          <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">Set the time range when users are allowed to claim/generate their priority number.</p>
-          <div class="field-row">
-            <label>Claiming Opens At</label>
-            <input type="time" id="claim-start" value="06:00" />
-            <div class="hint">Before this time, users cannot get a number</div>
-          </div>
-          <div class="field-row">
-            <label>Claiming Closes At</label>
-            <input type="time" id="claim-end" value="10:00" />
-            <div class="hint">After this time, no new numbers can be claimed</div>
-          </div>
+          <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">When users can generate their priority number.</p>
+          <div class="field-row"><label>Claiming Opens At</label><input type="time" id="claim-start" value="06:00"/><div class="hint">Before this time, users cannot get a number</div></div>
+          <div class="field-row"><label>Claiming Closes At</label><input type="time" id="claim-end" value="10:00"/><div class="hint">After this time, no new numbers can be claimed</div></div>
         </div>
-
         <div class="settings-block">
           <h3><span class="icon">🌅</span> AM Ticket Validity</h3>
-          <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">AM ticket holders (#001–#150) are valid to be served within this time range.</p>
-          <div class="field-row">
-            <label>AM Service Starts</label>
-            <input type="time" id="am-start" value="08:00" />
-            <div class="hint">AM tickets become valid at this time</div>
-          </div>
-          <div class="field-row">
-            <label>AM Service Ends</label>
-            <input type="time" id="am-end" value="12:00" />
-            <div class="hint">AM tickets expire after this time</div>
-          </div>
+          <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">AM ticket holders (#001–#150) are served within this window.</p>
+          <div class="field-row"><label>AM Service Starts</label><input type="time" id="am-start" value="08:00"/></div>
+          <div class="field-row"><label>AM Service Ends</label><input type="time" id="am-end" value="12:00"/></div>
         </div>
-
         <div class="settings-block">
           <h3><span class="icon">🌇</span> PM Ticket Validity</h3>
-          <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">PM ticket holders (#151–#300) are valid to be served within this time range.</p>
-          <div class="field-row">
-            <label>PM Service Starts</label>
-            <input type="time" id="pm-start" value="12:00" />
-            <div class="hint">PM tickets become valid at this time</div>
-          </div>
-          <div class="field-row">
-            <label>PM Service Ends</label>
-            <input type="time" id="pm-end" value="17:00" />
-            <div class="hint">PM tickets expire after this time</div>
-          </div>
+          <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">PM ticket holders (#151–#300) are served within this window.</p>
+          <div class="field-row"><label>PM Service Starts</label><input type="time" id="pm-start" value="12:00"/></div>
+          <div class="field-row"><label>PM Service Ends</label><input type="time" id="pm-end" value="17:00"/></div>
         </div>
-
       </div>
-
       <button class="btn-save-settings" onclick="saveSettings()">💾 Save All Settings</button>
       <div class="settings-status" id="settings-status" style="display:none;"></div>
     </div>
-  </div><!-- /view-settings -->
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<!-- Firebase Compat SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
 <script>
-  const ADMIN_USER = 'admin';
-  const ADMIN_PASS = 'admin123';
+const ADMIN_USER='admin',ADMIN_PASS='admin123';
+const firebaseConfig={
+  apiKey:"AIzaSyAiRK64ZYzF8lBKnxmubCZEO9qrCN42B1g",authDomain:"fti-queue.firebaseapp.com",
+  databaseURL:"https://fti-queue-default-rtdb.firebaseio.com",projectId:"fti-queue",
+  storageBucket:"fti-queue.firebasestorage.app",messagingSenderId:"794859488896",
+  appId:"1:794859488896:web:4e7dcb7e830fc4bf334865"
+};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
 
-  const firebaseConfig = {
-    apiKey:            "AIzaSyAiRK64ZYzF8lBKnxmubCZEO9qrCN42B1g",
-    authDomain:        "fti-queue.firebaseapp.com",
-    databaseURL:       "https://fti-queue-default-rtdb.firebaseio.com",
-    projectId:         "fti-queue",
-    storageBucket:     "fti-queue.firebasestorage.app",
-    messagingSenderId: "794859488896",
-    appId:             "1:794859488896:web:4e7dcb7e830fc4bf334865"
-  };
+let currentDate=null;
+let disabledNums={};
+let ticketsForDate=[];
+let allTickets={};
+let scheduleSettings={claimStart:'06:00',claimEnd:'10:00',amStart:'08:00',amEnd:'12:00',pmStart:'12:00',pmEnd:'17:00'};
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-
-  let currentDate = null, slotsData = {}, disabledNums = {}, ticketsForDate = [];
-  let scheduleSettings = {
-    claimStart: '06:00', claimEnd: '10:00',
-    amStart: '08:00',   amEnd:   '12:00',
-    pmStart: '12:00',   pmEnd:   '17:00'
-  };
-
-  // ── LOGIN ─────────────────────────────────────────────────────
-  if (sessionStorage.getItem('admin_auth') === '1') {
+// ── LOGIN ──
+if(sessionStorage.getItem('admin_auth')==='1'){
+  document.getElementById('login-screen').classList.add('hide');
+  initAdmin();
+}
+function doLogin(){
+  const u=document.getElementById('login-user').value.trim();
+  const p=document.getElementById('login-pass').value;
+  if(u===ADMIN_USER&&p===ADMIN_PASS){
+    sessionStorage.setItem('admin_auth','1');
     document.getElementById('login-screen').classList.add('hide');
     initAdmin();
+  } else {
+    document.getElementById('login-error').classList.add('show');
+  }
+}
+function doLogout(){sessionStorage.removeItem('admin_auth');location.reload();}
+
+function initAdmin(){
+  db.ref('.info/connected').on('value',s=>{
+    const ok=s.val();
+    document.getElementById('fb-dot').className='fb-dot'+(ok?' connected':'');
+    document.getElementById('fb-status-text').textContent=ok?'Connected to Firebase':'Reconnecting...';
+  });
+  db.ref('disabledNumbers').on('value',s=>{
+    disabledNums=s.val()||{};
+    if(currentDate){refreshStats();renderGrid();renderTicketList();}
+  });
+  db.ref('tickets').on('value',s=>{
+    allTickets=s.val()||{};
+    if(currentDate){
+      rebuildTicketsForDate(currentDate);
+      refreshStats();renderGrid();renderTicketList();
+    }
+  });
+  db.ref('scheduleSettings').on('value',s=>{
+    if(s.exists()) scheduleSettings=Object.assign({},scheduleSettings,s.val());
+    applySettingsToUI();updateCurrentSettingsBar();
+  });
+  const today=new Date();
+  const ts=today.getFullYear()+'-'+pad(today.getMonth()+1)+'-'+pad(today.getDate());
+  document.getElementById('date-input').value=ts;
+  setTimeout(loadDate,400);
+}
+
+function rebuildTicketsForDate(ds){
+  ticketsForDate=[];
+  Object.entries(allTickets).forEach(([key,t])=>{
+    if(t&&t.date===ds) ticketsForDate.push({id:key,...t});
+  });
+  ticketsForDate.sort((a,b)=>a.number-b.number);
+}
+
+// ── HELPER: build person cards HTML ──
+function personCardsHTML(t, style='sr'){
+  // style = 'sr' for search results, 'tr' for ticket list
+  const pc = style==='sr' ? 'sr-person-card' : 'tr-person-card';
+  const pl = style==='sr' ? 'sr-person-label' : 'tr-person-label';
+  const pn = style==='sr' ? 'sr-person-name' : 'tr-person-name';
+  const pi = style==='sr' ? 'sr-person-id'   : 'tr-person-id';
+  const pw = style==='sr' ? 'sr-persons'      : 'tr-persons';
+
+  let html = '<div class="'+pw+'">';
+
+  // Claimant card
+  html += '<div class="'+pc+'">';
+  html += '<div class="'+pl+'">👤 Claimant</div>';
+  html += '<div class="'+pn+'">'+esc(t.name||'—')+'</div>';
+  html += '</div>';
+
+  // Beneficiary 1
+  if(t.ben1Name){
+    html += '<div class="'+pc+' ben">';
+    html += '<div class="'+pl+'">🧑‍🤝‍🧑 Beneficiary 1</div>';
+    html += '<div class="'+pn+'">'+esc(t.ben1Name)+'</div>';
+    if(t.idType||t.idNumber){
+      html += '<div class="'+pi+'">🪪 '+(t.idType?esc(t.idType):'ID')+(t.idNumber?' &nbsp;·&nbsp; #'+esc(t.idNumber):'')+'</div>';
+    }
+    html += '</div>';
   }
 
-  function doLogin() {
-    const u = document.getElementById('login-user').value.trim();
-    const p = document.getElementById('login-pass').value;
-    if (u === ADMIN_USER && p === ADMIN_PASS) {
-      sessionStorage.setItem('admin_auth', '1');
-      document.getElementById('login-screen').classList.add('hide');
-      initAdmin();
+  // Beneficiary 2
+  if(t.ben2Name){
+    html += '<div class="'+pc+' ben">';
+    html += '<div class="'+pl+'">🧑‍🤝‍🧑 Beneficiary 2</div>';
+    html += '<div class="'+pn+'">'+esc(t.ben2Name)+'</div>';
+    if(t.idType2||t.idNumber2){
+      html += '<div class="'+pi+'">🪪 '+(t.idType2?esc(t.idType2):'ID')+(t.idNumber2?' &nbsp;·&nbsp; #'+esc(t.idNumber2):'')+'</div>';
+    }
+    html += '</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── SEARCH ──
+function doSearch(){
+  const query=document.getElementById('search-input').value.trim();
+  if(!query){toast('⚠ Enter a name, number, or ID to search');return;}
+  const resultsDiv=document.getElementById('search-results');
+  resultsDiv.style.display='block';
+  resultsDiv.innerHTML='<div class="search-empty">🔍 Searching...</div>';
+
+  const norm=query.toLowerCase();
+  const isNum=/^\d+$/.test(query);
+  const targetNum=isNum?parseInt(query,10):null;
+
+  const matches=[];
+  Object.entries(allTickets).forEach(([key,t])=>{
+    if(!t) return;
+    const claimantMatch = t.name&&t.name.toLowerCase().includes(norm);
+    const ben1Match     = t.ben1Name&&t.ben1Name.toLowerCase().includes(norm);
+    const ben2Match     = t.ben2Name&&t.ben2Name.toLowerCase().includes(norm);
+    const numMatch      = isNum&&t.number===targetNum;
+    const id1Match      = t.idNumber&&t.idNumber.toLowerCase().includes(norm);
+    const id2Match      = t.idNumber2&&t.idNumber2.toLowerCase().includes(norm);
+    if(claimantMatch||ben1Match||ben2Match||numMatch||id1Match||id2Match)
+      matches.push({id:key,...t});
+  });
+
+  if(!matches.length){
+    resultsDiv.innerHTML='<div class="search-empty">❌ No tickets found for "<strong>'+esc(query)+'</strong>"</div>';
+    return;
+  }
+
+  matches.sort((a,b)=>b.date.localeCompare(a.date)||a.number-b.number);
+
+  const nowMs=Date.now();
+  resultsDiv.innerHTML=matches.map(t=>{
+    const d=new Date(t.date+'T00:00:00');
+    const dateLabel=MONTHS[d.getMonth()].slice(0,3)+' '+d.getDate()+', '+d.getFullYear();
+    const issued=new Date(t.issuedAt);
+    const issuedLbl=issued.toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    const isExpired=new Date(t.expiresAt).getTime()<nowMs;
+    const isDisabled=disabledNums[t.date]&&disabledNums[t.date][t.number];
+    const sk=t.time==='AM'?'amStart':'pmStart',ek=t.time==='AM'?'amEnd':'pmEnd';
+    const windowLbl=fmt(scheduleSettings[sk])+' – '+fmt(scheduleSettings[ek]);
+    const statusBadge=isDisabled
+      ?'<span class="badge badge-disabled-b">⊘ Disabled</span>'
+      :isExpired
+        ?'<span class="badge badge-expired">✕ Expired</span>'
+        :'<span class="badge badge-valid">✓ Valid</span>';
+    return '<div class="search-result-card found">'+
+      '<div class="src-top">'+
+        '<div class="sr-num">#'+pad3(t.number)+'</div>'+
+        '<div class="sr-info">'+
+          '<div class="sr-name">'+esc(t.name||'—')+'</div>'+
+          '<div class="sr-meta">📅 '+dateLabel+' &nbsp;|&nbsp; Issued: '+issuedLbl+'</div>'+
+          '<div class="sr-meta" style="color:var(--blue);font-weight:700;margin-top:2px;">⏰ '+windowLbl+'</div>'+
+          '<div class="sr-badges">'+
+            '<span class="badge '+(t.time==='AM'?'badge-am':'badge-pm')+'">'+t.time+'</span>'+
+            statusBadge+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      personCardsHTML(t,'sr')+
+    '</div>';
+  }).join('');
+}
+
+function clearSearch(){
+  document.getElementById('search-input').value='';
+  const r=document.getElementById('search-results');
+  r.style.display='none';r.innerHTML='';
+}
+
+// ── SETTINGS ──
+function applySettingsToUI(){
+  document.getElementById('claim-start').value=scheduleSettings.claimStart||'06:00';
+  document.getElementById('claim-end').value=scheduleSettings.claimEnd||'10:00';
+  document.getElementById('am-start').value=scheduleSettings.amStart||'08:00';
+  document.getElementById('am-end').value=scheduleSettings.amEnd||'12:00';
+  document.getElementById('pm-start').value=scheduleSettings.pmStart||'12:00';
+  document.getElementById('pm-end').value=scheduleSettings.pmEnd||'17:00';
+}
+function updateCurrentSettingsBar(){
+  document.getElementById('cs-claim').textContent=fmt(scheduleSettings.claimStart)+' – '+fmt(scheduleSettings.claimEnd);
+  document.getElementById('cs-am').textContent=fmt(scheduleSettings.amStart)+' – '+fmt(scheduleSettings.amEnd);
+  document.getElementById('cs-pm').textContent=fmt(scheduleSettings.pmStart)+' – '+fmt(scheduleSettings.pmEnd);
+}
+function fmt(t){if(!t)return'—';const[h,m]=t.split(':').map(Number);const ap=h>=12?'PM':'AM';const hr=h%12||12;return hr+':'+String(m).padStart(2,'0')+' '+ap;}
+async function saveSettings(){
+  const ns={
+    claimStart:document.getElementById('claim-start').value,
+    claimEnd:document.getElementById('claim-end').value,
+    amStart:document.getElementById('am-start').value,
+    amEnd:document.getElementById('am-end').value,
+    pmStart:document.getElementById('pm-start').value,
+    pmEnd:document.getElementById('pm-end').value
+  };
+  if(ns.claimStart>=ns.claimEnd){showSettingsStatus('❌ Claiming window: start must be before end',false);return;}
+  if(ns.amStart>=ns.amEnd){showSettingsStatus('❌ AM window: start must be before end',false);return;}
+  if(ns.pmStart>=ns.pmEnd){showSettingsStatus('❌ PM window: start must be before end',false);return;}
+  try{
+    await db.ref('scheduleSettings').set(ns);
+    scheduleSettings=ns;updateCurrentSettingsBar();
+    showSettingsStatus('✅ Settings saved!',true);
+    toast('✅ Schedule settings updated!');
+  } catch(err){showSettingsStatus('❌ Failed: '+err.message,false);}
+}
+function showSettingsStatus(msg,ok){
+  const el=document.getElementById('settings-status');
+  el.textContent=msg;el.className='settings-status '+(ok?'ok':'err');
+  el.style.display='flex';setTimeout(()=>el.style.display='none',4000);
+}
+
+// ── LOAD DATE ──
+async function loadDate(){
+  currentDate=document.getElementById('date-input').value;
+  if(!currentDate) return toast('⚠ Select a date first');
+  document.getElementById('loading-overlay').classList.remove('hide');
+  rebuildTicketsForDate(currentDate);
+  refreshStats();renderGrid();renderTicketList();
+  document.getElementById('loading-overlay').classList.add('hide');
+}
+
+// ── STATS ──
+function refreshStats(){
+  const amTaken=ticketsForDate.filter(t=>t.time==='AM').length;
+  const pmTaken=ticketsForDate.filter(t=>t.time==='PM').length;
+  const tot=ticketsForDate.length;
+  const df=disabledNums[currentDate]||{};
+  const dc=Object.values(df).filter(Boolean).length;
+  document.getElementById('s-total').textContent=tot;
+  document.getElementById('s-am').textContent=amTaken;
+  document.getElementById('s-pm').textContent=pmTaken;
+  document.getElementById('s-avail').textContent=300-tot-dc;
+  document.getElementById('s-dis').textContent=dc;
+  document.getElementById('s-tick').textContent=tot;
+}
+
+// ── GRID ──
+function renderGrid(){
+  if(!currentDate) return;
+  const df=disabledNums[currentDate]||{};
+  const taken=new Set(ticketsForDate.map(t=>t.number));
+  renderHalf('grid-am',1,150,taken,df);
+  renderHalf('grid-pm',151,300,taken,df);
+}
+function renderHalf(gid,from,to,taken,df){
+  const grid=document.getElementById(gid);grid.innerHTML='';
+  for(let n=from;n<=to;n++){
+    const isTaken=taken.has(n);const isDis=!!df[n];
+    const el=document.createElement('div');
+    el.className='num-cell '+(isDis?'disabled-num':isTaken?'taken':'available');
+    el.textContent=n;
+    if(isTaken){
+      const t=ticketsForDate.find(x=>x.number===n);
+      el.title='#'+n+' — Claimant: '+(t?t.name:'unknown');
+      el.style.cursor='default';
+    } else if(isDis){
+      el.title='#'+n+' — Disabled (click to re-enable)';
+      el.onclick=(()=>{const _n=n;return()=>toggleNumber(_n);})();
     } else {
-      document.getElementById('login-error').classList.add('show');
+      el.title='#'+n+' — Available (click to disable)';
+      el.onclick=(()=>{const _n=n;return()=>toggleNumber(_n);})();
     }
+    grid.appendChild(el);
   }
+}
+async function toggleNumber(num){
+  if(!currentDate) return;
+  const df=disabledNums[currentDate]||{};
+  const isDis=!!df[num];
+  const isTaken=ticketsForDate.some(t=>t.number===num);
+  const action=isDis?'Re-enable':'Disable';
+  const extra=(!isDis&&isTaken)?'\nThis number is currently held by a client.':'';
+  if(!confirm(action+' number #'+num+'?'+extra)) return;
+  await db.ref('disabledNumbers/'+currentDate+'/'+num).set(!isDis);
+  toast((isDis?'✅ Enabled':'⊘ Disabled')+' #'+num);
+}
 
-  function doLogout() {
-    sessionStorage.removeItem('admin_auth');
-    location.reload();
+// ── TICKET LIST ──
+function renderTicketList(){
+  const c=document.getElementById('ticket-list-content');
+  const df=disabledNums[currentDate]||{};
+  document.getElementById('ticket-count-label').textContent=ticketsForDate.length+' ticket(s)';
+  if(!ticketsForDate.length){
+    c.innerHTML='<div class="empty-msg">No tickets found for this date.</div>';return;
   }
+  const nowMs=Date.now();
+  c.innerHTML=ticketsForDate.map(t=>{
+    const isExp=new Date(t.expiresAt).getTime()<nowMs;
+    const isDis=!!df[t.number];
+    const iss=new Date(t.issuedAt);
+    const il=iss.toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    const sk=t.time==='AM'?'amStart':'pmStart';
+    const ek=t.time==='AM'?'amEnd':'pmEnd';
+    const wl='Valid: '+fmt(scheduleSettings[sk])+' – '+fmt(scheduleSettings[ek]);
+    const sb=isDis
+      ?'<span class="badge badge-disabled-b">⊘ Disabled</span>'
+      :isExp?'<span class="badge badge-expired">✕ Expired</span>'
+      :'<span class="badge badge-valid">✓ Valid</span>';
+    const tb='<span class="badge '+(t.time==='AM'?'badge-am':'badge-pm')+'">'+t.time+'</span>';
+    return '<div class="ticket-row">'+
+      '<div class="ticket-row-top">'+
+        '<div class="tr-num">#'+pad3(t.number)+'</div>'+
+        '<div class="tr-info">'+
+          '<div class="tr-name">'+esc(t.name||'—')+'</div>'+
+          '<div class="tr-meta">Issued: '+il+' &nbsp;'+tb+' &nbsp;'+sb+'</div>'+
+          '<div class="tr-meta" style="color:var(--blue);font-weight:700;margin-top:2px;">⏰ '+wl+'</div>'+
+        '</div>'+
+      '</div>'+
+      personCardsHTML(t,'tr')+
+    '</div>';
+  }).join('');
+}
 
-  function initAdmin() {
-    db.ref('.info/connected').on('value', function(snap) {
-      const ok = snap.val();
-      document.getElementById('fb-dot').className = 'fb-dot' + (ok ? ' connected' : '');
-      document.getElementById('fb-status-text').textContent = ok ? 'Connected to Firebase' : 'Reconnecting...';
-    });
+function switchTab(tab){
+  ['grid','list','settings'].forEach(t=>{
+    document.getElementById('view-'+t).style.display=t===tab?'block':'none';
+    document.getElementById('tab-'+t).className='tab-btn'+(t===tab?' active':'');
+  });
+}
 
-    db.ref('slots').on('value', function(snap) {
-      slotsData = snap.val() || {};
-      if (currentDate) { refreshStats(); renderGrid(); }
-    });
-
-    db.ref('disabledNumbers').on('value', function(snap) {
-      disabledNums = snap.val() || {};
-      if (currentDate) { refreshStats(); renderGrid(); renderTicketList(); }
-    });
-
-    db.ref('scheduleSettings').on('value', function(snap) {
-      if (snap.exists()) {
-        scheduleSettings = Object.assign({}, scheduleSettings, snap.val());
-      }
-      applySettingsToUI();
-      updateCurrentSettingsBar();
-    });
-
-    const today = new Date();
-    const todayStr = today.getFullYear() + '-' + pad(today.getMonth() + 1) + '-' + pad(today.getDate());
-    document.getElementById('date-input').value = todayStr;
-    setTimeout(loadDate, 600);
+// ── PURGE EXPIRED ──
+async function purgeAllExpired(){
+  const nowMs=Date.now();
+  const snap=await db.ref('tickets').once('value');
+  if(!snap.exists()) return;
+  const dels=[];
+  snap.forEach(c=>{const t=c.val();if(nowMs>new Date(t.date+'T23:59:59').getTime()) dels.push({key:c.key,...t});});
+  if(!dels.length) return;
+  for(const d of dels){
+    await db.ref('tickets/'+d.key).remove();
+    await db.ref('slots/'+d.date+'/'+d.time).transaction(c=>{const n=(c||1)-1;return n<=0?null:n;});
   }
-
-  // ── SETTINGS ──────────────────────────────────────────────────
-  function applySettingsToUI() {
-    document.getElementById('claim-start').value = scheduleSettings.claimStart || '06:00';
-    document.getElementById('claim-end').value   = scheduleSettings.claimEnd   || '10:00';
-    document.getElementById('am-start').value    = scheduleSettings.amStart    || '08:00';
-    document.getElementById('am-end').value      = scheduleSettings.amEnd      || '12:00';
-    document.getElementById('pm-start').value    = scheduleSettings.pmStart    || '12:00';
-    document.getElementById('pm-end').value      = scheduleSettings.pmEnd      || '17:00';
+  const ud=[...new Set(dels.map(d=>d.date))];
+  for(const date of ud){
+    await db.ref('disabledNumbers/'+date).remove();
+    const s=await db.ref('slots/'+date).once('value');
+    if(!s.exists()) await db.ref('slots/'+date).remove();
   }
+  toast('🗑 '+dels.length+' expired ticket(s) cleaned up');
+}
 
-  function updateCurrentSettingsBar() {
-    document.getElementById('cs-claim').textContent = fmt(scheduleSettings.claimStart) + ' – ' + fmt(scheduleSettings.claimEnd);
-    document.getElementById('cs-am').textContent    = fmt(scheduleSettings.amStart)    + ' – ' + fmt(scheduleSettings.amEnd);
-    document.getElementById('cs-pm').textContent    = fmt(scheduleSettings.pmStart)    + ' – ' + fmt(scheduleSettings.pmEnd);
-  }
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function pad(n){return String(n).padStart(2,'0');}
+function pad3(n){return String(n).padStart(3,'0');}
+function toast(msg){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2800);}
 
-  function fmt(t) {
-    if (!t) return '—';
-    const [h, m] = t.split(':').map(Number);
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    const hr   = h % 12 || 12;
-    return hr + ':' + String(m).padStart(2,'0') + ' ' + ampm;
-  }
-
-  async function saveSettings() {
-    const newSettings = {
-      claimStart: document.getElementById('claim-start').value,
-      claimEnd:   document.getElementById('claim-end').value,
-      amStart:    document.getElementById('am-start').value,
-      amEnd:      document.getElementById('am-end').value,
-      pmStart:    document.getElementById('pm-start').value,
-      pmEnd:      document.getElementById('pm-end').value
-    };
-
-    if (newSettings.claimStart >= newSettings.claimEnd) {
-      showSettingsStatus('❌ Claiming window: start must be before end', false); return;
-    }
-    if (newSettings.amStart >= newSettings.amEnd) {
-      showSettingsStatus('❌ AM window: start must be before end', false); return;
-    }
-    if (newSettings.pmStart >= newSettings.pmEnd) {
-      showSettingsStatus('❌ PM window: start must be before end', false); return;
-    }
-
-    try {
-      await db.ref('scheduleSettings').set(newSettings);
-      scheduleSettings = newSettings;
-      updateCurrentSettingsBar();
-      showSettingsStatus('✅ Settings saved successfully!', true);
-      toast('✅ Schedule settings updated!');
-    } catch(err) {
-      showSettingsStatus('❌ Failed to save: ' + err.message, false);
-    }
-  }
-
-  function showSettingsStatus(msg, ok) {
-    const el = document.getElementById('settings-status');
-    el.textContent = msg;
-    el.className = 'settings-status ' + (ok ? 'ok' : 'err');
-    el.style.display = 'flex';
-    setTimeout(function(){ el.style.display = 'none'; }, 4000);
-  }
-
-  // ── DATA / GRID / LIST ────────────────────────────────────────
-  async function loadDate() {
-    currentDate = document.getElementById('date-input').value;
-    if (!currentDate) return toast('⚠ Select a date first');
-    document.getElementById('loading-overlay').classList.remove('hide');
-    await loadTicketsForDate(currentDate);
-    refreshStats(); renderGrid(); renderTicketList();
-    document.getElementById('loading-overlay').classList.add('hide');
-  }
-
-  async function loadTicketsForDate(dateStr) {
-    const snap = await db.ref('tickets').orderByChild('date').equalTo(dateStr).once('value');
-    ticketsForDate = [];
-    if (snap.exists()) {
-      snap.forEach(function(child) {
-        ticketsForDate.push(Object.assign({ id: child.key }, child.val()));
-      });
-    }
-    ticketsForDate.sort(function(a, b) { return a.number - b.number; });
-  }
-
-  function refreshStats() {
-    const slots   = slotsData[currentDate] || { AM: 0, PM: 0 };
-    const amTaken = slots.AM || 0, pmTaken = slots.PM || 0;
-    const total   = amTaken + pmTaken;
-    const disabledForDate = disabledNums[currentDate] || {};
-    const disCount = Object.values(disabledForDate).filter(Boolean).length;
-    document.getElementById('s-total').textContent = total;
-    document.getElementById('s-am').textContent    = amTaken;
-    document.getElementById('s-pm').textContent    = pmTaken;
-    document.getElementById('s-avail').textContent = 300 - total;
-    document.getElementById('s-dis').textContent   = disCount;
-    document.getElementById('s-tick').textContent  = ticketsForDate.length;
-  }
-
-  function renderGrid() {
-    if (!currentDate) return;
-    const disabledForDate = disabledNums[currentDate] || {};
-    const takenNums = new Set(ticketsForDate.map(function(t){ return t.number; }));
-    renderHalf('grid-am', 1,   150, takenNums, disabledForDate);
-    renderHalf('grid-pm', 151, 300, takenNums, disabledForDate);
-  }
-
-  function renderHalf(gridId, from, to, takenNums, disabledForDate) {
-    const grid = document.getElementById(gridId);
-    grid.innerHTML = '';
-    for (var n = from; n <= to; n++) {
-      const isTaken    = takenNums.has(n);
-      const isDisabled = !!disabledForDate[n];
-      const el = document.createElement('div');
-      el.className = 'num-cell ' + (isDisabled ? 'disabled-num' : isTaken ? 'taken' : 'available');
-      el.textContent = n;
-      el.title = isDisabled
-        ? '#' + n + ' — Disabled (click to enable)'
-        : isTaken
-          ? '#' + n + ' — Taken'
-          : '#' + n + ' — Available (click to disable)';
-      if (!isTaken) {
-        (function(num){ el.onclick = function(){ toggleNumber(num); }; })(n);
-      } else {
-        el.style.cursor = 'default';
-      }
-      grid.appendChild(el);
-    }
-  }
-
-  async function toggleNumber(num) {
-    if (!currentDate) return;
-    const disabledForDate = disabledNums[currentDate] || {};
-    const isDisabled = !!disabledForDate[num];
-    const isTaken    = ticketsForDate.some(function(t){ return t.number === num; });
-    const action = isDisabled ? 'Re-enable' : 'Disable';
-    const extra  = (!isDisabled && isTaken) ? '\nThis number is currently taken by a client.' : '';
-    if (!confirm(action + ' number #' + num + '?' + extra)) return;
-    await db.ref('disabledNumbers/' + currentDate + '/' + num).set(!isDisabled);
-    toast((isDisabled ? '✅ Enabled' : '⊘ Disabled') + ' #' + num);
-    await loadTicketsForDate(currentDate);
-    renderGrid(); refreshStats(); renderTicketList();
-  }
-
-  // ── Ticket list — display only, no clickable disable/enable buttons ──
-  function renderTicketList() {
-    const container = document.getElementById('ticket-list-content');
-    const disabledForDate = disabledNums[currentDate] || {};
-    document.getElementById('ticket-count-label').textContent = ticketsForDate.length + ' ticket(s)';
-
-    if (!ticketsForDate.length) {
-      container.innerHTML = '<div class="empty-msg">No tickets found for this date.</div>';
-      return;
-    }
-
-    const nowMs = Date.now();
-    container.innerHTML = ticketsForDate.map(function(t) {
-      const isExpired  = new Date(t.expiresAt).getTime() < nowMs;
-      const isDisabled = !!disabledForDate[t.number];
-      const issued     = new Date(t.issuedAt);
-      const issuedLbl  = issued.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-
-      const validFrom = t.time === 'AM' ? scheduleSettings.amStart : scheduleSettings.pmStart;
-      const validTo   = t.time === 'AM' ? scheduleSettings.amEnd   : scheduleSettings.pmEnd;
-      const windowLbl = 'Valid: ' + fmt(validFrom) + ' – ' + fmt(validTo);
-
-      const statusBadge = isDisabled
-        ? '<span class="badge badge-disabled-b">⊘ Disabled</span>'
-        : isExpired
-          ? '<span class="badge badge-expired">✕ Expired</span>'
-          : '<span class="badge badge-valid">✓ Valid</span>';
-      const timeBadge = t.time === 'AM'
-        ? '<span class="badge badge-am">🌅 AM</span>'
-        : '<span class="badge badge-pm">🌇 PM</span>';
-
-      // No disable/enable button — read-only list
-      return '<div class="ticket-row" style="cursor:default;">' +
-        '<div class="tr-num">#' + pad3(t.number) + '</div>' +
-        '<div class="tr-info">' +
-          '<div class="tr-name">' + t.name + '</div>' +
-          '<div class="tr-meta">Issued: ' + issuedLbl + ' &nbsp;' + timeBadge + '&nbsp;' + statusBadge + '</div>' +
-          '<div class="tr-meta" style="color:var(--blue);font-weight:700;margin-top:2px;">⏰ ' + windowLbl + '</div>' +
-        '</div>' +
-      '</div>';
-    }).join('');
-  }
-
-  function switchTab(tab) {
-    document.getElementById('view-grid').style.display     = tab === 'grid'     ? 'block' : 'none';
-    document.getElementById('view-list').style.display     = tab === 'list'     ? 'block' : 'none';
-    document.getElementById('view-settings').style.display = tab === 'settings' ? 'block' : 'none';
-    document.getElementById('tab-grid').className     = 'tab-btn' + (tab === 'grid'     ? ' active' : '');
-    document.getElementById('tab-list').className     = 'tab-btn' + (tab === 'list'     ? ' active' : '');
-    document.getElementById('tab-settings').className = 'tab-btn' + (tab === 'settings' ? ' active' : '');
-  }
-
-  // ── AUTO-PURGE all expired tickets at midnight + clean up slots & disabled numbers ──
-  async function purgeAllExpiredTickets() {
-    const nowMs = Date.now();
-
-    // Step 1: Scan all tickets and collect those past 23:59:59 of their date
-    const snap = await db.ref('tickets').once('value');
-
-    // Step 2: Also purge orphaned disabledNumbers for expired dates (no tickets needed)
-    const disSnap = await db.ref('disabledNumbers').once('value');
-    if (disSnap.exists()) {
-      disSnap.forEach(function(dateNode) {
-        const dateStr  = dateNode.key;
-        const expiryMs = new Date(dateStr + 'T23:59:59').getTime();
-        if (nowMs > expiryMs) {
-          // Wipe entire disabledNumbers/DATE node — covers all orphaned disabled entries
-          db.ref('disabledNumbers/' + dateStr).remove();
-        }
-      });
-    }
-
-    if (!snap.exists()) return;
-
-    const deletes = [];
-    snap.forEach(function(child) {
-      const t        = child.val();
-      const expiryMs = new Date(t.date + 'T23:59:59').getTime();
-      if (nowMs > expiryMs) {
-        deletes.push({ key: child.key, date: t.date, number: t.number, time: t.time });
-      }
-    });
-
-    if (!deletes.length) return;
-
-    for (const d of deletes) {
-      // 1. Delete ticket record
-      await db.ref('tickets/' + d.key).remove();
-
-      // 2. Decrement slot count (AM or PM); remove node if it hits 0
-      await db.ref('slots/' + d.date + '/' + d.time).transaction(function(cur) {
-        const next = (cur || 1) - 1;
-        return next <= 0 ? null : next;
-      });
-    }
-
-    // 3. Clean up empty slots date nodes for all affected dates
-    const uniqueDates = [...new Set(deletes.map(function(d){ return d.date; }))];
-    for (const date of uniqueDates) {
-      const slotSnap = await db.ref('slots/' + date).once('value');
-      if (!slotSnap.exists()) {
-        await db.ref('slots/' + date).remove();
-      }
-    }
-
-    // 4. Reload current view if any deleted tickets matched the viewed date
-    if (currentDate && deletes.some(function(d){ return d.date === currentDate; })) {
-      await loadTicketsForDate(currentDate);
-      refreshStats(); renderGrid(); renderTicketList();
-    }
-
-    toast('🗑 ' + deletes.length + ' expired ticket(s) cleaned up');
-  }
-
-  function pad(n)  { return String(n).padStart(2, '0'); }
-  function pad3(n) { return String(n).padStart(3, '0'); }
-  function toast(msg) {
-    const el = document.getElementById('toast');
-    el.textContent = msg; el.classList.add('show');
-    setTimeout(function(){ el.classList.remove('show'); }, 2800);
-  }
-
-  // Run purge once on load (after settings load), then every 5 minutes
-  setTimeout(purgeAllExpiredTickets, 3000);
-  setInterval(purgeAllExpiredTickets, 5 * 60 * 1000);
+setTimeout(purgeAllExpired,3000);
+setInterval(purgeAllExpired,5*60*1000);
 </script>
 </body>
 </html>

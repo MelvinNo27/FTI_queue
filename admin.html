@@ -59,7 +59,6 @@
   .btn-search:hover{background:#1d4ed8;}
   .btn-clear-search{padding:10px 14px;background:#f1f5f9;color:var(--gray);border:1.5px solid var(--border);border-radius:10px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
   .search-results{margin-top:14px;}
-  /* Search result card */
   .search-result-card{background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
   .search-result-card.found{border-color:#bfdbfe;background:var(--blue-light);}
   .src-top{display:flex;align-items:flex-start;gap:14px;}
@@ -68,7 +67,6 @@
   .sr-name{font-size:15px;font-weight:800;}
   .sr-meta{font-size:12px;color:var(--gray);margin-top:3px;}
   .sr-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
-  /* Persons sub-section in search result */
   .sr-persons{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
   .sr-person-card{background:white;border:1.5px solid #bfdbfe;border-radius:10px;padding:10px 12px;}
   .sr-person-card.ben{border-color:#bbf7d0;background:#f0fdf4;}
@@ -106,7 +104,6 @@
   .grid-legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;}
   .gl-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gray);}
   .gl-dot{width:12px;height:12px;border-radius:4px;}
-  /* Ticket list row */
   .ticket-row{padding:14px 0;border-bottom:1px solid var(--border);}
   .ticket-row:last-child{border:none;}
   .ticket-row-top{display:flex;align-items:flex-start;gap:12px;}
@@ -114,7 +111,6 @@
   .tr-info{flex:1;}
   .tr-name{font-size:14px;font-weight:700;}
   .tr-meta{font-size:11px;color:var(--muted);}
-  /* Person cards inside ticket list */
   .tr-persons{margin-top:8px;display:flex;flex-direction:column;gap:5px;}
   .tr-person-card{background:#f8fafc;border:1.5px solid var(--border);border-radius:9px;padding:8px 12px;}
   .tr-person-card.ben{border-color:#bbf7d0;background:#f0fdf4;}
@@ -173,14 +169,13 @@
 
   <div class="date-bar">
     <label>View Date</label>
-    <input type="date" id="date-input"/>
-    <button class="btn-load" onclick="loadDate()">Load</button>
+    <input type="date" id="date-input" onchange="loadDate()"/>
   </div>
 
   <div class="search-bar">
-    <div class="search-bar-title">🔍 Search by Claimant Name, Beneficiary Name, Priority Number, or ID Number</div>
+    <div class="search-bar-title">🔍 Search by Claimant Name or Priority Number</div>
     <div class="search-row">
-      <input class="search-input" type="text" id="search-input" placeholder="Enter name, priority number, or ID number" onkeydown="if(event.key==='Enter')doSearch()"/>
+      <input class="search-input" type="text" id="search-input" placeholder="Enter claimant name or priority number" onkeydown="if(event.key==='Enter')doSearch()"/>
       <button class="btn-search" onclick="doSearch()">Search</button>
       <button class="btn-clear-search" onclick="clearSearch()">Clear</button>
     </div>
@@ -188,9 +183,9 @@
   </div>
 
   <div class="stats-row">
-    <div class="stat-card"><div class="s-label">Total Taken</div><div class="s-val blue" id="s-total">—</div><div class="s-sub">of 300 max</div></div>
-    <div class="stat-card"><div class="s-label">AM Taken</div><div class="s-val green" id="s-am">—</div><div class="s-sub">of 150 (1–150)</div></div>
-    <div class="stat-card"><div class="s-label">PM Taken</div><div class="s-val green" id="s-pm">—</div><div class="s-sub">of 150 (151–300)</div></div>
+    <div class="stat-card"><div class="s-label">Total Taken</div><div class="s-val blue" id="s-total">—</div><div class="s-sub">of 150 max (odd only)</div></div>
+    <div class="stat-card"><div class="s-label">AM Taken</div><div class="s-val green" id="s-am">—</div><div class="s-sub">of 75 (1,3,5…149)</div></div>
+    <div class="stat-card"><div class="s-label">PM Taken</div><div class="s-val green" id="s-pm">—</div><div class="s-sub">of 75 (151,153…299)</div></div>
     <div class="stat-card"><div class="s-label">Available</div><div class="s-val green" id="s-avail">—</div><div class="s-sub">slots remaining</div></div>
     <div class="stat-card"><div class="s-label">Disabled</div><div class="s-val red" id="s-dis">0</div><div class="s-sub">by admin</div></div>
     <div class="stat-card"><div class="s-label">Tickets</div><div class="s-val blue" id="s-tick">0</div><div class="s-sub">issued today</div></div>
@@ -204,7 +199,7 @@
 
   <div id="view-grid">
     <div class="section-card">
-      <div class="section-title">🌅 AM — Numbers 1 to 150 <span>🟢 Green = Available &nbsp;|&nbsp; 🔴 Red = Taken &nbsp;|&nbsp; 🟡 Yellow = Disabled</span></div>
+      <div class="section-title">🌅 AM — Odd Numbers 1 to 149 <span>🟢 Green = Available &nbsp;|&nbsp; 🔴 Red = Taken &nbsp;|&nbsp; 🟡 Yellow = Disabled</span></div>
       <div class="grid-legend">
         <div class="gl-item"><div class="gl-dot" style="background:var(--green-light);border:2px solid #bbf7d0"></div>Available (click to disable)</div>
         <div class="gl-item"><div class="gl-dot" style="background:var(--red-light);border:2px solid #fca5a5"></div>Taken</div>
@@ -213,7 +208,7 @@
       <div class="num-grid" id="grid-am"></div>
     </div>
     <div class="section-card">
-      <div class="section-title">🌇 PM — Numbers 151 to 300</div>
+      <div class="section-title">🌇 PM — Odd Numbers 151 to 299</div>
       <div class="num-grid" id="grid-pm"></div>
     </div>
   </div>
@@ -245,13 +240,13 @@
         </div>
         <div class="settings-block">
           <h3><span class="icon">🌅</span> AM Ticket Validity</h3>
-          <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">AM ticket holders (#001–#150) are served within this window.</p>
+          <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">AM ticket holders (#001–#149 odd) are served within this window.</p>
           <div class="field-row"><label>AM Service Starts</label><input type="time" id="am-start" value="08:00"/></div>
           <div class="field-row"><label>AM Service Ends</label><input type="time" id="am-end" value="12:00"/></div>
         </div>
         <div class="settings-block">
           <h3><span class="icon">🌇</span> PM Ticket Validity</h3>
-          <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">PM ticket holders (#151–#300) are served within this window.</p>
+          <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">PM ticket holders (#151–#299 odd) are served within this window.</p>
           <div class="field-row"><label>PM Service Starts</label><input type="time" id="pm-start" value="12:00"/></div>
           <div class="field-row"><label>PM Service Ends</label><input type="time" id="pm-end" value="17:00"/></div>
         </div>
@@ -277,6 +272,21 @@ const firebaseConfig={
 };
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
+
+// ── ODD NUMBER HELPERS ──
+// AM: 1,3,5,...,149  (75 numbers)
+// PM: 151,153,...,299 (75 numbers)
+function getOddNumbers(from, to){
+  const nums=[];
+  // ensure we start on an odd number
+  let start = from%2===0 ? from+1 : from;
+  for(let n=start;n<=to;n+=2) nums.push(n);
+  return nums;
+}
+const AM_ODD = getOddNumbers(1,149);   // [1,3,5,...,149]
+const PM_ODD = getOddNumbers(151,299); // [151,153,...,299]
+const ALL_ODD_SET = new Set([...AM_ODD,...PM_ODD]);
+const TOTAL_ODD = AM_ODD.length + PM_ODD.length; // 150
 
 let currentDate=null;
 let disabledNums={};
@@ -339,7 +349,6 @@ function rebuildTicketsForDate(ds){
 
 // ── HELPER: build person cards HTML ──
 function personCardsHTML(t, style='sr'){
-  // style = 'sr' for search results, 'tr' for ticket list
   const pc = style==='sr' ? 'sr-person-card' : 'tr-person-card';
   const pl = style==='sr' ? 'sr-person-label' : 'tr-person-label';
   const pn = style==='sr' ? 'sr-person-name' : 'tr-person-name';
@@ -348,13 +357,11 @@ function personCardsHTML(t, style='sr'){
 
   let html = '<div class="'+pw+'">';
 
-  // Claimant card
   html += '<div class="'+pc+'">';
   html += '<div class="'+pl+'">👤 Claimant</div>';
   html += '<div class="'+pn+'">'+esc(t.name||'—')+'</div>';
   html += '</div>';
 
-  // Beneficiary 1
   if(t.ben1Name){
     html += '<div class="'+pc+' ben">';
     html += '<div class="'+pl+'">🧑‍🤝‍🧑 Beneficiary 1</div>';
@@ -365,7 +372,6 @@ function personCardsHTML(t, style='sr'){
     html += '</div>';
   }
 
-  // Beneficiary 2
   if(t.ben2Name){
     html += '<div class="'+pc+' ben">';
     html += '<div class="'+pl+'">🧑‍🤝‍🧑 Beneficiary 2</div>';
@@ -387,7 +393,8 @@ function esc(s){
 // ── SEARCH ──
 function doSearch(){
   const query=document.getElementById('search-input').value.trim();
-  if(!query){toast('⚠ Enter a name, number, or ID to search');return;}
+  if(!query){toast('⚠ Enter a claimant name or priority number');return;}
+  if(!currentDate){toast('⚠ Please load a date first');return;}
   const resultsDiv=document.getElementById('search-results');
   resultsDiv.style.display='block';
   resultsDiv.innerHTML='<div class="search-empty">🔍 Searching...</div>';
@@ -399,18 +406,15 @@ function doSearch(){
   const matches=[];
   Object.entries(allTickets).forEach(([key,t])=>{
     if(!t) return;
+    if(t.date!==currentDate) return;
     const claimantMatch = t.name&&t.name.toLowerCase().includes(norm);
-    const ben1Match     = t.ben1Name&&t.ben1Name.toLowerCase().includes(norm);
-    const ben2Match     = t.ben2Name&&t.ben2Name.toLowerCase().includes(norm);
     const numMatch      = isNum&&t.number===targetNum;
-    const id1Match      = t.idNumber&&t.idNumber.toLowerCase().includes(norm);
-    const id2Match      = t.idNumber2&&t.idNumber2.toLowerCase().includes(norm);
-    if(claimantMatch||ben1Match||ben2Match||numMatch||id1Match||id2Match)
+    if(claimantMatch||numMatch)
       matches.push({id:key,...t});
   });
 
   if(!matches.length){
-    resultsDiv.innerHTML='<div class="search-empty">❌ No tickets found for "<strong>'+esc(query)+'</strong>"</div>';
+    resultsDiv.innerHTML='<div class="search-empty">❌ No tickets found for "<strong>'+esc(query)+'</strong>" on <strong>'+currentDate+'</strong></div>';
     return;
   }
 
@@ -507,15 +511,17 @@ async function loadDate(){
 
 // ── STATS ──
 function refreshStats(){
-  const amTaken=ticketsForDate.filter(t=>t.time==='AM').length;
-  const pmTaken=ticketsForDate.filter(t=>t.time==='PM').length;
-  const tot=ticketsForDate.length;
+  // Only count tickets whose numbers are odd
+  const amTaken=ticketsForDate.filter(t=>t.time==='AM'&&t.number%2!==0).length;
+  const pmTaken=ticketsForDate.filter(t=>t.time==='PM'&&t.number%2!==0).length;
+  const tot=amTaken+pmTaken;
   const df=disabledNums[currentDate]||{};
-  const dc=Object.values(df).filter(Boolean).length;
+  // Only count disabled odd numbers
+  const dc=Object.entries(df).filter(([n,v])=>v&&parseInt(n)%2!==0).length;
   document.getElementById('s-total').textContent=tot;
   document.getElementById('s-am').textContent=amTaken;
   document.getElementById('s-pm').textContent=pmTaken;
-  document.getElementById('s-avail').textContent=300-tot-dc;
+  document.getElementById('s-avail').textContent=TOTAL_ODD-tot-dc;
   document.getElementById('s-dis').textContent=dc;
   document.getElementById('s-tick').textContent=tot;
 }
@@ -525,13 +531,17 @@ function renderGrid(){
   if(!currentDate) return;
   const df=disabledNums[currentDate]||{};
   const taken=new Set(ticketsForDate.map(t=>t.number));
-  renderHalf('grid-am',1,150,taken,df);
-  renderHalf('grid-pm',151,300,taken,df);
+  // Render only odd numbers in each range
+  renderOddHalf('grid-am', AM_ODD, taken, df);
+  renderOddHalf('grid-pm', PM_ODD, taken, df);
 }
-function renderHalf(gid,from,to,taken,df){
-  const grid=document.getElementById(gid);grid.innerHTML='';
-  for(let n=from;n<=to;n++){
-    const isTaken=taken.has(n);const isDis=!!df[n];
+
+function renderOddHalf(gid, oddNums, taken, df){
+  const grid=document.getElementById(gid);
+  grid.innerHTML='';
+  for(const n of oddNums){
+    const isTaken=taken.has(n);
+    const isDis=!!df[n];
     const el=document.createElement('div');
     el.className='num-cell '+(isDis?'disabled-num':isTaken?'taken':'available');
     el.textContent=n;
@@ -549,6 +559,7 @@ function renderHalf(gid,from,to,taken,df){
     grid.appendChild(el);
   }
 }
+
 async function toggleNumber(num){
   if(!currentDate) return;
   const df=disabledNums[currentDate]||{};
@@ -610,7 +621,7 @@ async function purgeAllExpired(){
   const snap=await db.ref('tickets').once('value');
   if(!snap.exists()) return;
   const dels=[];
-  snap.forEach(c=>{const t=c.val();if(nowMs>new Date(t.date+'T23:59:59').getTime()) dels.push({key:c.key,...t});});
+  snap.forEach(c=>{const t=c.val();const expMs=new Date(t.date+'T23:59:59').getTime();if(nowMs>expMs+24*60*60*1000) dels.push({key:c.key,...t});});
   if(!dels.length) return;
   for(const d of dels){
     await db.ref('tickets/'+d.key).remove();

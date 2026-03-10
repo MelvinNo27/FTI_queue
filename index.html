@@ -124,7 +124,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .btn-generate:hover:not(:disabled){background:#1d4ed8;transform:translateY(-1px);box-shadow:0 4px 14px rgba(37,99,235,.35);}
 .btn-generate:disabled{background:var(--muted);cursor:not-allowed;}
 
-/* ERROR CARD — weekly cooldown */
+/* ERROR CARD */
 .error-card{display:none;background:var(--red-light);border:2px solid #fca5a5;border-radius:14px;padding:0;margin-bottom:16px;overflow:hidden;animation:slideDown .3s ease-out;}
 .error-card.show{display:block;}
 .error-card-header{background:var(--red);color:white;padding:12px 16px;display:flex;align-items:center;gap:10px;}
@@ -166,20 +166,27 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .btn-edit-ticket{width:calc(100% - 32px);margin:0 16px 14px;padding:9px;background:white;color:#92400e;border:1.5px solid #fde68a;border-radius:10px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px;}
 .btn-edit-ticket:hover{background:#fef3c7;border-color:#f59e0b;}
 
-.ticket-card.expired{opacity:.55;}
+/* RED — expired */
+.ticket-card.expired{background:#fef2f2;border:2px solid #fca5a5;box-shadow:0 4px 16px rgba(220,38,38,.12);}
+.ticket-card.expired .ticket-number{color:var(--red) !important;}
+.ticket-card.expired .ticket-time-badge{background:#fee2e2 !important;color:var(--red) !important;}
+.ticket-card.expired .ticket-window-row{color:#b91c1c !important;}
+.ticket-card.expired .ticket-name{color:#7f1d1d;}
+.ticket-card.expired .ticket-date-row{color:#fca5a5;}
+.ticket-card.expired .ticket-id-row,.ticket-card.expired .ticket-id2-row{color:#fca5a5;}
+.ticket-card.expired::before{background:repeating-linear-gradient(to bottom,#fca5a5 0,#fca5a5 6px,transparent 6px,transparent 12px);}
+.expired-banner{display:flex;align-items:center;gap:8px;background:var(--red);color:white;font-size:11px;font-weight:800;padding:6px 14px;text-transform:uppercase;letter-spacing:.5px;}
+
 .ticket-top{display:flex;align-items:center;padding:16px 18px;gap:16px;}
 .ticket-number{font-family:'Courier Prime',monospace;font-size:42px;font-weight:700;color:var(--blue);line-height:1;min-width:80px;text-align:center;}
-.ticket-card.expired .ticket-number{color:var(--muted);}
 .ticket-divider{width:1px;height:60px;background:var(--border);flex-shrink:0;}
 .ticket-info{flex:1;}
 .ticket-name{font-size:16px;font-weight:800;margin-bottom:3px;}
 .ticket-time-badge{display:inline-block;background:var(--blue-light);color:var(--blue);font-size:11px;font-weight:700;padding:2px 8px;border-radius:100px;margin-bottom:4px;}
-.ticket-card.expired .ticket-time-badge{background:#f1f5f9;color:var(--muted);}
 .ticket-date-row{font-size:11px;color:var(--muted);}
 .ticket-id-row{font-size:11px;color:var(--gray);margin-top:2px;font-weight:600;}
 .ticket-id2-row{font-size:11px;color:var(--gray);margin-top:1px;font-weight:600;opacity:.8;}
 .ticket-window-row{font-size:11px;font-weight:700;color:var(--green);margin-top:2px;}
-.ticket-card.expired .ticket-window-row{color:var(--muted);}
 .ticket-card::before{content:'';position:absolute;left:90px;top:0;bottom:0;width:1.5px;background:repeating-linear-gradient(to bottom,var(--border) 0,var(--border) 6px,transparent 6px,transparent 12px);}
 .empty-tickets{text-align:center;padding:32px 16px;color:var(--muted);background:var(--white);border-radius:16px;font-size:14px;box-shadow:0 2px 12px rgba(0,0,0,.05);}
 .empty-tickets .icon{font-size:36px;margin-bottom:8px;}
@@ -360,8 +367,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     <button class="btn-generate" id="btn-generate" onclick="generateNumber()">Generate Priority Number</button>
   </div>
 
-  <!-- "Add Another Person" button REMOVED -->
-
   <div class="tickets-section">
     <div class="tickets-title">My Priority Numbers</div>
     <div id="tickets-list">
@@ -393,12 +398,11 @@ let todayStr=toDateStr(now);
 let targetStr=toDateStr(addDays(now,1));
 
 let selectedTime=null;
-let editingTicketId=null; // tracks which ticket is being edited (null = new ticket)
+let editingTicketId=null;
 let slotsData={},disabledNumbers={};
 let myTickets=[],myTicketIds=JSON.parse(localStorage.getItem('pq_my_ticket_ids')||'[]');
 let scheduleSettings={claimStart:'06:00',claimEnd:'10:00',amStart:'08:00',amEnd:'12:00',pmStart:'12:00',pmEnd:'17:00'};
 
-// ── Utilities ──
 function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
 function toDateStr(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
 function pad(n){return String(n).padStart(2,'0');}
@@ -409,19 +413,15 @@ function isWeekend(d){const day=(d||new Date()).getDay();return day===0||day===6
 function isClaimingOpen(){const n=new Date();if(isWeekend(n))return false;const c=n.getHours()*60+n.getMinutes();return c>=toMin(scheduleSettings.claimStart)&&c<toMin(scheduleSettings.claimEnd);}
 function toast(msg){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2800);}
 
-// ── Week boundaries (Monday–Sunday ISO week) ──
-// Returns { start: 'YYYY-MM-DD', end: 'YYYY-MM-DD' } for the week containing dateStr
 function getWeekBounds(dateStr){
   const d=new Date(dateStr+'T00:00:00');
-  const dow=d.getDay(); // 0=Sun,1=Mon,...,6=Sat
-  // Start = Monday of this week
+  const dow=d.getDay();
   const diffToMon=dow===0?-6:1-dow;
   const mon=new Date(d);mon.setDate(d.getDate()+diffToMon);
   const sun=new Date(mon);sun.setDate(mon.getDate()+6);
   return{start:toDateStr(mon),end:toDateStr(sun)};
 }
 
-// ── Firebase ──
 db.ref('scheduleSettings').on('value',s=>{
   if(s.exists())scheduleSettings=Object.assign({},scheduleSettings,s.val());
   updateScheduleBar();updateClaimingClosedBanner();renderCard();renderTickets();
@@ -439,7 +439,6 @@ async function loadMyTickets(){
 }
 loadMyTickets();
 
-// ── Schedule bar & banner ──
 function updateScheduleBar(){
   document.getElementById('sch-claim').textContent=fmt(scheduleSettings.claimStart)+' – '+fmt(scheduleSettings.claimEnd);
   document.getElementById('sch-am').textContent=fmt(scheduleSettings.amStart)+' – '+fmt(scheduleSettings.amEnd);
@@ -456,7 +455,6 @@ function updateFormWindowTags(){
   document.getElementById('win-pm').textContent=fmt(scheduleSettings.pmStart)+'–'+fmt(scheduleSettings.pmEnd);
 }
 
-// ── Calendar ──
 function renderCalendar(){
   const tmr=addDays(now,1);
   const yr=tmr.getFullYear(), mo=tmr.getMonth();
@@ -493,7 +491,6 @@ function renderCalendar(){
   for(let d=1;d<=trail;d++){const c=document.createElement('div');c.className='cal-day other-month';c.textContent=d;grid.appendChild(c);}
 }
 
-// ── Action card ──
 function renderCard(){
   renderCalendar();
   const tmr=addDays(now,1);
@@ -560,12 +557,10 @@ function selectTime(t){
   document.getElementById('btn-pm').classList.toggle('active',t==='PM');
 }
 
-// ── Edit existing pending ticket ──
 function editTicket(ticketId){
   const t=myTickets.find(x=>x.id===ticketId);
   if(!t){toast('Ticket not found');return;}
   editingTicketId=ticketId;
-  // Pre-fill all fields
   document.getElementById('inp-name').value=t.name||'';
   document.getElementById('inp-ben1-name').value=t.ben1Name||'';
   document.getElementById('inp-id-type').value=t.idType||'';
@@ -573,49 +568,36 @@ function editTicket(ticketId){
   document.getElementById('inp-ben2-name').value=t.ben2Name||'';
   document.getElementById('inp-id-type2').value=t.idType2||'';
   document.getElementById('inp-id-number2').value=t.idNumber2||'';
-  // Set time selection (locked to original slot)
   selectedTime=t.time;
   const ba=document.getElementById('btn-am'),bp=document.getElementById('btn-pm');
   ba.classList.remove('active','full');bp.classList.remove('active','full');
-  // Lock time buttons — slot can't change on edit
   ba.classList.add(t.time==='AM'?'active':'full');
   bp.classList.add(t.time==='PM'?'active':'full');
-  // Update form header
   const d=new Date(t.date+'T00:00:00');
   document.getElementById('form-date-label').textContent=
     'Editing ticket for: '+DAYS[d.getDay()]+', '+MONTHS[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();
-  // Update slot tags
   const sl=slotsData[t.date]||{AM:0,PM:0};
   document.getElementById('tag-am').textContent=(sl.AM||0)+'/75 slots';
   document.getElementById('tag-pm').textContent=(sl.PM||0)+'/75 slots';
   updateFormWindowTags();
-  // Update button label
   document.getElementById('btn-generate').textContent='Save Changes';
-  // Show form
   updateSlotBanner();
   document.getElementById('slot-banner').classList.add('show');
   document.getElementById('form-card').classList.add('show');
   document.getElementById('form-card').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
-
-// Returns the existing ticket if the ID number was already used during the same
-// ISO week (Mon–Sun) as targetStr, otherwise returns null.
 async function checkWeeklyCooldown(idNumber){
   if(!idNumber)return null;
   const norm=idNumber.trim().toLowerCase();
   const{start,end}=getWeekBounds(targetStr);
-
-  // Query all tickets; Firebase RTDB doesn't support multi-field range queries,
-  // so we fetch by date range by iterating dates in the week.
-  // More efficient: query all tickets and filter client-side for week range.
   const snap=await db.ref('tickets').once('value');
   if(!snap.exists())return null;
   let found=null;
   snap.forEach(c=>{
     const t=c.val();
     if(!t.date)return;
-    if(t.date<start||t.date>end)return; // outside this week
+    if(t.date<start||t.date>end)return;
     if(found)return;
     if(t.idNumber&&t.idNumber.trim().toLowerCase()===norm)found={id:c.key,...t};
     if(t.idNumber2&&t.idNumber2.trim().toLowerCase()===norm)found={id:c.key,...t};
@@ -623,7 +605,6 @@ async function checkWeeklyCooldown(idNumber){
   return found;
 }
 
-// ── Duplicate same-date check (kept for same-day double submission guard) ──
 async function checkDuplicateIdNumber(idNumber){
   if(!idNumber)return null;
   const norm=idNumber.trim().toLowerCase();
@@ -638,14 +619,12 @@ async function checkDuplicateIdNumber(idNumber){
   return found;
 }
 
-// ── Error card helpers ──
 function showErrorCard(dupTicket,idNumber,benName,idType,beneficiaryLabel){
   const{end}=getWeekBounds(targetStr);
   const nextMon=new Date(end+'T00:00:00');nextMon.setDate(nextMon.getDate()+1);
   const nextMonStr=MONTHS[nextMon.getMonth()]+' '+nextMon.getDate()+', '+nextMon.getFullYear();
   const claimedDate=new Date(dupTicket.date+'T00:00:00');
   const claimedDateStr=DAYS[claimedDate.getDay()]+', '+MONTHS[claimedDate.getMonth()]+' '+claimedDate.getDate()+', '+claimedDate.getFullYear();
-  // Detect which slot in the existing ticket matched this ID number
   const norm=idNumber.trim().toLowerCase();
   const isSlot2=dupTicket.idNumber2&&dupTicket.idNumber2.trim().toLowerCase()===norm;
   const existingBenName=isSlot2?(dupTicket.ben2Name||'—'):(dupTicket.ben1Name||'—');
@@ -685,7 +664,6 @@ async function generateNumber(){
   const btn=document.getElementById('btn-generate');
   btn.disabled=true;btn.textContent='Checking...';
 
-  // Weekly cooldown check — skip if editing (same ticket allowed to keep its own IDs)
   if(!editingTicketId){
     if(idNumber){
       const weekDup=await checkWeeklyCooldown(idNumber);
@@ -699,7 +677,6 @@ async function generateNumber(){
 
   btn.textContent='Saving...';
   try{
-    // ── EDIT MODE — just update fields, keep same number & slot ──
     if(editingTicketId){
       const existing=myTickets.find(x=>x.id===editingTicketId);
       if(!existing){toast('Error: ticket not found');btn.disabled=false;btn.textContent='Save Changes';return;}
@@ -709,7 +686,6 @@ async function generateNumber(){
         ben2Name:ben2Name||'',idType2:idType2||'',idNumber2:idNumber2||''
       };
       await db.ref('tickets/'+editingTicketId).update(updates);
-      // Update local copy
       const idx=myTickets.findIndex(x=>x.id===editingTicketId);
       if(idx>-1)myTickets[idx]=Object.assign({},myTickets[idx],updates);
       toast('✅ Ticket updated successfully!');
@@ -721,7 +697,6 @@ async function generateNumber(){
       btn.disabled=false;btn.textContent='Generate Priority Number';
       return;
     }
-    // ── NEW TICKET ──
     const slotRef=db.ref('slots/'+targetStr+'/'+selectedTime);
     const result=await slotRef.transaction(c=>{const v=c||0;if(v>=LIMIT_SLOT)return;return v+1;});
     if(!result.committed){toast('Slot just filled up! Choose another.');btn.disabled=false;btn.textContent='Generate Priority Number';return;}
@@ -792,25 +767,35 @@ function renderTickets(){
     const il=iss.toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
     const sk=t.time==='AM'?'amStart':'pmStart',ek=t.time==='AM'?'amEnd':'pmEnd';
     const wl='⏰ Valid '+fmt(scheduleSettings[sk])+' – '+fmt(scheduleSettings[ek]);
-    const faded=dis||v==='expired';
-    const isActive=!dis&&v==='active';                      // today + inside window → GREEN
-    const isPending=!dis&&(v==='future'||v==='not-yet');    // future date or before window → YELLOW
+
+    const isExpired = dis || v==='expired';
+    const isActive  = !dis && v==='active';
+    const isPending = !dis && (v==='future' || v==='not-yet');
+
     const ben1Line=t.ben1Name?'ID.1: '+t.ben1Name+(t.idType?' · '+t.idType:'')+(t.idNumber?' · #'+t.idNumber:''):'';
     const ben2Line=t.ben2Name?'ID.2: '+t.ben2Name+(t.idType2?' · '+t.idType2:'')+(t.idNumber2?' · #'+t.idNumber2:''):'';
+
+    // Card class
     let cardCls='ticket-card';
-    if(faded)cardCls+=' expired';
-    else if(isActive)cardCls+=' claimable';
-    else if(isPending)cardCls+=' pending';
-    const topBanner=isActive
-      ?'<div class="claimable-banner"><div class="claimable-pulse"></div>NOW SERVING — Present this ticket</div>'
-      :isPending&&v==='future'
-        ?'<div class="pending-banner"><div class="pending-pulse"></div>Upcoming — Present this on '+dl+'</div>'
-        :isPending&&v==='not-yet'
-          ?'<div class="pending-banner"><div class="pending-pulse"></div>Today — Window opens '+fmt(scheduleSettings[t.time==='AM'?'amStart':'pmStart'])+'</div>'
-          :'';
-    const editBtn=isPending
-      ?'<button class="btn-edit-ticket" onclick="editTicket(\''+t.id+'\')">✏️ Edit My Details</button>'
-      :'';
+    if(isActive) cardCls+=' claimable';
+    else if(isPending) cardCls+=' pending';
+    else if(isExpired) cardCls+=' expired';
+
+    // Top banner
+    const topBanner = isActive
+      ? '<div class="claimable-banner"><div class="claimable-pulse"></div>NOW SERVING — Present this ticket</div>'
+      : isPending && v==='future'
+        ? '<div class="pending-banner"><div class="pending-pulse"></div>Upcoming — Present this on '+dl+'</div>'
+        : isPending && v==='not-yet'
+          ? '<div class="pending-banner"><div class="pending-pulse"></div>Today — Window opens '+fmt(scheduleSettings[t.time==='AM'?'amStart':'pmStart'])+'</div>'
+          : isExpired
+            ? '<div class="expired-banner">⛔ This control number has been expired</div>'
+            : '';
+
+    const editBtn = isPending
+      ? '<button class="btn-edit-ticket" onclick="editTicket(\''+t.id+'\')">✏️ Edit My Details</button>'
+      : '';
+
     return '<div class="'+cardCls+'" style="cursor:default;">'+
       topBanner+
       '<div class="ticket-top">'+
@@ -831,7 +816,11 @@ function renderTickets(){
 
 async function purgeExpiredTickets(){
   const nowMs=Date.now();
-  const del=myTickets.filter(t=>nowMs>new Date(t.date+'T23:59:59').getTime());
+  // Auto-remove 24 hours after the ticket's date ends (date + 1 day at 23:59:59)
+  const del=myTickets.filter(t=>{
+    const expireMs=new Date(t.date+'T23:59:59').getTime();
+    return nowMs > expireMs + 24*60*60*1000;
+  });
   if(!del.length)return;
   for(const t of del){
     try{
@@ -852,7 +841,48 @@ async function purgeExpiredTickets(){
   renderTickets();
 }
 
+// ── DAILY RESET AT 6 PM ──
+// Every day at 18:00, clear today's slots & disabledNumbers so all numbers
+// are available again for the next day's distribution.
+const RESET_HOUR = 18; // 6 PM
+
+async function dailyReset(){
+  const n = new Date();
+  const resetKey = toDateStr(n) + '_reset'; // e.g. "2026-03-10_reset"
+  // Only run once per day, after 6 PM
+  if(n.getHours() < RESET_HOUR) return;
+  const lastReset = localStorage.getItem('pq_last_reset');
+  if(lastReset === resetKey) return; // already ran today
+  try{
+    // Clear today's slot counts so the grid shows all available tomorrow
+    await db.ref('slots/'+todayStr).remove();
+    // Clear today's disabled numbers set by admin
+    await db.ref('disabledNumbers/'+todayStr).remove();
+    localStorage.setItem('pq_last_reset', resetKey);
+    console.log('Daily reset done for', todayStr);
+  }catch(e){console.warn('Daily reset error:', e);}
+}
+
+function scheduleNextReset(){
+  const n = new Date();
+  const resetToday = new Date(n.getFullYear(), n.getMonth(), n.getDate(), RESET_HOUR, 0, 0, 0);
+  let msUntilReset = resetToday.getTime() - n.getTime();
+  // If 6 PM already passed today, schedule for 6 PM tomorrow
+  if(msUntilReset <= 0) msUntilReset += 24 * 60 * 60 * 1000;
+  setTimeout(async ()=>{
+    now=new Date();
+    todayStr=toDateStr(now);
+    targetStr=toDateStr(addDays(now,1));
+    await dailyReset();
+    updateClaimingClosedBanner();renderCard();renderTickets();purgeExpiredTickets();
+    scheduleNextReset(); // schedule next day's reset
+  }, msUntilReset);
+}
+
 renderCard();renderTickets();purgeExpiredTickets();
+dailyReset(); // run on load in case page opened after 6 PM
+scheduleNextReset(); // schedule the next 6 PM reset
+
 setInterval(()=>{
   now=new Date();
   todayStr=toDateStr(now);

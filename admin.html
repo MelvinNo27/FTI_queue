@@ -48,8 +48,6 @@
   .date-bar label{font-size:12px;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;}
   .date-bar input[type=date]{padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:'Nunito',sans-serif;font-size:14px;color:var(--text);outline:none;}
   .date-bar input[type=date]:focus{border-color:var(--blue);}
-  .btn-load{padding:9px 18px;background:var(--blue);color:white;border:none;border-radius:10px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;}
-  .btn-load:hover{background:#1d4ed8;}
   .search-bar{background:var(--white);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.07);padding:16px 20px;margin-bottom:20px;}
   .search-bar-title{font-size:12px;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;}
   .search-row{display:flex;gap:10px;flex-wrap:wrap;}
@@ -140,61 +138,31 @@
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(70px);background:#1e293b;color:white;padding:11px 22px;border-radius:10px;font-size:13px;font-weight:700;z-index:99;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;}
   .toast.show{transform:translateX(-50%) translateY(0);}
 
-  /* ── CLAIMING TOGGLE ── */
-  .claim-toggle-block{
-    background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:18px;
-    margin-bottom:16px;
+  /* ── ON/OFF TOGGLE ── */
+  .toggle-row{
+    display:flex;align-items:center;justify-content:space-between;
+    border-radius:12px;padding:14px 16px;margin-bottom:16px;
+    border:2px solid transparent;transition:all .25s;
   }
-  .claim-toggle-block h3{font-size:13px;font-weight:800;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:7px;}
-  .claim-toggle-desc{font-size:12px;color:var(--gray);margin-bottom:16px;line-height:1.5;}
-  .toggle-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
-  .toggle-status-text{font-size:13px;font-weight:700;}
-  .toggle-status-text.on{color:var(--green);}
-  .toggle-status-text.off{color:var(--red);}
-  .big-toggle{position:relative;display:inline-block;width:72px;height:38px;flex-shrink:0;}
-  .big-toggle input{opacity:0;width:0;height:0;position:absolute;}
-  .big-toggle-slider{
-    position:absolute;inset:0;border-radius:100px;cursor:pointer;
-    background:#dc2626;transition:background .3s;
-    box-shadow:inset 0 2px 6px rgba(0,0,0,.2);
-  }
-  .big-toggle-slider::before{
-    content:'';position:absolute;width:30px;height:30px;left:4px;top:4px;
-    background:white;border-radius:50%;transition:transform .3s cubic-bezier(.34,1.56,.64,1);
-    box-shadow:0 2px 6px rgba(0,0,0,.25);
-  }
-  .big-toggle input:checked + .big-toggle-slider{background:var(--green);}
-  .big-toggle input:checked + .big-toggle-slider::before{transform:translateX(34px);}
-  .toggle-label-on{font-size:11px;font-weight:800;color:var(--green);letter-spacing:.5px;}
-  .toggle-label-off{font-size:11px;font-weight:800;color:var(--red);letter-spacing:.5px;}
-  .claim-mode-badge{
-    display:inline-flex;align-items:center;gap:6px;
-    padding:5px 12px;border-radius:100px;font-size:11px;font-weight:800;letter-spacing:.4px;
-    transition:all .3s;
-  }
-  .claim-mode-badge.always-on{background:#dcfce7;color:var(--green);border:1.5px solid #bbf7d0;}
-  .claim-mode-badge.time-limited{background:var(--blue-light);color:var(--blue);border:1.5px solid var(--blue-mid);}
-  .time-window-fields{
-    margin-top:14px;padding-top:14px;border-top:1.5px solid var(--border);
-    display:grid;grid-template-columns:1fr 1fr;gap:12px;
-    overflow:hidden;max-height:0;opacity:0;
-    transition:max-height .4s ease,opacity .3s ease,margin .3s ease,padding .3s ease;
-  }
-  .time-window-fields.visible{max-height:200px;opacity:1;}
-  .claim-window-preview{
-    margin-top:10px;padding:10px 14px;background:var(--blue-light);
-    border:1.5px solid var(--blue-mid);border-radius:9px;
-    font-size:12px;color:var(--blue);font-weight:700;
-    display:none;align-items:center;gap:6px;
-  }
-  .claim-window-preview.show{display:flex;}
-  .cs-item .live-toggle-badge{
-    display:inline-flex;align-items:center;gap:4px;
-    font-size:10px;font-weight:800;padding:2px 8px;border-radius:100px;
-    margin-left:4px;
-  }
-  .cs-item .live-toggle-badge.on{background:#dcfce7;color:var(--green);}
-  .cs-item .live-toggle-badge.off{background:#fee2e2;color:var(--red);}
+  .toggle-row.state-on{background:#f0fdf4;border-color:#86efac;}
+  .toggle-row.state-off{background:#fef2f2;border-color:#fca5a5;}
+  .toggle-label-group{display:flex;flex-direction:column;gap:3px;}
+  .toggle-main-label{font-size:14px;font-weight:800;}
+  .toggle-row.state-on .toggle-main-label{color:var(--green);}
+  .toggle-row.state-off .toggle-main-label{color:var(--red);}
+  .toggle-sub-label{font-size:11px;font-weight:600;color:var(--gray);}
+  /* Switch */
+  .switch{position:relative;display:inline-block;width:56px;height:30px;flex-shrink:0;}
+  .switch input{opacity:0;width:0;height:0;position:absolute;}
+  .slider{position:absolute;inset:0;border-radius:100px;cursor:pointer;transition:background .25s;}
+  .slider:before{content:'';position:absolute;width:24px;height:24px;left:3px;top:3px;background:white;border-radius:50%;transition:transform .25s;box-shadow:0 2px 5px rgba(0,0,0,.25);}
+  input:checked + .slider{background:var(--green);}
+  input:not(:checked) + .slider{background:#ef4444;}
+  input:checked + .slider:before{transform:translateX(26px);}
+
+  /* time fields dimmed when OFF */
+  .time-fields{transition:opacity .25s,filter .25s;}
+  .time-fields.dimmed{opacity:.38;pointer-events:none;filter:grayscale(.5);}
 </style>
 </head>
 <body>
@@ -279,75 +247,64 @@
   <div id="view-settings" style="display:none;">
     <div class="section-card">
       <div class="section-title">⚙ Schedule &amp; Time Window Settings <span>Changes apply immediately for all users</span></div>
+
       <div class="current-settings-bar">
         <span>Current:</span>
-        <div class="cs-item">
-          🎫 Claiming:
-          <strong id="cs-claim">—</strong>
-          <span class="live-toggle-badge" id="cs-toggle-badge">—</span>
-        </div>
+        <div class="cs-item">🕐 Claiming: <strong id="cs-claim">—</strong></div>
         <div class="cs-sep">|</div>
         <div class="cs-item">🌅 AM valid: <strong id="cs-am">—</strong></div>
         <div class="cs-sep">|</div>
         <div class="cs-item">🌇 PM valid: <strong id="cs-pm">—</strong></div>
       </div>
 
-      <!-- ── CLAIMING TOGGLE BLOCK ── -->
-      <div class="claim-toggle-block">
-        <h3><span class="icon">🎛️</span> Control Number Generation — Master Switch</h3>
-        <p class="claim-toggle-desc">
-          <strong>OFF</strong> — Users can generate a control number <em>anytime</em>, regardless of time.<br>
-          <strong>ON</strong> — Users can only generate a control number within the specified time window below.
-        </p>
-        <div class="toggle-row">
-          <div style="display:flex;flex-direction:column;gap:6px;">
-            <div id="toggle-status-text" class="toggle-status-text off">⛔ Time Restriction: OFF (open anytime)</div>
-            <div id="claim-mode-badge" class="claim-mode-badge always-on">✅ Always Open — No time restriction</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-            <span class="toggle-label-off" id="lbl-off">OFF</span>
-            <label class="big-toggle">
-              <input type="checkbox" id="claim-restrict-toggle" onchange="onClaimToggleChange()"/>
-              <span class="big-toggle-slider"></span>
-            </label>
-            <span class="toggle-label-on" id="lbl-on">ON</span>
-          </div>
-        </div>
-
-        <!-- Time fields — shown only when toggle is ON -->
-        <div class="time-window-fields" id="claim-time-fields">
-          <div class="field-row">
-            <label>Claiming Opens At</label>
-            <input type="time" id="claim-start" value="06:00" oninput="updateClaimPreview()"/>
-            <div class="hint">Before this time, users cannot get a number</div>
-          </div>
-          <div class="field-row">
-            <label>Claiming Closes At</label>
-            <input type="time" id="claim-end" value="10:00" oninput="updateClaimPreview()"/>
-            <div class="hint">After this time, no new numbers can be claimed</div>
-          </div>
-        </div>
-
-        <div class="claim-window-preview" id="claim-window-preview">
-          <span>⏰</span>
-          <span id="claim-preview-text">Users can claim from — to —</span>
-        </div>
-      </div>
-      <!-- END TOGGLE BLOCK -->
-
       <div class="settings-grid">
+
+        <!-- ── TICKET CLAIMING WINDOW ── -->
+        <div class="settings-block">
+          <h3><span class="icon">🕐</span> Ticket Claiming Window</h3>
+          <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">Toggle ON to allow users to generate numbers within the time window. Toggle OFF to block number generation entirely.</p>
+
+          <!-- Toggle row -->
+          <div class="toggle-row state-off" id="toggle-row">
+            <div class="toggle-label-group">
+              <div class="toggle-main-label" id="toggle-main-label">⛔ Claiming: OFF</div>
+              <div class="toggle-sub-label" id="toggle-sub-label">Users cannot generate numbers</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="claiming-toggle" onchange="onToggleChange()"/>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <!-- Time window inputs — dimmed when OFF -->
+          <div class="time-fields dimmed" id="time-fields">
+            <div class="field-row">
+              <label>Claiming Opens At</label>
+              <input type="time" id="claim-start" value="06:00"/>
+              <div class="hint">Before this time, users cannot get a number</div>
+            </div>
+            <div class="field-row">
+              <label>Claiming Closes At</label>
+              <input type="time" id="claim-end" value="10:00"/>
+              <div class="hint">After this time, no new numbers can be claimed</div>
+            </div>
+          </div>
+        </div>
+
         <div class="settings-block">
           <h3><span class="icon">🌅</span> AM Ticket Validity</h3>
           <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">AM ticket holders (#001–#149 odd) are served within this window.</p>
           <div class="field-row"><label>AM Service Starts</label><input type="time" id="am-start" value="08:00"/></div>
           <div class="field-row"><label>AM Service Ends</label><input type="time" id="am-end" value="12:00"/></div>
         </div>
+
         <div class="settings-block">
           <h3><span class="icon">🌇</span> PM Ticket Validity</h3>
           <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">PM ticket holders (#151–#299 odd) are served within this window.</p>
           <div class="field-row"><label>PM Service Starts</label><input type="time" id="pm-start" value="12:00"/></div>
           <div class="field-row"><label>PM Service Ends</label><input type="time" id="pm-end" value="17:00"/></div>
         </div>
+
       </div>
       <button class="btn-save-settings" onclick="saveSettings()">💾 Save All Settings</button>
       <div class="settings-status" id="settings-status" style="display:none;"></div>
@@ -359,7 +316,6 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
 <script>
 const ADMIN_USER='admin',ADMIN_PASS='admin123';
 const firebaseConfig={
@@ -371,17 +327,10 @@ const firebaseConfig={
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 
-// ── ODD NUMBER HELPERS ──
-function getOddNumbers(from, to){
-  const nums=[];
-  let start = from%2===0 ? from+1 : from;
-  for(let n=start;n<=to;n+=2) nums.push(n);
-  return nums;
-}
-const AM_ODD = getOddNumbers(1,149);
-const PM_ODD = getOddNumbers(151,299);
-const ALL_ODD_SET = new Set([...AM_ODD,...PM_ODD]);
-const TOTAL_ODD = AM_ODD.length + PM_ODD.length; // 150
+function getOddNumbers(from,to){const nums=[];let s=from%2===0?from+1:from;for(let n=s;n<=to;n+=2)nums.push(n);return nums;}
+const AM_ODD=getOddNumbers(1,149);
+const PM_ODD=getOddNumbers(151,299);
+const TOTAL_ODD=AM_ODD.length+PM_ODD.length; // 150
 
 let currentDate=null;
 let disabledNums={};
@@ -391,7 +340,8 @@ let scheduleSettings={
   claimStart:'06:00',claimEnd:'10:00',
   amStart:'08:00',amEnd:'12:00',
   pmStart:'12:00',pmEnd:'17:00',
-  claimRestricted:false   // NEW — false = always open, true = time-limited
+  claimingEnabled:false,
+  claimRestricted:true
 };
 
 // ── LOGIN ──
@@ -424,10 +374,7 @@ function initAdmin(){
   });
   db.ref('tickets').on('value',s=>{
     allTickets=s.val()||{};
-    if(currentDate){
-      rebuildTicketsForDate(currentDate);
-      refreshStats();renderGrid();renderTicketList();
-    }
+    if(currentDate){rebuildTicketsForDate(currentDate);refreshStats();renderGrid();renderTicketList();}
   });
   db.ref('scheduleSettings').on('value',s=>{
     if(s.exists()) scheduleSettings=Object.assign({},scheduleSettings,s.val());
@@ -448,173 +395,53 @@ function rebuildTicketsForDate(ds){
   ticketsForDate.sort((a,b)=>a.number-b.number);
 }
 
-// ── PERSON CARDS HTML ──
-function personCardsHTML(t, style='sr'){
-  const pc = style==='sr' ? 'sr-person-card' : 'tr-person-card';
-  const pl = style==='sr' ? 'sr-person-label' : 'tr-person-label';
-  const pn = style==='sr' ? 'sr-person-name' : 'tr-person-name';
-  const pi = style==='sr' ? 'sr-person-id'   : 'tr-person-id';
-  const pw = style==='sr' ? 'sr-persons'      : 'tr-persons';
-  let html = '<div class="'+pw+'">';
-  html += '<div class="'+pc+'">';
-  html += '<div class="'+pl+'">👤 Claimant</div>';
-  html += '<div class="'+pn+'">'+esc(t.name||'—')+'</div>';
-  html += '</div>';
-  if(t.ben1Name){
-    html += '<div class="'+pc+' ben">';
-    html += '<div class="'+pl+'">🧑‍🤝‍🧑 Beneficiary 1</div>';
-    html += '<div class="'+pn+'">'+esc(t.ben1Name)+'</div>';
-    if(t.idType||t.idNumber){
-      html += '<div class="'+pi+'">🪪 '+(t.idType?esc(t.idType):'ID')+(t.idNumber?' &nbsp;·&nbsp; #'+esc(t.idNumber):'')+'</div>';
-    }
-    html += '</div>';
-  }
-  if(t.ben2Name){
-    html += '<div class="'+pc+' ben">';
-    html += '<div class="'+pl+'">🧑‍🤝‍🧑 Beneficiary 2</div>';
-    html += '<div class="'+pn+'">'+esc(t.ben2Name)+'</div>';
-    if(t.idType2||t.idNumber2){
-      html += '<div class="'+pi+'">🪪 '+(t.idType2?esc(t.idType2):'ID')+(t.idNumber2?' &nbsp;·&nbsp; #'+esc(t.idNumber2):'')+'</div>';
-    }
-    html += '</div>';
-  }
-  html += '</div>';
-  return html;
+// ── TOGGLE ──
+function onToggleChange(){
+  const isOn=document.getElementById('claiming-toggle').checked;
+  applyToggleUI(isOn);
 }
 
-function esc(s){
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-// ── SEARCH ──
-function doSearch(){
-  const query=document.getElementById('search-input').value.trim();
-  if(!query){toast('⚠ Enter a claimant name or priority number');return;}
-  if(!currentDate){toast('⚠ Please load a date first');return;}
-  const resultsDiv=document.getElementById('search-results');
-  resultsDiv.style.display='block';
-  resultsDiv.innerHTML='<div class="search-empty">🔍 Searching...</div>';
-  const norm=query.toLowerCase();
-  const isNum=/^\d+$/.test(query);
-  const targetNum=isNum?parseInt(query,10):null;
-  const matches=[];
-  Object.entries(allTickets).forEach(([key,t])=>{
-    if(!t) return;
-    if(t.date!==currentDate) return;
-    const claimantMatch = t.name&&t.name.toLowerCase().includes(norm);
-    const numMatch      = isNum&&t.number===targetNum;
-    if(claimantMatch||numMatch)
-      matches.push({id:key,...t});
-  });
-  if(!matches.length){
-    resultsDiv.innerHTML='<div class="search-empty">❌ No tickets found for "<strong>'+esc(query)+'</strong>" on <strong>'+currentDate+'</strong></div>';
-    return;
-  }
-  matches.sort((a,b)=>b.date.localeCompare(a.date)||a.number-b.number);
-  const nowMs=Date.now();
-  resultsDiv.innerHTML=matches.map(t=>{
-    const d=new Date(t.date+'T00:00:00');
-    const dateLabel=MONTHS[d.getMonth()].slice(0,3)+' '+d.getDate()+', '+d.getFullYear();
-    const issued=new Date(t.issuedAt);
-    const issuedLbl=issued.toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-    const isExpired=new Date(t.expiresAt).getTime()<nowMs;
-    const isDisabled=disabledNums[t.date]&&disabledNums[t.date][t.number];
-    const sk=t.time==='AM'?'amStart':'pmStart',ek=t.time==='AM'?'amEnd':'pmEnd';
-    const windowLbl=fmt(scheduleSettings[sk])+' – '+fmt(scheduleSettings[ek]);
-    const statusBadge=isDisabled
-      ?'<span class="badge badge-disabled-b">⊘ Disabled</span>'
-      :isExpired
-        ?'<span class="badge badge-expired">✕ Expired</span>'
-        :'<span class="badge badge-valid">✓ Valid</span>';
-    return '<div class="search-result-card found">'+
-      '<div class="src-top">'+
-        '<div class="sr-num">#'+pad3(t.number)+'</div>'+
-        '<div class="sr-info">'+
-          '<div class="sr-name">'+esc(t.name||'—')+'</div>'+
-          '<div class="sr-meta">📅 '+dateLabel+' &nbsp;|&nbsp; Issued: '+issuedLbl+'</div>'+
-          '<div class="sr-meta" style="color:var(--blue);font-weight:700;margin-top:2px;">⏰ '+windowLbl+'</div>'+
-          '<div class="sr-badges">'+
-            '<span class="badge '+(t.time==='AM'?'badge-am':'badge-pm')+'">'+t.time+'</span>'+
-            statusBadge+
-          '</div>'+
-        '</div>'+
-      '</div>'+
-      personCardsHTML(t,'sr')+
-    '</div>';
-  }).join('');
-}
-
-function clearSearch(){
-  document.getElementById('search-input').value='';
-  const r=document.getElementById('search-results');
-  r.style.display='none';r.innerHTML='';
-}
-
-// ── CLAIM TOGGLE UI ──
-function onClaimToggleChange(){
-  const isOn = document.getElementById('claim-restrict-toggle').checked;
-  updateClaimToggleUI(isOn);
-  updateClaimPreview();
-}
-
-function updateClaimToggleUI(isOn){
-  const statusText = document.getElementById('toggle-status-text');
-  const modeBadge  = document.getElementById('claim-mode-badge');
-  const fields     = document.getElementById('claim-time-fields');
-
+function applyToggleUI(isOn){
+  const row=document.getElementById('toggle-row');
+  const lbl=document.getElementById('toggle-main-label');
+  const sub=document.getElementById('toggle-sub-label');
+  const fields=document.getElementById('time-fields');
   if(isOn){
-    statusText.textContent = '✅ Time Restriction: ON (time-limited window)';
-    statusText.className = 'toggle-status-text on';
-    modeBadge.textContent = '⏰ Time-Limited — Claiming hours enforced';
-    modeBadge.className = 'claim-mode-badge time-limited';
-    fields.classList.add('visible');
+    row.className='toggle-row state-on';
+    lbl.textContent='✅ Claiming: ON';
+    sub.textContent='Users can generate numbers within the time window below';
+    fields.classList.remove('dimmed');
   } else {
-    statusText.textContent = '⛔ Time Restriction: OFF (open anytime)';
-    statusText.className = 'toggle-status-text off';
-    modeBadge.textContent = '✅ Always Open — No time restriction';
-    modeBadge.className = 'claim-mode-badge always-on';
-    fields.classList.remove('visible');
-    document.getElementById('claim-window-preview').classList.remove('show');
-  }
-}
-
-function updateClaimPreview(){
-  const isOn = document.getElementById('claim-restrict-toggle').checked;
-  if(!isOn) return;
-  const s = document.getElementById('claim-start').value;
-  const e = document.getElementById('claim-end').value;
-  const preview = document.getElementById('claim-window-preview');
-  const previewText = document.getElementById('claim-preview-text');
-  if(s && e){
-    previewText.textContent = 'Users can claim from '+fmt(s)+' to '+fmt(e);
-    preview.classList.add('show');
+    row.className='toggle-row state-off';
+    lbl.textContent='⛔ Claiming: OFF';
+    sub.textContent='Users cannot generate numbers';
+    fields.classList.add('dimmed');
   }
 }
 
 // ── SETTINGS ──
 function applySettingsToUI(){
-  const restricted = !!scheduleSettings.claimRestricted;
-  document.getElementById('claim-restrict-toggle').checked = restricted;
-  document.getElementById('claim-start').value = scheduleSettings.claimStart||'06:00';
-  document.getElementById('claim-end').value   = scheduleSettings.claimEnd||'10:00';
-  document.getElementById('am-start').value    = scheduleSettings.amStart||'08:00';
-  document.getElementById('am-end').value      = scheduleSettings.amEnd||'12:00';
-  document.getElementById('pm-start').value    = scheduleSettings.pmStart||'12:00';
-  document.getElementById('pm-end').value      = scheduleSettings.pmEnd||'17:00';
-  updateClaimToggleUI(restricted);
-  if(restricted) updateClaimPreview();
+  const isOn=!!scheduleSettings.claimingEnabled;
+  document.getElementById('claiming-toggle').checked=isOn;
+  applyToggleUI(isOn);
+  document.getElementById('claim-start').value=scheduleSettings.claimStart||'06:00';
+  document.getElementById('claim-end').value=scheduleSettings.claimEnd||'10:00';
+  document.getElementById('am-start').value=scheduleSettings.amStart||'08:00';
+  document.getElementById('am-end').value=scheduleSettings.amEnd||'12:00';
+  document.getElementById('pm-start').value=scheduleSettings.pmStart||'12:00';
+  document.getElementById('pm-end').value=scheduleSettings.pmEnd||'17:00';
 }
 
 function updateCurrentSettingsBar(){
-  const restricted = !!scheduleSettings.claimRestricted;
-  if(restricted){
-    document.getElementById('cs-claim').textContent = fmt(scheduleSettings.claimStart)+' – '+fmt(scheduleSettings.claimEnd);
+  const isOn=!!scheduleSettings.claimingEnabled;
+  const clEl=document.getElementById('cs-claim');
+  if(isOn){
+    clEl.textContent=fmt(scheduleSettings.claimStart)+' – '+fmt(scheduleSettings.claimEnd);
+    clEl.style.color='var(--green)';
   } else {
-    document.getElementById('cs-claim').textContent = 'Anytime';
+    clEl.textContent='⛔ DISABLED';
+    clEl.style.color='var(--red)';
   }
-  const badge = document.getElementById('cs-toggle-badge');
-  badge.textContent = restricted ? '🔒 ON' : '🔓 OFF';
-  badge.className = 'live-toggle-badge ' + (restricted ? 'on' : 'off');
   document.getElementById('cs-am').textContent=fmt(scheduleSettings.amStart)+' – '+fmt(scheduleSettings.amEnd);
   document.getElementById('cs-pm').textContent=fmt(scheduleSettings.pmStart)+' – '+fmt(scheduleSettings.pmEnd);
 }
@@ -622,9 +449,10 @@ function updateCurrentSettingsBar(){
 function fmt(t){if(!t)return'—';const[h,m]=t.split(':').map(Number);const ap=h>=12?'PM':'AM';const hr=h%12||12;return hr+':'+String(m).padStart(2,'0')+' '+ap;}
 
 async function saveSettings(){
-  const restricted = document.getElementById('claim-restrict-toggle').checked;
+  const isOn=document.getElementById('claiming-toggle').checked;
   const ns={
-    claimRestricted: restricted,
+    claimingEnabled:isOn,
+    claimRestricted:true, // time window always applies when ON
     claimStart:document.getElementById('claim-start').value,
     claimEnd:document.getElementById('claim-end').value,
     amStart:document.getElementById('am-start').value,
@@ -632,7 +460,7 @@ async function saveSettings(){
     pmStart:document.getElementById('pm-start').value,
     pmEnd:document.getElementById('pm-end').value
   };
-  if(restricted && ns.claimStart>=ns.claimEnd){showSettingsStatus('❌ Claiming window: start must be before end',false);return;}
+  if(isOn&&ns.claimStart>=ns.claimEnd){showSettingsStatus('❌ Claiming window: start must be before end',false);return;}
   if(ns.amStart>=ns.amEnd){showSettingsStatus('❌ AM window: start must be before end',false);return;}
   if(ns.pmStart>=ns.pmEnd){showSettingsStatus('❌ PM window: start must be before end',false);return;}
   try{
@@ -640,11 +468,10 @@ async function saveSettings(){
     scheduleSettings=ns;
     updateCurrentSettingsBar();
     showSettingsStatus('✅ Settings saved!',true);
-    const modeMsg = restricted
-      ? '✅ Claiming is now TIME-LIMITED: '+fmt(ns.claimStart)+' – '+fmt(ns.claimEnd)
-      : '✅ Claiming is now ALWAYS OPEN (no time restriction)';
-    toast(modeMsg);
-  } catch(err){showSettingsStatus('❌ Failed: '+err.message,false);}
+    toast(isOn
+      ?'✅ Claiming ON · '+fmt(ns.claimStart)+' – '+fmt(ns.claimEnd)
+      :'⛔ Claiming OFF — users cannot generate numbers');
+  }catch(err){showSettingsStatus('❌ Failed: '+err.message,false);}
 }
 
 function showSettingsStatus(msg,ok){
@@ -683,34 +510,22 @@ function renderGrid(){
   if(!currentDate) return;
   const df=disabledNums[currentDate]||{};
   const taken=new Set(ticketsForDate.map(t=>t.number));
-  renderOddHalf('grid-am', AM_ODD, taken, df);
-  renderOddHalf('grid-pm', PM_ODD, taken, df);
+  renderOddHalf('grid-am',AM_ODD,taken,df);
+  renderOddHalf('grid-pm',PM_ODD,taken,df);
 }
-
-function renderOddHalf(gid, oddNums, taken, df){
-  const grid=document.getElementById(gid);
-  grid.innerHTML='';
+function renderOddHalf(gid,oddNums,taken,df){
+  const grid=document.getElementById(gid);grid.innerHTML='';
   for(const n of oddNums){
-    const isTaken=taken.has(n);
-    const isDis=!!df[n];
+    const isTaken=taken.has(n),isDis=!!df[n];
     const el=document.createElement('div');
     el.className='num-cell '+(isDis?'disabled-num':isTaken?'taken':'available');
     el.textContent=n;
-    if(isTaken){
-      const t=ticketsForDate.find(x=>x.number===n);
-      el.title='#'+n+' — Claimant: '+(t?t.name:'unknown');
-      el.style.cursor='default';
-    } else if(isDis){
-      el.title='#'+n+' — Disabled (click to re-enable)';
-      el.onclick=(()=>{const _n=n;return()=>toggleNumber(_n);})();
-    } else {
-      el.title='#'+n+' — Available (click to disable)';
-      el.onclick=(()=>{const _n=n;return()=>toggleNumber(_n);})();
-    }
+    if(isTaken){const t=ticketsForDate.find(x=>x.number===n);el.title='#'+n+' — Claimant: '+(t?t.name:'unknown');el.style.cursor='default';}
+    else if(isDis){el.title='#'+n+' — Disabled (click to re-enable)';el.onclick=(()=>{const _n=n;return()=>toggleNumber(_n);})();}
+    else{el.title='#'+n+' — Available (click to disable)';el.onclick=(()=>{const _n=n;return()=>toggleNumber(_n);})();}
     grid.appendChild(el);
   }
 }
-
 async function toggleNumber(num){
   if(!currentDate) return;
   const df=disabledNums[currentDate]||{};
@@ -728,22 +543,16 @@ function renderTicketList(){
   const c=document.getElementById('ticket-list-content');
   const df=disabledNums[currentDate]||{};
   document.getElementById('ticket-count-label').textContent=ticketsForDate.length+' ticket(s)';
-  if(!ticketsForDate.length){
-    c.innerHTML='<div class="empty-msg">No tickets found for this date.</div>';return;
-  }
+  if(!ticketsForDate.length){c.innerHTML='<div class="empty-msg">No tickets found for this date.</div>';return;}
   const nowMs=Date.now();
   c.innerHTML=ticketsForDate.map(t=>{
     const isExp=new Date(t.expiresAt).getTime()<nowMs;
     const isDis=!!df[t.number];
     const iss=new Date(t.issuedAt);
     const il=iss.toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-    const sk=t.time==='AM'?'amStart':'pmStart';
-    const ek=t.time==='AM'?'amEnd':'pmEnd';
+    const sk=t.time==='AM'?'amStart':'pmStart',ek=t.time==='AM'?'amEnd':'pmEnd';
     const wl='Valid: '+fmt(scheduleSettings[sk])+' – '+fmt(scheduleSettings[ek]);
-    const sb=isDis
-      ?'<span class="badge badge-disabled-b">⊘ Disabled</span>'
-      :isExp?'<span class="badge badge-expired">✕ Expired</span>'
-      :'<span class="badge badge-valid">✓ Valid</span>';
+    const sb=isDis?'<span class="badge badge-disabled-b">⊘ Disabled</span>':isExp?'<span class="badge badge-expired">✕ Expired</span>':'<span class="badge badge-valid">✓ Valid</span>';
     const tb='<span class="badge '+(t.time==='AM'?'badge-am':'badge-pm')+'">'+t.time+'</span>';
     return '<div class="ticket-row">'+
       '<div class="ticket-row-top">'+
@@ -759,20 +568,80 @@ function renderTicketList(){
   }).join('');
 }
 
+// ── SEARCH ──
+function doSearch(){
+  const query=document.getElementById('search-input').value.trim();
+  if(!query){toast('⚠ Enter a claimant name or priority number');return;}
+  if(!currentDate){toast('⚠ Please load a date first');return;}
+  const resultsDiv=document.getElementById('search-results');
+  resultsDiv.style.display='block';resultsDiv.innerHTML='<div class="search-empty">🔍 Searching...</div>';
+  const norm=query.toLowerCase(),isNum=/^\d+$/.test(query),targetNum=isNum?parseInt(query,10):null;
+  const matches=[];
+  Object.entries(allTickets).forEach(([key,t])=>{
+    if(!t||t.date!==currentDate) return;
+    if((t.name&&t.name.toLowerCase().includes(norm))||(isNum&&t.number===targetNum))
+      matches.push({id:key,...t});
+  });
+  if(!matches.length){resultsDiv.innerHTML='<div class="search-empty">❌ No tickets found for "<strong>'+esc(query)+'</strong>" on <strong>'+currentDate+'</strong></div>';return;}
+  matches.sort((a,b)=>b.date.localeCompare(a.date)||a.number-b.number);
+  const nowMs=Date.now();
+  resultsDiv.innerHTML=matches.map(t=>{
+    const d=new Date(t.date+'T00:00:00');
+    const dateLabel=MONTHS[d.getMonth()].slice(0,3)+' '+d.getDate()+', '+d.getFullYear();
+    const issued=new Date(t.issuedAt);
+    const issuedLbl=issued.toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    const isExpired=new Date(t.expiresAt).getTime()<nowMs;
+    const isDisabled=disabledNums[t.date]&&disabledNums[t.date][t.number];
+    const sk=t.time==='AM'?'amStart':'pmStart',ek=t.time==='AM'?'amEnd':'pmEnd';
+    const windowLbl=fmt(scheduleSettings[sk])+' – '+fmt(scheduleSettings[ek]);
+    const statusBadge=isDisabled?'<span class="badge badge-disabled-b">⊘ Disabled</span>':isExpired?'<span class="badge badge-expired">✕ Expired</span>':'<span class="badge badge-valid">✓ Valid</span>';
+    return '<div class="search-result-card found">'+
+      '<div class="src-top"><div class="sr-num">#'+pad3(t.number)+'</div>'+
+      '<div class="sr-info"><div class="sr-name">'+esc(t.name||'—')+'</div>'+
+      '<div class="sr-meta">📅 '+dateLabel+' &nbsp;|&nbsp; Issued: '+issuedLbl+'</div>'+
+      '<div class="sr-meta" style="color:var(--blue);font-weight:700;margin-top:2px;">⏰ '+windowLbl+'</div>'+
+      '<div class="sr-badges"><span class="badge '+(t.time==='AM'?'badge-am':'badge-pm')+'">'+t.time+'</span>'+statusBadge+'</div>'+
+      '</div></div>'+personCardsHTML(t,'sr')+'</div>';
+  }).join('');
+}
+function clearSearch(){
+  document.getElementById('search-input').value='';
+  const r=document.getElementById('search-results');r.style.display='none';r.innerHTML='';
+}
+
+function personCardsHTML(t,style='sr'){
+  const pc=style==='sr'?'sr-person-card':'tr-person-card';
+  const pl=style==='sr'?'sr-person-label':'tr-person-label';
+  const pn=style==='sr'?'sr-person-name':'tr-person-name';
+  const pi=style==='sr'?'sr-person-id':'tr-person-id';
+  const pw=style==='sr'?'sr-persons':'tr-persons';
+  let html='<div class="'+pw+'">';
+  html+='<div class="'+pc+'"><div class="'+pl+'">👤 Claimant</div><div class="'+pn+'">'+esc(t.name||'—')+'</div></div>';
+  if(t.ben1Name){
+    html+='<div class="'+pc+' ben"><div class="'+pl+'">🧑‍🤝‍🧑 Beneficiary 1</div><div class="'+pn+'">'+esc(t.ben1Name)+'</div>';
+    if(t.idType||t.idNumber) html+='<div class="'+pi+'">🪪 '+(t.idType?esc(t.idType):'ID')+(t.idNumber?' &nbsp;·&nbsp; #'+esc(t.idNumber):'')+'</div>';
+    html+='</div>';
+  }
+  if(t.ben2Name){
+    html+='<div class="'+pc+' ben"><div class="'+pl+'">🧑‍🤝‍🧑 Beneficiary 2</div><div class="'+pn+'">'+esc(t.ben2Name)+'</div>';
+    if(t.idType2||t.idNumber2) html+='<div class="'+pi+'">🪪 '+(t.idType2?esc(t.idType2):'ID')+(t.idNumber2?' &nbsp;·&nbsp; #'+esc(t.idNumber2):'')+'</div>';
+    html+='</div>';
+  }
+  html+='</div>';return html;
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function switchTab(tab){
   ['grid','list','settings'].forEach(t=>{
     document.getElementById('view-'+t).style.display=t===tab?'block':'none';
     document.getElementById('tab-'+t).className='tab-btn'+(t===tab?' active':'');
   });
 }
-
-// ── PURGE EXPIRED ──
 async function purgeAllExpired(){
   const nowMs=Date.now();
   const snap=await db.ref('tickets').once('value');
   if(!snap.exists()) return;
   const dels=[];
-  snap.forEach(c=>{const t=c.val();const expMs=new Date(t.date+'T23:59:59').getTime();if(nowMs>expMs+24*60*60*1000) dels.push({key:c.key,...t});});
+  snap.forEach(c=>{const t=c.val();if(nowMs>new Date(t.date+'T23:59:59').getTime()+86400000)dels.push({key:c.key,...t});});
   if(!dels.length) return;
   for(const d of dels){
     await db.ref('tickets/'+d.key).remove();
@@ -782,16 +651,14 @@ async function purgeAllExpired(){
   for(const date of ud){
     await db.ref('disabledNumbers/'+date).remove();
     const s=await db.ref('slots/'+date).once('value');
-    if(!s.exists()) await db.ref('slots/'+date).remove();
+    if(!s.exists())await db.ref('slots/'+date).remove();
   }
   toast('🗑 '+dels.length+' expired ticket(s) cleaned up');
 }
-
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 function pad(n){return String(n).padStart(2,'0');}
 function pad3(n){return String(n).padStart(3,'0');}
 function toast(msg){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2800);}
-
 setTimeout(purgeAllExpired,3000);
 setInterval(purgeAllExpired,5*60*1000);
 </script>

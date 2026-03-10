@@ -139,6 +139,62 @@
   .cs-sep{color:var(--blue-mid);}
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(70px);background:#1e293b;color:white;padding:11px 22px;border-radius:10px;font-size:13px;font-weight:700;z-index:99;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;}
   .toast.show{transform:translateX(-50%) translateY(0);}
+
+  /* ── CLAIMING TOGGLE ── */
+  .claim-toggle-block{
+    background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:18px;
+    margin-bottom:16px;
+  }
+  .claim-toggle-block h3{font-size:13px;font-weight:800;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:7px;}
+  .claim-toggle-desc{font-size:12px;color:var(--gray);margin-bottom:16px;line-height:1.5;}
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .toggle-status-text{font-size:13px;font-weight:700;}
+  .toggle-status-text.on{color:var(--green);}
+  .toggle-status-text.off{color:var(--red);}
+  .big-toggle{position:relative;display:inline-block;width:72px;height:38px;flex-shrink:0;}
+  .big-toggle input{opacity:0;width:0;height:0;position:absolute;}
+  .big-toggle-slider{
+    position:absolute;inset:0;border-radius:100px;cursor:pointer;
+    background:#dc2626;transition:background .3s;
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.2);
+  }
+  .big-toggle-slider::before{
+    content:'';position:absolute;width:30px;height:30px;left:4px;top:4px;
+    background:white;border-radius:50%;transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+    box-shadow:0 2px 6px rgba(0,0,0,.25);
+  }
+  .big-toggle input:checked + .big-toggle-slider{background:var(--green);}
+  .big-toggle input:checked + .big-toggle-slider::before{transform:translateX(34px);}
+  .toggle-label-on{font-size:11px;font-weight:800;color:var(--green);letter-spacing:.5px;}
+  .toggle-label-off{font-size:11px;font-weight:800;color:var(--red);letter-spacing:.5px;}
+  .claim-mode-badge{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:5px 12px;border-radius:100px;font-size:11px;font-weight:800;letter-spacing:.4px;
+    transition:all .3s;
+  }
+  .claim-mode-badge.always-on{background:#dcfce7;color:var(--green);border:1.5px solid #bbf7d0;}
+  .claim-mode-badge.time-limited{background:var(--blue-light);color:var(--blue);border:1.5px solid var(--blue-mid);}
+  .time-window-fields{
+    margin-top:14px;padding-top:14px;border-top:1.5px solid var(--border);
+    display:grid;grid-template-columns:1fr 1fr;gap:12px;
+    overflow:hidden;max-height:0;opacity:0;
+    transition:max-height .4s ease,opacity .3s ease,margin .3s ease,padding .3s ease;
+  }
+  .time-window-fields.visible{max-height:200px;opacity:1;}
+  .claim-window-preview{
+    margin-top:10px;padding:10px 14px;background:var(--blue-light);
+    border:1.5px solid var(--blue-mid);border-radius:9px;
+    font-size:12px;color:var(--blue);font-weight:700;
+    display:none;align-items:center;gap:6px;
+  }
+  .claim-window-preview.show{display:flex;}
+  .cs-item .live-toggle-badge{
+    display:inline-flex;align-items:center;gap:4px;
+    font-size:10px;font-weight:800;padding:2px 8px;border-radius:100px;
+    margin-left:4px;
+  }
+  .cs-item .live-toggle-badge.on{background:#dcfce7;color:var(--green);}
+  .cs-item .live-toggle-badge.off{background:#fee2e2;color:var(--red);}
 </style>
 </head>
 <body>
@@ -225,19 +281,61 @@
       <div class="section-title">⚙ Schedule &amp; Time Window Settings <span>Changes apply immediately for all users</span></div>
       <div class="current-settings-bar">
         <span>Current:</span>
-        <div class="cs-item">🕐 Claiming: <strong id="cs-claim">—</strong></div>
+        <div class="cs-item">
+          🎫 Claiming:
+          <strong id="cs-claim">—</strong>
+          <span class="live-toggle-badge" id="cs-toggle-badge">—</span>
+        </div>
         <div class="cs-sep">|</div>
         <div class="cs-item">🌅 AM valid: <strong id="cs-am">—</strong></div>
         <div class="cs-sep">|</div>
         <div class="cs-item">🌇 PM valid: <strong id="cs-pm">—</strong></div>
       </div>
-      <div class="settings-grid">
-        <div class="settings-block">
-          <h3><span class="icon">🕐</span> Ticket Claiming Window</h3>
-          <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">When users can generate their priority number.</p>
-          <div class="field-row"><label>Claiming Opens At</label><input type="time" id="claim-start" value="06:00"/><div class="hint">Before this time, users cannot get a number</div></div>
-          <div class="field-row"><label>Claiming Closes At</label><input type="time" id="claim-end" value="10:00"/><div class="hint">After this time, no new numbers can be claimed</div></div>
+
+      <!-- ── CLAIMING TOGGLE BLOCK ── -->
+      <div class="claim-toggle-block">
+        <h3><span class="icon">🎛️</span> Control Number Generation — Master Switch</h3>
+        <p class="claim-toggle-desc">
+          <strong>OFF</strong> — Users can generate a control number <em>anytime</em>, regardless of time.<br>
+          <strong>ON</strong> — Users can only generate a control number within the specified time window below.
+        </p>
+        <div class="toggle-row">
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div id="toggle-status-text" class="toggle-status-text off">⛔ Time Restriction: OFF (open anytime)</div>
+            <div id="claim-mode-badge" class="claim-mode-badge always-on">✅ Always Open — No time restriction</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <span class="toggle-label-off" id="lbl-off">OFF</span>
+            <label class="big-toggle">
+              <input type="checkbox" id="claim-restrict-toggle" onchange="onClaimToggleChange()"/>
+              <span class="big-toggle-slider"></span>
+            </label>
+            <span class="toggle-label-on" id="lbl-on">ON</span>
+          </div>
         </div>
+
+        <!-- Time fields — shown only when toggle is ON -->
+        <div class="time-window-fields" id="claim-time-fields">
+          <div class="field-row">
+            <label>Claiming Opens At</label>
+            <input type="time" id="claim-start" value="06:00" oninput="updateClaimPreview()"/>
+            <div class="hint">Before this time, users cannot get a number</div>
+          </div>
+          <div class="field-row">
+            <label>Claiming Closes At</label>
+            <input type="time" id="claim-end" value="10:00" oninput="updateClaimPreview()"/>
+            <div class="hint">After this time, no new numbers can be claimed</div>
+          </div>
+        </div>
+
+        <div class="claim-window-preview" id="claim-window-preview">
+          <span>⏰</span>
+          <span id="claim-preview-text">Users can claim from — to —</span>
+        </div>
+      </div>
+      <!-- END TOGGLE BLOCK -->
+
+      <div class="settings-grid">
         <div class="settings-block">
           <h3><span class="icon">🌅</span> AM Ticket Validity</h3>
           <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">AM ticket holders (#001–#149 odd) are served within this window.</p>
@@ -274,17 +372,14 @@ firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 
 // ── ODD NUMBER HELPERS ──
-// AM: 1,3,5,...,149  (75 numbers)
-// PM: 151,153,...,299 (75 numbers)
 function getOddNumbers(from, to){
   const nums=[];
-  // ensure we start on an odd number
   let start = from%2===0 ? from+1 : from;
   for(let n=start;n<=to;n+=2) nums.push(n);
   return nums;
 }
-const AM_ODD = getOddNumbers(1,149);   // [1,3,5,...,149]
-const PM_ODD = getOddNumbers(151,299); // [151,153,...,299]
+const AM_ODD = getOddNumbers(1,149);
+const PM_ODD = getOddNumbers(151,299);
 const ALL_ODD_SET = new Set([...AM_ODD,...PM_ODD]);
 const TOTAL_ODD = AM_ODD.length + PM_ODD.length; // 150
 
@@ -292,7 +387,12 @@ let currentDate=null;
 let disabledNums={};
 let ticketsForDate=[];
 let allTickets={};
-let scheduleSettings={claimStart:'06:00',claimEnd:'10:00',amStart:'08:00',amEnd:'12:00',pmStart:'12:00',pmEnd:'17:00'};
+let scheduleSettings={
+  claimStart:'06:00',claimEnd:'10:00',
+  amStart:'08:00',amEnd:'12:00',
+  pmStart:'12:00',pmEnd:'17:00',
+  claimRestricted:false   // NEW — false = always open, true = time-limited
+};
 
 // ── LOGIN ──
 if(sessionStorage.getItem('admin_auth')==='1'){
@@ -331,7 +431,8 @@ function initAdmin(){
   });
   db.ref('scheduleSettings').on('value',s=>{
     if(s.exists()) scheduleSettings=Object.assign({},scheduleSettings,s.val());
-    applySettingsToUI();updateCurrentSettingsBar();
+    applySettingsToUI();
+    updateCurrentSettingsBar();
   });
   const today=new Date();
   const ts=today.getFullYear()+'-'+pad(today.getMonth()+1)+'-'+pad(today.getDate());
@@ -347,21 +448,18 @@ function rebuildTicketsForDate(ds){
   ticketsForDate.sort((a,b)=>a.number-b.number);
 }
 
-// ── HELPER: build person cards HTML ──
+// ── PERSON CARDS HTML ──
 function personCardsHTML(t, style='sr'){
   const pc = style==='sr' ? 'sr-person-card' : 'tr-person-card';
   const pl = style==='sr' ? 'sr-person-label' : 'tr-person-label';
   const pn = style==='sr' ? 'sr-person-name' : 'tr-person-name';
   const pi = style==='sr' ? 'sr-person-id'   : 'tr-person-id';
   const pw = style==='sr' ? 'sr-persons'      : 'tr-persons';
-
   let html = '<div class="'+pw+'">';
-
   html += '<div class="'+pc+'">';
   html += '<div class="'+pl+'">👤 Claimant</div>';
   html += '<div class="'+pn+'">'+esc(t.name||'—')+'</div>';
   html += '</div>';
-
   if(t.ben1Name){
     html += '<div class="'+pc+' ben">';
     html += '<div class="'+pl+'">🧑‍🤝‍🧑 Beneficiary 1</div>';
@@ -371,7 +469,6 @@ function personCardsHTML(t, style='sr'){
     }
     html += '</div>';
   }
-
   if(t.ben2Name){
     html += '<div class="'+pc+' ben">';
     html += '<div class="'+pl+'">🧑‍🤝‍🧑 Beneficiary 2</div>';
@@ -381,7 +478,6 @@ function personCardsHTML(t, style='sr'){
     }
     html += '</div>';
   }
-
   html += '</div>';
   return html;
 }
@@ -398,11 +494,9 @@ function doSearch(){
   const resultsDiv=document.getElementById('search-results');
   resultsDiv.style.display='block';
   resultsDiv.innerHTML='<div class="search-empty">🔍 Searching...</div>';
-
   const norm=query.toLowerCase();
   const isNum=/^\d+$/.test(query);
   const targetNum=isNum?parseInt(query,10):null;
-
   const matches=[];
   Object.entries(allTickets).forEach(([key,t])=>{
     if(!t) return;
@@ -412,14 +506,11 @@ function doSearch(){
     if(claimantMatch||numMatch)
       matches.push({id:key,...t});
   });
-
   if(!matches.length){
     resultsDiv.innerHTML='<div class="search-empty">❌ No tickets found for "<strong>'+esc(query)+'</strong>" on <strong>'+currentDate+'</strong></div>';
     return;
   }
-
   matches.sort((a,b)=>b.date.localeCompare(a.date)||a.number-b.number);
-
   const nowMs=Date.now();
   resultsDiv.innerHTML=matches.map(t=>{
     const d=new Date(t.date+'T00:00:00');
@@ -459,23 +550,81 @@ function clearSearch(){
   r.style.display='none';r.innerHTML='';
 }
 
+// ── CLAIM TOGGLE UI ──
+function onClaimToggleChange(){
+  const isOn = document.getElementById('claim-restrict-toggle').checked;
+  updateClaimToggleUI(isOn);
+  updateClaimPreview();
+}
+
+function updateClaimToggleUI(isOn){
+  const statusText = document.getElementById('toggle-status-text');
+  const modeBadge  = document.getElementById('claim-mode-badge');
+  const fields     = document.getElementById('claim-time-fields');
+
+  if(isOn){
+    statusText.textContent = '✅ Time Restriction: ON (time-limited window)';
+    statusText.className = 'toggle-status-text on';
+    modeBadge.textContent = '⏰ Time-Limited — Claiming hours enforced';
+    modeBadge.className = 'claim-mode-badge time-limited';
+    fields.classList.add('visible');
+  } else {
+    statusText.textContent = '⛔ Time Restriction: OFF (open anytime)';
+    statusText.className = 'toggle-status-text off';
+    modeBadge.textContent = '✅ Always Open — No time restriction';
+    modeBadge.className = 'claim-mode-badge always-on';
+    fields.classList.remove('visible');
+    document.getElementById('claim-window-preview').classList.remove('show');
+  }
+}
+
+function updateClaimPreview(){
+  const isOn = document.getElementById('claim-restrict-toggle').checked;
+  if(!isOn) return;
+  const s = document.getElementById('claim-start').value;
+  const e = document.getElementById('claim-end').value;
+  const preview = document.getElementById('claim-window-preview');
+  const previewText = document.getElementById('claim-preview-text');
+  if(s && e){
+    previewText.textContent = 'Users can claim from '+fmt(s)+' to '+fmt(e);
+    preview.classList.add('show');
+  }
+}
+
 // ── SETTINGS ──
 function applySettingsToUI(){
-  document.getElementById('claim-start').value=scheduleSettings.claimStart||'06:00';
-  document.getElementById('claim-end').value=scheduleSettings.claimEnd||'10:00';
-  document.getElementById('am-start').value=scheduleSettings.amStart||'08:00';
-  document.getElementById('am-end').value=scheduleSettings.amEnd||'12:00';
-  document.getElementById('pm-start').value=scheduleSettings.pmStart||'12:00';
-  document.getElementById('pm-end').value=scheduleSettings.pmEnd||'17:00';
+  const restricted = !!scheduleSettings.claimRestricted;
+  document.getElementById('claim-restrict-toggle').checked = restricted;
+  document.getElementById('claim-start').value = scheduleSettings.claimStart||'06:00';
+  document.getElementById('claim-end').value   = scheduleSettings.claimEnd||'10:00';
+  document.getElementById('am-start').value    = scheduleSettings.amStart||'08:00';
+  document.getElementById('am-end').value      = scheduleSettings.amEnd||'12:00';
+  document.getElementById('pm-start').value    = scheduleSettings.pmStart||'12:00';
+  document.getElementById('pm-end').value      = scheduleSettings.pmEnd||'17:00';
+  updateClaimToggleUI(restricted);
+  if(restricted) updateClaimPreview();
 }
+
 function updateCurrentSettingsBar(){
-  document.getElementById('cs-claim').textContent=fmt(scheduleSettings.claimStart)+' – '+fmt(scheduleSettings.claimEnd);
+  const restricted = !!scheduleSettings.claimRestricted;
+  if(restricted){
+    document.getElementById('cs-claim').textContent = fmt(scheduleSettings.claimStart)+' – '+fmt(scheduleSettings.claimEnd);
+  } else {
+    document.getElementById('cs-claim').textContent = 'Anytime';
+  }
+  const badge = document.getElementById('cs-toggle-badge');
+  badge.textContent = restricted ? '🔒 ON' : '🔓 OFF';
+  badge.className = 'live-toggle-badge ' + (restricted ? 'on' : 'off');
   document.getElementById('cs-am').textContent=fmt(scheduleSettings.amStart)+' – '+fmt(scheduleSettings.amEnd);
   document.getElementById('cs-pm').textContent=fmt(scheduleSettings.pmStart)+' – '+fmt(scheduleSettings.pmEnd);
 }
+
 function fmt(t){if(!t)return'—';const[h,m]=t.split(':').map(Number);const ap=h>=12?'PM':'AM';const hr=h%12||12;return hr+':'+String(m).padStart(2,'0')+' '+ap;}
+
 async function saveSettings(){
+  const restricted = document.getElementById('claim-restrict-toggle').checked;
   const ns={
+    claimRestricted: restricted,
     claimStart:document.getElementById('claim-start').value,
     claimEnd:document.getElementById('claim-end').value,
     amStart:document.getElementById('am-start').value,
@@ -483,16 +632,21 @@ async function saveSettings(){
     pmStart:document.getElementById('pm-start').value,
     pmEnd:document.getElementById('pm-end').value
   };
-  if(ns.claimStart>=ns.claimEnd){showSettingsStatus('❌ Claiming window: start must be before end',false);return;}
+  if(restricted && ns.claimStart>=ns.claimEnd){showSettingsStatus('❌ Claiming window: start must be before end',false);return;}
   if(ns.amStart>=ns.amEnd){showSettingsStatus('❌ AM window: start must be before end',false);return;}
   if(ns.pmStart>=ns.pmEnd){showSettingsStatus('❌ PM window: start must be before end',false);return;}
   try{
     await db.ref('scheduleSettings').set(ns);
-    scheduleSettings=ns;updateCurrentSettingsBar();
+    scheduleSettings=ns;
+    updateCurrentSettingsBar();
     showSettingsStatus('✅ Settings saved!',true);
-    toast('✅ Schedule settings updated!');
+    const modeMsg = restricted
+      ? '✅ Claiming is now TIME-LIMITED: '+fmt(ns.claimStart)+' – '+fmt(ns.claimEnd)
+      : '✅ Claiming is now ALWAYS OPEN (no time restriction)';
+    toast(modeMsg);
   } catch(err){showSettingsStatus('❌ Failed: '+err.message,false);}
 }
+
 function showSettingsStatus(msg,ok){
   const el=document.getElementById('settings-status');
   el.textContent=msg;el.className='settings-status '+(ok?'ok':'err');
@@ -511,12 +665,10 @@ async function loadDate(){
 
 // ── STATS ──
 function refreshStats(){
-  // Only count tickets whose numbers are odd
   const amTaken=ticketsForDate.filter(t=>t.time==='AM'&&t.number%2!==0).length;
   const pmTaken=ticketsForDate.filter(t=>t.time==='PM'&&t.number%2!==0).length;
   const tot=amTaken+pmTaken;
   const df=disabledNums[currentDate]||{};
-  // Only count disabled odd numbers
   const dc=Object.entries(df).filter(([n,v])=>v&&parseInt(n)%2!==0).length;
   document.getElementById('s-total').textContent=tot;
   document.getElementById('s-am').textContent=amTaken;
@@ -531,7 +683,6 @@ function renderGrid(){
   if(!currentDate) return;
   const df=disabledNums[currentDate]||{};
   const taken=new Set(ticketsForDate.map(t=>t.number));
-  // Render only odd numbers in each range
   renderOddHalf('grid-am', AM_ODD, taken, df);
   renderOddHalf('grid-pm', PM_ODD, taken, df);
 }

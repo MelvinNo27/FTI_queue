@@ -98,8 +98,20 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .field label .opt{font-size:10px;color:var(--muted);font-weight:600;text-transform:none;margin-left:4px;}
 .field input[type=text]{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Nunito',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border-color .2s;}
 .field input[type=text]:focus{border-color:var(--blue);}
+.field input[type=text].input-error{border-color:var(--red);background:#fff8f8;}
+.field input[type=text].input-ok{border-color:var(--green);}
+.field select.input-error{border-color:var(--red);background:#fff8f8;}
+.field select.input-ok{border-color:var(--green);}
 .field select{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Nunito',sans-serif;font-size:14px;color:var(--text);outline:none;background:white;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;}
 .field select:focus{border-color:var(--blue);}
+.field-hint{font-size:11px;font-weight:700;margin-top:5px;padding:5px 10px;border-radius:7px;display:none;}
+.field-hint.show{display:block;}
+.field-hint.error{color:#b91c1c;background:#fee2e2;}
+.field-hint.ok{color:var(--green);background:#f0fdf4;}
+.char-counter{font-size:10px;font-weight:700;float:right;margin-top:-20px;margin-bottom:4px;padding-right:2px;}
+.char-counter.ok{color:var(--green);}
+.char-counter.warn{color:var(--orange);}
+.char-counter.error{color:var(--red);}
 .id-info-box{background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:10px 14px;margin-top:8px;font-size:12px;color:var(--green);display:flex;align-items:center;gap:8px;font-weight:700;}
 .person-section{border:1.5px solid #bfdbfe;border-radius:14px;padding:16px 16px 4px;margin-bottom:16px;background:var(--blue-light);}
 .person-section-label{font-size:12px;font-weight:800;color:var(--blue);text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px;padding-bottom:8px;border-bottom:1.5px solid #bfdbfe;}
@@ -108,7 +120,8 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .time-row{display:flex;gap:10px;}
 .time-btn{flex:1;padding:12px;border:1.5px solid var(--border);border-radius:10px;background:white;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;color:var(--gray);}
 .time-btn.active{border-color:var(--blue);background:var(--blue);color:white;}
-.time-btn.full{background:var(--red-light);border-color:#fca5a5;color:var(--red);cursor:not-allowed;pointer-events:none;}
+.time-btn.full{background:var(--red-light);border-color:#fca5a5;color:var(--red);cursor:not-allowed;pointer-events:none;opacity:0.55;}
+.time-btn:disabled{cursor:not-allowed;}
 .time-btn .slot-tag{display:block;font-size:10px;font-weight:600;margin-top:2px;opacity:.8;}
 .time-btn .window-tag{display:block;font-size:10px;font-weight:700;margin-top:1px;color:var(--green);}
 .time-btn.active .window-tag{color:rgba(255,255,255,.8);}
@@ -174,8 +187,8 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 <body>
 
 <div class="header">
-  <h1 id="header-title" onclick="handleTitleTap()" style="cursor:default;user-select:none;">Kadiwa Control Number</h1>
-  <p>Get your priority number for tomorrow</p>
+  <h1 id="header-title" onclick="handleTitleTap()" style="cursor:default;user-select:none;">P20 DDN CONTROL NUMBER</h1>
+  <p>Get your priority number</p>
 </div>
 
 <div class="wrap">
@@ -255,7 +268,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     <div class="error-card-header">
       <div class="error-card-icon">🚫</div>
       <div>
-        <div class="error-card-title">Already Claimed This Week</div>
+        <div class="error-card-title">7-Day Cooldown Active</div>
         <div class="error-card-subtitle" id="error-card-subtitle">This ID has already been used for this week's distribution.</div>
       </div>
     </div>
@@ -275,17 +288,28 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     <h2>Fill in details</h2>
     <div class="person-section claimant-section">
       <div class="person-section-label">Claimant</div>
-      <div class="field"><label>Claimant Full Name</label><input type="text" id="inp-name" placeholder="Enter claimant's full name"/></div>
+      <div class="field">
+        <label>Claimant Full Name</label>
+        <input type="text" id="inp-name" placeholder="Enter claimant's full name (min. 8 characters)" oninput="validateNameField('inp-name','hint-name','counter-name')" onkeypress="blockNumbers(event)"/>
+        <div class="char-counter" id="counter-name"></div>
+        <div class="field-hint" id="hint-name"></div>
+      </div>
     </div>
     <div class="person-section">
       <div class="person-section-label">Beneficiary 1</div>
-      <div class="field"><label>Full Name <span class="opt">(as it appears on ID)</span></label><input type="text" id="inp-ben1-name" placeholder="Enter full name from ID"/></div>
+      <div class="field">
+        <label>Full Name <span class="opt">(as it appears on ID)</span></label>
+        <input type="text" id="inp-ben1-name" placeholder="Enter full name from ID (min. 8 characters)" oninput="validateNameField('inp-ben1-name','hint-ben1-name','counter-ben1')" onkeypress="blockNumbers(event)"/>
+        <div class="char-counter" id="counter-ben1"></div>
+        <div class="field-hint" id="hint-ben1-name"></div>
+      </div>
       <div class="field"><label>ID Classification</label>
         <select id="inp-id-type">
           <option value="">— Select ID Classification —</option>
           <optgroup label="ID TYPE">
-            <option>Senior ID (OSCA)</option><option>4P's ID</option><option>PWD ID</option>
-            <option>Solo Parent ID</option><option>Farmer ID (RSBSA)</option><option>Driver (MTOP)</option>
+            <option>SENIOR ID (OSCA)</option><option>4P's/IP's ID</option><option>PWD ID</option>
+            <option>SOLO PARENT ID</option><option>FARMER ID (RSBSA)</option><option>DRIVER (PUV)</option>
+            <option>FisherFolk</option><option>MINIMUM WAGE EARNER</option>
           </optgroup>
         </select>
       </div>
@@ -293,17 +317,24 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     </div>
     <div class="person-section">
       <div class="person-section-label">Beneficiary 2 <span style="font-size:10px;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0;">(optional)</span></div>
-      <div class="field"><label>Full Name <span class="opt">(as it appears on ID)</span></label><input type="text" id="inp-ben2-name" placeholder="Enter full name from ID"/></div>
-      <div class="field"><label>ID Classification <span class="opt">(optional)</span></label>
-        <select id="inp-id-type2">
+      <div class="field"><label>Full Name <span class="opt">(as it appears on ID)</span></label><input type="text" id="inp-ben2-name" placeholder="Enter full name from ID" oninput="onBen2NameInput()"/></div>
+      <div class="field" id="field-id-type2">
+        <label id="label-id-type2">ID Classification <span class="opt" id="opt-id-type2">(optional)</span></label>
+        <select id="inp-id-type2" onchange="onBen2FieldChange()">
           <option value="">— Select ID Classification —</option>
           <optgroup label="ID TYPE">
-            <option>Senior ID (OSCA)</option><option>4P's ID</option><option>PWD ID</option>
-            <option>Solo Parent ID</option><option>Farmer ID (RSBSA)</option><option>Driver (MTOP)</option>
+            <option>SENIOR ID (OSCA)</option><option>4P's/IP's ID</option><option>PWD ID</option>
+            <option>SOLO PARENT ID</option><option>FARMER ID (RSBSA)</option><option>DRIVER (PUV)</option>
+            <option>FisherFolk</option><option>MINIMUM WAGE EARNER</option>
           </optgroup>
         </select>
+        <div class="field-hint" id="hint-id-type2"></div>
       </div>
-      <div class="field"><label>ID Number <span class="opt">(optional)</span></label><input type="text" id="inp-id-number2" placeholder="Enter ID number"/></div>
+      <div class="field" id="field-id-number2">
+        <label id="label-id-number2">ID Number <span class="opt" id="opt-id-number2">(optional)</span></label>
+        <input type="text" id="inp-id-number2" placeholder="Enter ID number" oninput="onBen2FieldChange()"/>
+        <div class="field-hint" id="hint-id-number2"></div>
+      </div>
     </div>
     <div class="id-info-box" style="margin-bottom:14px;">IDs will be verified in person by staff upon arrival.</div>
     <div class="field">
@@ -350,9 +381,6 @@ let editingTicketId=null;
 let slotsData={},disabledNumbers={};
 let myTickets=[],myTicketIds=JSON.parse(localStorage.getItem('pq_my_ticket_ids')||'[]');
 
-// scheduleSettings defaults:
-//   claimingEnabled: false  → OFF by default until Firebase responds
-//   claimRestricted: true   → time window always applies when enabled
 let scheduleSettings={
   claimStart:'06:00',claimEnd:'10:00',
   amStart:'08:00',amEnd:'12:00',
@@ -370,19 +398,182 @@ function toMin(t){const[h,m]=t.split(':').map(Number);return h*60+m;}
 function isWeekend(d){const day=(d||new Date()).getDay();return day===0||day===6;}
 function toast(msg){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2800);}
 
-// ─────────────────────────────────────────────
-//  MASTER GATE — single source of truth
-//  Returns: 'blocked' | 'weekend' | 'closed' | 'open'
-//
-//  Logic:
-//   • claimingEnabled = false (toggle OFF) → 'blocked'  (nobody can generate)
-//   • claimingEnabled = true  (toggle ON)  → check time window → 'closed' or 'open'
-//   • weekend always blocks regardless
-// ─────────────────────────────────────────────
+// ─── NAME FIELD VALIDATION ────────────────────────────────────────────────────
+// Block number key presses in real-time
+function blockNumbers(event){
+  if(event.key>='0'&&event.key<='9'){
+    event.preventDefault();
+    toast('⚠️ Numbers are not allowed in names');
+  }
+}
+
+// Validate name: no digits, minimum 8 characters
+function validateNameField(inputId, hintId, counterId){
+  const input=document.getElementById(inputId);
+  const hint=document.getElementById(hintId);
+  const counter=document.getElementById(counterId);
+  const val=input.value;
+  const len=val.length;
+  const hasNumbers=/\d/.test(val);
+
+  // Update char counter
+  counter.textContent=len+' / 8 min';
+  counter.className='char-counter'+(len>=8&&!hasNumbers?' ok':len>0&&len<8?' warn':hasNumbers?' error':'');
+
+  // Remove existing state classes
+  input.classList.remove('input-error','input-ok');
+  hint.className='field-hint';
+  hint.textContent='';
+
+  if(hasNumbers){
+    // Strip numbers from input silently
+    input.value=val.replace(/\d/g,'');
+    input.classList.add('input-error');
+    hint.className='field-hint error show';
+    hint.textContent='⚠️ Numbers are not allowed in names.';
+  } else if(len===0){
+    counter.textContent='';
+  } else if(len<8){
+    input.classList.add('input-error');
+    hint.className='field-hint error show';
+    hint.textContent='⚠️ Name must be at least 8 characters. ('+(8-len)+' more needed)';
+  } else {
+    input.classList.add('input-ok');
+    hint.className='field-hint ok show';
+    hint.textContent='✅ Looks good!';
+  }
+}
+
+// Full validation check (returns true if valid)
+function isNameValid(value){
+  const trimmed=value.trim();
+  return trimmed.length>=8 && !/\d/.test(trimmed);
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ─── BENEFICIARY 2 CONDITIONAL REQUIRED LOGIC ────────────────────────────────
+function onBen2NameInput(){
+  const name = document.getElementById('inp-ben2-name').value.trim();
+  const hasName = name.length > 0;
+  updateBen2RequiredState(hasName);
+}
+
+function onBen2FieldChange(){
+  const name = document.getElementById('inp-ben2-name').value.trim();
+  if(name.length > 0) validateBen2Fields();
+}
+
+// Also show green ✅ state on select when a value is picked and name is filled
+document.addEventListener('DOMContentLoaded', function(){
+  document.getElementById('inp-id-type2').addEventListener('change', function(){
+    const name = document.getElementById('inp-ben2-name').value.trim();
+    if(!name) return;
+    const selType  = document.getElementById('inp-id-type2');
+    const hintType = document.getElementById('hint-id-type2');
+    if(this.value){
+      selType.classList.remove('input-error');
+      selType.classList.add('input-ok');
+      hintType.className = 'field-hint ok show';
+      hintType.textContent = '✅ Looks good!';
+    } else {
+      selType.classList.remove('input-ok');
+      selType.classList.add('input-error');
+      hintType.className = 'field-hint error show';
+      hintType.textContent = '⚠️ ID Classification is required for Beneficiary 2.';
+    }
+  });
+  document.getElementById('inp-id-number2').addEventListener('input', function(){
+    const name = document.getElementById('inp-ben2-name').value.trim();
+    if(!name) return;
+    const inpNum  = document.getElementById('inp-id-number2');
+    const hintNum = document.getElementById('hint-id-number2');
+    if(this.value.trim()){
+      inpNum.classList.remove('input-error');
+      inpNum.classList.add('input-ok');
+      hintNum.className = 'field-hint ok show';
+      hintNum.textContent = '✅ Looks good!';
+    } else {
+      inpNum.classList.remove('input-ok');
+      inpNum.classList.add('input-error');
+      hintNum.className = 'field-hint error show';
+      hintNum.textContent = '⚠️ ID Number is required for Beneficiary 2.';
+    }
+  });
+});
+
+function updateBen2RequiredState(required){
+  const optType   = document.getElementById('opt-id-type2');
+  const optNum    = document.getElementById('opt-id-number2');
+  const hintType  = document.getElementById('hint-id-type2');
+  const hintNum   = document.getElementById('hint-id-number2');
+  const selType   = document.getElementById('inp-id-type2');
+  const inpNum    = document.getElementById('inp-id-number2');
+
+  if(required){
+    optType.textContent = '(required)';
+    optType.style.color = 'var(--red)';
+    optNum.textContent  = '(required)';
+    optNum.style.color  = 'var(--red)';
+  } else {
+    optType.textContent = '(optional)';
+    optType.style.color = '';
+    optNum.textContent  = '(optional)';
+    optNum.style.color  = '';
+    // Clear any error hints when name is cleared
+    hintType.className  = 'field-hint';
+    hintType.textContent= '';
+    hintNum.className   = 'field-hint';
+    hintNum.textContent = '';
+    selType.classList.remove('input-error');
+    inpNum.classList.remove('input-error');
+  }
+}
+
+// Returns true if ben2 fields are valid (or ben2 name is empty = skip)
+function validateBen2Fields(){
+  const name    = document.getElementById('inp-ben2-name').value.trim();
+  const idType2 = document.getElementById('inp-id-type2').value;
+  const idNum2  = document.getElementById('inp-id-number2').value.trim();
+  const hintType= document.getElementById('hint-id-type2');
+  const hintNum = document.getElementById('hint-id-number2');
+  const selType = document.getElementById('inp-id-type2');
+  const inpNum  = document.getElementById('inp-id-number2');
+
+  if(!name) return true; // ben2 is fully optional when name is blank
+
+  let valid = true;
+
+  // Validate ID Classification
+  if(!idType2){
+    selType.classList.add('input-error');
+    hintType.className = 'field-hint error show';
+    hintType.textContent = '⚠️ ID Classification is required for Beneficiary 2.';
+    valid = false;
+  } else {
+    selType.classList.remove('input-error');
+    hintType.className = 'field-hint';
+    hintType.textContent = '';
+  }
+
+  // Validate ID Number
+  if(!idNum2){
+    inpNum.classList.add('input-error');
+    hintNum.className = 'field-hint error show';
+    hintNum.textContent = '⚠️ ID Number is required for Beneficiary 2.';
+    valid = false;
+  } else {
+    inpNum.classList.remove('input-error');
+    hintNum.className = 'field-hint';
+    hintNum.textContent = '';
+  }
+
+  return valid;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 function getClaimingStatus(){
   if(!scheduleSettings.claimingEnabled) return 'blocked';
   if(isWeekend(new Date())) return 'weekend';
-  // time window always applies when ON
   const n=new Date();
   const c=n.getHours()*60+n.getMinutes();
   if(c<toMin(scheduleSettings.claimStart)||c>=toMin(scheduleSettings.claimEnd)) return 'closed';
@@ -390,25 +581,26 @@ function getClaimingStatus(){
 }
 function isClaimingOpen(){return getClaimingStatus()==='open';}
 
-function getWeekBounds(dateStr){
-  const d=new Date(dateStr+'T00:00:00');
-  const dow=d.getDay();const diffToMon=dow===0?-6:1-dow;
-  const mon=new Date(d);mon.setDate(d.getDate()+diffToMon);
-  const sun=new Date(mon);sun.setDate(mon.getDate()+6);
-  return{start:toDateStr(mon),end:toDateStr(sun)};
+// Rolling 7-day cooldown: block same ID from being used within 7 days of the TICKET DATE
+// (not calendar week — counts from the date the ticket is for)
+function get7DayBounds(ticketDateStr){
+  // ticketDateStr is the distribution date on the existing ticket
+  // Returns the window [ticketDate, ticketDate + 6] that is blocked
+  const d=new Date(ticketDateStr+'T00:00:00');
+  const end=new Date(d);end.setDate(d.getDate()+6);
+  return{start:toDateStr(d),end:toDateStr(end)};
 }
 
 // Firebase listeners
 db.ref('scheduleSettings').on('value',s=>{
   if(s.exists()) scheduleSettings=Object.assign({},scheduleSettings,s.val());
-  // Always enforce claimRestricted=true (time window applies when ON)
   scheduleSettings.claimRestricted=true;
   updateScheduleBar();
   updateStatusBanner();
   renderCard();
   renderTickets();
 });
-db.ref('slots').on('value',s=>{slotsData=s.val()||{};renderCard();updateSlotBanner();});
+// slots node kept for legacy writes; live slot counts are derived from tickets listener below
 db.ref('disabledNumbers').on('value',s=>{disabledNumbers=s.val()||{};renderTickets();});
 
 async function loadMyTickets(){
@@ -420,6 +612,44 @@ async function loadMyTickets(){
   renderTickets();
 }
 loadMyTickets();
+
+// Real-time listener: recount slots from all tickets, update slotsData + UI, and sync back to Firebase
+db.ref('tickets').on('value', snap => {
+  // Recount taken slots per date per time from live ticket data
+  const counts = {};
+  if(snap.exists()){
+    snap.forEach(c => {
+      const t = c.val();
+      if(!t.date || !t.time) return;
+      if(!counts[t.date]) counts[t.date] = {AM:0, PM:0};
+      counts[t.date][t.time] = (counts[t.date][t.time] || 0) + 1;
+    });
+  }
+  // Merge computed counts into slotsData so everything stays in sync locally
+  slotsData = counts;
+
+  // Sync recomputed slot counts back to Firebase so admin panel stays accurate
+  // Only write dates that are today or future (no need to update past dates)
+  const todayNow = toDateStr(new Date());
+  Object.entries(counts).forEach(([date, slots]) => {
+    if(date >= todayNow){
+      db.ref('slots/' + date).set({
+        AM: slots.AM || 0,
+        PM: slots.PM || 0
+      }).catch(e => console.warn('Slot sync error:', e));
+    }
+  });
+
+  renderCard();
+  updateSlotBanner();
+  // Refresh slot buttons if form is open
+  const formOpen = document.getElementById('form-card').classList.contains('show');
+  if(formOpen){
+    const editDate = editingTicketId ? (myTickets.find(x=>x.id===editingTicketId)||{}).date||targetStr : targetStr;
+    const keepTime = editingTicketId ? selectedTime : null;
+    applySlotButtonStates(editDate, keepTime);
+  }
+});
 
 function updateScheduleBar(){
   const isOn=!!scheduleSettings.claimingEnabled;
@@ -449,12 +679,60 @@ function updateStatusBanner(){
     b.classList.add('show','closed');
     b.innerHTML='Ticket claiming is closed. Opens at <strong>'+fmt(scheduleSettings.claimStart)+'</strong>, closes at <strong>'+fmt(scheduleSettings.claimEnd)+'</strong>.';
   }
-  // 'open' — no banner
 }
 
 function updateFormWindowTags(){
   document.getElementById('win-am').textContent=fmt(scheduleSettings.amStart)+'–'+fmt(scheduleSettings.amEnd);
   document.getElementById('win-pm').textContent=fmt(scheduleSettings.pmStart)+'–'+fmt(scheduleSettings.pmEnd);
+}
+
+function applySlotButtonStates(dateStr, lockedTime){
+  const sl=slotsData[dateStr]||{AM:0,PM:0};
+  const aF=(sl.AM||0)>=LIMIT_SLOT, pF=(sl.PM||0)>=LIMIT_SLOT;
+  const ba=document.getElementById('btn-am'), bp=document.getElementById('btn-pm');
+
+  // Fully reset both buttons first
+  ba.classList.remove('active','full');
+  bp.classList.remove('active','full');
+  ba.disabled=false;
+  bp.disabled=false;
+  ba.style.pointerEvents='';
+  bp.style.pointerEvents='';
+  ba.style.opacity='';
+  bp.style.opacity='';
+  ba.style.cursor='pointer';
+  bp.style.cursor='pointer';
+
+  document.getElementById('tag-am').textContent=aF?'FULL (75/75)':(sl.AM||0)+'/75 slots';
+  document.getElementById('tag-pm').textContent=pF?'FULL (75/75)':(sl.PM||0)+'/75 slots';
+
+  // Apply full state only to slots that are actually full
+  if(aF){
+    ba.classList.add('full');
+    ba.disabled=true;
+    ba.style.pointerEvents='none';
+    ba.style.cursor='not-allowed';
+  }
+  if(pF){
+    bp.classList.add('full');
+    bp.disabled=true;
+    bp.style.pointerEvents='none';
+    bp.style.cursor='not-allowed';
+  }
+
+  if(lockedTime){
+    selectedTime=lockedTime;
+    if(lockedTime==='AM'&&!aF){ ba.classList.add('active'); }
+    if(lockedTime==='PM'&&!pF){ bp.classList.add('active'); }
+  } else if(!aF && pF){
+    selectedTime='AM';
+    ba.classList.add('active');
+  } else if(aF && !pF){
+    selectedTime='PM';
+    bp.classList.add('active');
+  } else {
+    selectedTime=null;
+  }
 }
 
 function renderCalendar(){
@@ -525,6 +803,23 @@ function renderCard(){
   }
 }
 
+function clearNameValidation(){
+  ['inp-name','inp-ben1-name'].forEach(id=>{
+    const inp=document.getElementById(id);
+    if(inp){inp.classList.remove('input-error','input-ok');}
+  });
+  ['hint-name','hint-ben1-name'].forEach(id=>{
+    const h=document.getElementById(id);
+    if(h){h.className='field-hint';h.textContent='';}
+  });
+  ['counter-name','counter-ben1'].forEach(id=>{
+    const c=document.getElementById(id);
+    if(c){c.textContent='';}
+  });
+  // Reset ben2 required state
+  updateBen2RequiredState(false);
+}
+
 function openForm(){
   if(!isClaimingOpen()){
     const s=getClaimingStatus();
@@ -535,19 +830,13 @@ function openForm(){
   }
   editingTicketId=null;
   document.getElementById('btn-generate').textContent='Generate Priority Number';
-  const sl=slotsData[targetStr]||{AM:0,PM:0};
-  const aF=(sl.AM||0)>=LIMIT_SLOT,pF=(sl.PM||0)>=LIMIT_SLOT;
-  selectedTime=null;
   const tmr=addDays(now,1);
   document.getElementById('form-date-label').textContent='For: '+DAYS[tmr.getDay()]+', '+MONTHS[tmr.getMonth()]+' '+tmr.getDate()+', '+tmr.getFullYear();
-  const ba=document.getElementById('btn-am'),bp=document.getElementById('btn-pm');
-  ba.classList.remove('active','full');bp.classList.remove('active','full');
-  document.getElementById('tag-am').textContent=aF?'FULL (75/75)':(sl.AM||0)+'/75 slots';
-  document.getElementById('tag-pm').textContent=pF?'FULL (75/75)':(sl.PM||0)+'/75 slots';
-  if(aF)ba.classList.add('full');if(pF)bp.classList.add('full');
+  applySlotButtonStates(targetStr, null);
   updateFormWindowTags();
   ['inp-name','inp-ben1-name','inp-id-number','inp-ben2-name','inp-id-number2'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('inp-id-type').value='';document.getElementById('inp-id-type2').value='';
+  clearNameValidation();
   updateSlotBanner();
   document.getElementById('slot-banner').classList.add('show');
   document.getElementById('form-card').classList.add('show');
@@ -557,11 +846,15 @@ function openForm(){
 function selectTime(t){
   if(!isClaimingOpen())return;
   const sl=slotsData[targetStr]||{AM:0,PM:0};
-  if(t==='AM'&&(sl.AM||0)>=LIMIT_SLOT)return;
-  if(t==='PM'&&(sl.PM||0)>=LIMIT_SLOT)return;
+  const aF=(sl.AM||0)>=LIMIT_SLOT, pF=(sl.PM||0)>=LIMIT_SLOT;
+  if(t==='AM'&&aF)return;
+  if(t==='PM'&&pF)return;
   selectedTime=t;
-  document.getElementById('btn-am').classList.toggle('active',t==='AM');
-  document.getElementById('btn-pm').classList.toggle('active',t==='PM');
+  const ba=document.getElementById('btn-am'), bp=document.getElementById('btn-pm');
+  ba.classList.remove('active');
+  bp.classList.remove('active');
+  if(t==='AM'&&!aF) ba.classList.add('active');
+  if(t==='PM'&&!pF) bp.classList.add('active');
 }
 
 function editTicket(ticketId){
@@ -573,55 +866,70 @@ function editTicket(ticketId){
   document.getElementById('inp-id-type').value=t.idType||'';
   document.getElementById('inp-id-number').value=t.idNumber||'';
   document.getElementById('inp-ben2-name').value=t.ben2Name||'';
+  // Update ben2 required state based on pre-filled name
+  updateBen2RequiredState(!!(t.ben2Name && t.ben2Name.trim()));
   document.getElementById('inp-id-type2').value=t.idType2||'';
   document.getElementById('inp-id-number2').value=t.idNumber2||'';
-  selectedTime=t.time;
-  const ba=document.getElementById('btn-am'),bp=document.getElementById('btn-pm');
-  ba.classList.remove('active','full');bp.classList.remove('active','full');
-  ba.classList.add(t.time==='AM'?'active':'full');bp.classList.add(t.time==='PM'?'active':'full');
   const d=new Date(t.date+'T00:00:00');
   document.getElementById('form-date-label').textContent='Editing ticket for: '+DAYS[d.getDay()]+', '+MONTHS[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();
-  const sl=slotsData[t.date]||{AM:0,PM:0};
-  document.getElementById('tag-am').textContent=(sl.AM||0)+'/75 slots';
-  document.getElementById('tag-pm').textContent=(sl.PM||0)+'/75 slots';
+  applySlotButtonStates(t.date, t.time);
   updateFormWindowTags();
   document.getElementById('btn-generate').textContent='Save Changes';
+  // Re-run validation to show current state of pre-filled names
+  validateNameField('inp-name','hint-name','counter-name');
+  validateNameField('inp-ben1-name','hint-ben1-name','counter-ben1');
   updateSlotBanner();
   document.getElementById('slot-banner').classList.add('show');
   document.getElementById('form-card').classList.add('show');
   document.getElementById('form-card').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
-async function checkWeeklyCooldown(idNumber){
-  if(!idNumber)return null;
-  const norm=idNumber.trim().toLowerCase();
-  const{start,end}=getWeekBounds(targetStr);
+async function checkWeeklyCooldown(idType, idNumber){
+  // Both idType and idNumber must be present to check for duplicates
+  if(!idType || !idNumber) return null;
+  const normType = idType.trim().toLowerCase();
+  const normNum  = idNumber.trim().toLowerCase();
   const snap=await db.ref('tickets').once('value');
   if(!snap.exists())return null;
   let found=null;
   snap.forEach(c=>{
-    const t=c.val();if(!t.date||t.date<start||t.date>end||found)return;
-    if(t.idNumber&&t.idNumber.trim().toLowerCase()===norm)found={id:c.key,...t};
-    if(t.idNumber2&&t.idNumber2.trim().toLowerCase()===norm)found={id:c.key,...t};
+    if(found) return;
+    const t=c.val();
+    if(!t.date) return;
+    // For each existing ticket, check if targetStr falls within 7 days after that ticket's date
+    // i.e. block if: ticketDate <= targetStr <= ticketDate + 6
+    const{start,end}=get7DayBounds(t.date);
+    if(targetStr < start || targetStr > end) return;
+    // Match Beneficiary 1: same ID classification AND same ID number
+    if(t.idType && t.idNumber &&
+       t.idType.trim().toLowerCase()===normType &&
+       t.idNumber.trim().toLowerCase()===normNum)
+      found={id:c.key,...t};
+    // Match Beneficiary 2: same ID classification AND same ID number
+    if(!found && t.idType2 && t.idNumber2 &&
+       t.idType2.trim().toLowerCase()===normType &&
+       t.idNumber2.trim().toLowerCase()===normNum)
+      found={id:c.key,...t};
   });
   return found;
 }
 
 function showErrorCard(dupTicket,idNumber,benName,idType,beneficiaryLabel){
-  const{end}=getWeekBounds(targetStr);
-  const nextMon=new Date(end+'T00:00:00');nextMon.setDate(nextMon.getDate()+1);
-  const nextMonStr=MONTHS[nextMon.getMonth()]+' '+nextMon.getDate()+', '+nextMon.getFullYear();
+  // Next available = the day after the 7-day cooldown ends (dupTicket.date + 7)
+  const ticketDate=new Date(dupTicket.date+'T00:00:00');
+  const nextAvail=new Date(ticketDate);nextAvail.setDate(ticketDate.getDate()+7);
+  const nextMonStr=MONTHS[nextAvail.getMonth()]+' '+nextAvail.getDate()+', '+nextAvail.getFullYear();
   const claimedDate=new Date(dupTicket.date+'T00:00:00');
   const claimedDateStr=DAYS[claimedDate.getDay()]+', '+MONTHS[claimedDate.getMonth()]+' '+claimedDate.getDate()+', '+claimedDate.getFullYear();
   const norm=idNumber.trim().toLowerCase();
   const isSlot2=dupTicket.idNumber2&&dupTicket.idNumber2.trim().toLowerCase()===norm;
-  document.getElementById('error-card-subtitle').textContent=beneficiaryLabel+' ID has already been used for this week\'s distribution.';
+  document.getElementById('error-card-subtitle').textContent=beneficiaryLabel+' ID was used within the last 7 days. Please wait before claiming again.';
   document.getElementById('error-card-ben-name').textContent=isSlot2?(dupTicket.ben2Name||'—'):(dupTicket.ben1Name||'—');
   document.getElementById('error-card-id-type').textContent=isSlot2?(dupTicket.idType2||'—'):(dupTicket.idType||'—');
   document.getElementById('error-card-id').textContent=idNumber;
   document.getElementById('error-card-name').textContent=dupTicket.name||dupTicket.ben1Name||'—';
   document.getElementById('error-card-date').textContent=claimedDateStr+' ('+dupTicket.time+' slot)';
-  document.getElementById('error-card-next').textContent='Next available claim: '+nextMonStr;
+  document.getElementById('error-card-next').textContent='Next available claim (7-day cooldown): '+nextMonStr;
   document.getElementById('error-card').classList.add('show');
   document.getElementById('form-card').classList.remove('show');
   document.getElementById('slot-banner').classList.remove('show');
@@ -635,7 +943,6 @@ function dismissErrorCard(){
 }
 
 async function generateNumber(){
-  // Hard gate at submit time
   if(!isClaimingOpen()){
     const s=getClaimingStatus();
     if(s==='blocked') toast('⛔ Number generation is currently disabled');
@@ -649,14 +956,57 @@ async function generateNumber(){
   const ben2Name=document.getElementById('inp-ben2-name').value.trim();
   const idType2=document.getElementById('inp-id-type2').value;
   const idNumber2=document.getElementById('inp-id-number2').value.trim();
-  if(!name)return toast('Please enter the claimant name');
-  if(!ben1Name)return toast('Please enter Beneficiary 1 full name');
+
+  // Validate claimant name
+  if(!name){
+    validateNameField('inp-name','hint-name','counter-name');
+    return toast('Please enter the claimant name');
+  }
+  if(!isNameValid(name)){
+    validateNameField('inp-name','hint-name','counter-name');
+    if(/\d/.test(name)) return toast('⚠️ Claimant name cannot contain numbers');
+    return toast('⚠️ Claimant name must be at least 8 characters');
+  }
+
+  // Validate beneficiary 1 name
+  if(!ben1Name){
+    validateNameField('inp-ben1-name','hint-ben1-name','counter-ben1');
+    return toast('Please enter Beneficiary 1 full name');
+  }
+  if(!isNameValid(ben1Name)){
+    validateNameField('inp-ben1-name','hint-ben1-name','counter-ben1');
+    if(/\d/.test(ben1Name)) return toast('⚠️ Beneficiary 1 name cannot contain numbers');
+    return toast('⚠️ Beneficiary 1 name must be at least 8 characters');
+  }
+
+  // Validate Beneficiary 2: if name is filled, ID Classification and ID Number are required
+  if(!validateBen2Fields()){
+    const idType2 = document.getElementById('inp-id-type2').value;
+    const idNum2  = document.getElementById('inp-id-number2').value.trim();
+    if(!idType2) return toast('⚠️ Please select ID Classification for Beneficiary 2');
+    return toast('⚠️ Please enter ID Number for Beneficiary 2');
+  }
+
   if(!selectedTime)return toast('Please select AM or PM');
   const btn=document.getElementById('btn-generate');
   btn.disabled=true;btn.textContent='Checking...';
   if(!editingTicketId){
-    if(idNumber){const wd=await checkWeeklyCooldown(idNumber);if(wd&&wd.id!==editingTicketId){showErrorCard(wd,idNumber,ben1Name,idType,'Beneficiary 1');btn.disabled=false;btn.textContent='Generate Priority Number';return;}}
-    if(idNumber2){const wd2=await checkWeeklyCooldown(idNumber2);if(wd2&&wd2.id!==editingTicketId){showErrorCard(wd2,idNumber2,ben2Name,idType2,'Beneficiary 2');btn.disabled=false;btn.textContent='Generate Priority Number';return;}}
+    // Check Beneficiary 1: only trigger if BOTH idType and idNumber are filled
+    if(idType && idNumber){
+      const wd=await checkWeeklyCooldown(idType, idNumber);
+      if(wd && wd.id!==editingTicketId){
+        showErrorCard(wd,idNumber,ben1Name,idType,'Beneficiary 1');
+        btn.disabled=false;btn.textContent='Generate Priority Number';return;
+      }
+    }
+    // Check Beneficiary 2: only trigger if BOTH idType2 and idNumber2 are filled
+    if(idType2 && idNumber2){
+      const wd2=await checkWeeklyCooldown(idType2, idNumber2);
+      if(wd2 && wd2.id!==editingTicketId){
+        showErrorCard(wd2,idNumber2,ben2Name,idType2,'Beneficiary 2');
+        btn.disabled=false;btn.textContent='Generate Priority Number';return;
+      }
+    }
   }
   btn.textContent='Saving...';
   try{

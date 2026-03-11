@@ -50,6 +50,19 @@
   /* ── LAYOUT ── */
   .wrap{max-width:960px;margin:0 auto;padding:16px 12px 0;}
 
+  .btn-print-list{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 16px;
+  background:#1e40af;color:#fff;
+  border:none;border-radius:6px;
+  font-size:12px;font-weight:700;
+  cursor:pointer;letter-spacing:.2px;
+  transition:background .15s,transform .1s;
+  white-space:nowrap;flex-shrink:0;
+}
+.btn-print-list:hover{background:#1d3a9a;transform:translateY(-1px);}
+.btn-print-list:active{transform:translateY(0);}
+
   /* ── FB STATUS ── */
   .fb-status{display:flex;align-items:center;justify-content:flex-end;gap:6px;font-size:11px;font-weight:700;color:var(--gray);margin-bottom:12px;}
   .fb-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);}

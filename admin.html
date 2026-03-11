@@ -54,12 +54,12 @@
     <div class="stat-card"><div class="s-label">PM Taken</div><div class="s-val green" id="s-pm">—</div><div class="s-sub">of 75 (151,153…299)</div></div>
     <div class="stat-card"><div class="s-label">Available</div><div class="s-val green" id="s-avail">—</div><div class="s-sub">slots remaining</div></div>
     <div class="stat-card"><div class="s-label">Disabled</div><div class="s-val red" id="s-dis">0</div><div class="s-sub">by admin</div></div>
-    <div class="stat-card"><div class="s-label">Tickets</div><div class="s-val blue" id="s-tick">0</div><div class="s-sub">issued today</div></div>
+    <div class="stat-card"><div class="s-label">Numbers</div><div class="s-val blue" id="s-tick">0</div><div class="s-sub">issued today</div></div>
   </div>
 
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('grid')" id="tab-grid">Number Grid</button>
-    <button class="tab-btn" onclick="switchTab('list')" id="tab-list">Ticket List</button>
+    <button class="tab-btn" onclick="switchTab('list')" id="tab-list">Number List</button>
     <button class="tab-btn" onclick="switchTab('settings')" id="tab-settings">⚙ Schedule Settings</button>
   </div>
 
@@ -79,10 +79,14 @@
     </div>
   </div>
 
+  <!-- ✅ UPDATED: Print button added to section-title -->
   <div id="view-list" style="display:none;">
     <div class="section-card">
-      <div class="section-title">All Tickets <span id="ticket-count-label"></span></div>
-      <div id="ticket-list-content"><div class="empty-msg">No tickets found for this date.</div></div>
+      <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <span>All Numbers <span id="ticket-count-label"></span></span>
+        <button class="btn-print-list" onclick="openPrintView()">🖨️ Print List</button>
+      </div>
+      <div id="ticket-list-content"><div class="empty-msg">No numbers found for this date.</div></div>
     </div>
   </div>
 
@@ -99,7 +103,7 @@
       </div>
       <div class="settings-grid">
         <div class="settings-block">
-          <h3><span class="icon">🕐</span> Ticket Claiming Window</h3>
+          <h3><span class="icon">🕐</span> Number Claiming Window</h3>
           <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">Toggle ON to allow users to generate numbers within the time window. Toggle OFF to block number generation entirely.</p>
           <div class="toggle-row state-off" id="toggle-row">
             <div class="toggle-label-group">
@@ -125,14 +129,14 @@
           </div>
         </div>
         <div class="settings-block">
-          <h3><span class="icon">🌅</span> AM Ticket Validity</h3>
-          <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">AM ticket holders (#001–#149 odd) are served within this window.</p>
+          <h3><span class="icon">🌅</span> AM Number Validity</h3>
+          <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">AM Number holders (#001–#149 odd) are served within this window.</p>
           <div class="field-row"><label>AM Service Starts</label><input type="time" id="am-start" value="08:00"/></div>
           <div class="field-row"><label>AM Service Ends</label><input type="time" id="am-end" value="12:00"/></div>
         </div>
         <div class="settings-block">
-          <h3><span class="icon">🌇</span> PM Ticket Validity</h3>
-          <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">PM ticket holders (#151–#299 odd) are served within this window.</p>
+          <h3><span class="icon">🌇</span> PM Number Validity</h3>
+          <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">PM Number holders (#151–#299 odd) are served within this window.</p>
           <div class="field-row"><label>PM Service Starts</label><input type="time" id="pm-start" value="12:00"/></div>
           <div class="field-row"><label>PM Service Ends</label><input type="time" id="pm-end" value="17:00"/></div>
         </div>
@@ -148,7 +152,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <script>
-const ADMIN_USER='admin',ADMIN_PASS='admin123';
+const ADMIN_USER='tagumfti.admin@gmail.com',ADMIN_PASS='adminfti@2025';
 const firebaseConfig={
   apiKey:"AIzaSyAiRK64ZYzF8lBKnxmubCZEO9qrCN42B1g",authDomain:"fti-queue.firebaseapp.com",
   databaseURL:"https://fti-queue-default-rtdb.firebaseio.com",projectId:"fti-queue",
@@ -250,6 +254,11 @@ function rebuildTicketsForDate(ds){
 function onToggleChange(){
   const isOn=document.getElementById('claiming-toggle').checked;
   applyToggleUI(isOn);
+}
+
+function openPrintView() {
+  if (!currentDate) return toast('⚠ Load a date first');
+  window.open('print.html?date=' + currentDate, '_blank');
 }
 
 function applyToggleUI(isOn){
@@ -389,7 +398,7 @@ function renderTicketList(){
   const c=document.getElementById('ticket-list-content');
   const df=disabledNums[currentDate]||{};
   document.getElementById('ticket-count-label').textContent=ticketsForDate.length+' ticket(s)';
-  if(!ticketsForDate.length){c.innerHTML='<div class="empty-msg">No tickets found for this date.</div>';return;}
+  if(!ticketsForDate.length){c.innerHTML='<div class="empty-msg">No numbers found for this date.</div>';return;}
   const nowMs=Date.now();
   c.innerHTML=ticketsForDate.map(t=>{
     const isExp=new Date(t.expiresAt).getTime()<nowMs;
@@ -427,7 +436,7 @@ function doSearch(){
     if((t.name&&t.name.toLowerCase().includes(norm))||(isNum&&t.number===targetNum))
       matches.push({id:key,...t});
   });
-  if(!matches.length){resultsDiv.innerHTML='<div class="search-empty">❌ No tickets found for "<strong>'+esc(query)+'</strong>" on <strong>'+currentDate+'</strong></div>';return;}
+  if(!matches.length){resultsDiv.innerHTML='<div class="search-empty">❌ No numbers found for "<strong>'+esc(query)+'</strong>" on <strong>'+currentDate+'</strong></div>';return;}
   matches.sort((a,b)=>b.date.localeCompare(a.date)||a.number-b.number);
   const nowMs=Date.now();
   resultsDiv.innerHTML=matches.map(t=>{

@@ -89,9 +89,9 @@
 
   <div class="error-card" id="error-card">
     <div class="error-card-header">
-      <div class="error-card-icon">🚫</div>
+      <div class="error-card-icon" id="error-card-icon">🚫</div>
       <div>
-        <div class="error-card-title">7-Day Cooldown Active</div>
+        <div class="error-card-title" id="error-card-title">7-Day Cooldown Active</div>
         <div class="error-card-subtitle" id="error-card-subtitle">This ID has already been used for this week's distribution.</div>
       </div>
     </div>
@@ -222,7 +222,6 @@ function isWeekend(d){const day=(d||new Date()).getDay();return day===0||day===6
 function toast(msg){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2800);}
 
 // ─── NAME FIELD VALIDATION ────────────────────────────────────────────────────
-// Block number key presses in real-time
 function blockNumbers(event){
   if(event.key>='0'&&event.key<='9'){
     event.preventDefault();
@@ -230,7 +229,6 @@ function blockNumbers(event){
   }
 }
 
-// Validate name: no digits, minimum 8 characters
 function validateNameField(inputId, hintId, counterId){
   const input=document.getElementById(inputId);
   const hint=document.getElementById(hintId);
@@ -238,18 +236,12 @@ function validateNameField(inputId, hintId, counterId){
   const val=input.value;
   const len=val.length;
   const hasNumbers=/\d/.test(val);
-
-  // Update char counter
   counter.textContent=len+' / 8 min';
   counter.className='char-counter'+(len>=8&&!hasNumbers?' ok':len>0&&len<8?' warn':hasNumbers?' error':'');
-
-  // Remove existing state classes
   input.classList.remove('input-error','input-ok');
   hint.className='field-hint';
   hint.textContent='';
-
   if(hasNumbers){
-    // Strip numbers from input silently
     input.value=val.replace(/\d/g,'');
     input.classList.add('input-error');
     hint.className='field-hint error show';
@@ -267,7 +259,6 @@ function validateNameField(inputId, hintId, counterId){
   }
 }
 
-// Full validation check (returns true if valid)
 function isNameValid(value){
   const trimmed=value.trim();
   return trimmed.length>=8 && !/\d/.test(trimmed);
@@ -286,7 +277,6 @@ function onBen2FieldChange(){
   if(name.length > 0) validateBen2Fields();
 }
 
-// Also show green ✅ state on select when a value is picked and name is filled
 document.addEventListener('DOMContentLoaded', function(){
   document.getElementById('inp-id-type2').addEventListener('change', function(){
     const name = document.getElementById('inp-ben2-name').value.trim();
@@ -331,7 +321,6 @@ function updateBen2RequiredState(required){
   const hintNum   = document.getElementById('hint-id-number2');
   const selType   = document.getElementById('inp-id-type2');
   const inpNum    = document.getElementById('inp-id-number2');
-
   if(required){
     optType.textContent = '(required)';
     optType.style.color = 'var(--red)';
@@ -342,7 +331,6 @@ function updateBen2RequiredState(required){
     optType.style.color = '';
     optNum.textContent  = '(optional)';
     optNum.style.color  = '';
-    // Clear any error hints when name is cleared
     hintType.className  = 'field-hint';
     hintType.textContent= '';
     hintNum.className   = 'field-hint';
@@ -352,7 +340,6 @@ function updateBen2RequiredState(required){
   }
 }
 
-// Returns true if ben2 fields are valid (or ben2 name is empty = skip)
 function validateBen2Fields(){
   const name    = document.getElementById('inp-ben2-name').value.trim();
   const idType2 = document.getElementById('inp-id-type2').value;
@@ -361,12 +348,8 @@ function validateBen2Fields(){
   const hintNum = document.getElementById('hint-id-number2');
   const selType = document.getElementById('inp-id-type2');
   const inpNum  = document.getElementById('inp-id-number2');
-
-  if(!name) return true; // ben2 is fully optional when name is blank
-
+  if(!name) return true;
   let valid = true;
-
-  // Validate ID Classification
   if(!idType2){
     selType.classList.add('input-error');
     hintType.className = 'field-hint error show';
@@ -377,8 +360,6 @@ function validateBen2Fields(){
     hintType.className = 'field-hint';
     hintType.textContent = '';
   }
-
-  // Validate ID Number
   if(!idNum2){
     inpNum.classList.add('input-error');
     hintNum.className = 'field-hint error show';
@@ -389,7 +370,6 @@ function validateBen2Fields(){
     hintNum.className = 'field-hint';
     hintNum.textContent = '';
   }
-
   return valid;
 }
 // ─────────────────────────────────────────────────────────────────────────────
@@ -404,11 +384,7 @@ function getClaimingStatus(){
 }
 function isClaimingOpen(){return getClaimingStatus()==='open';}
 
-// Rolling 7-day cooldown: block same ID from being used within 7 days of the TICKET DATE
-// (not calendar week — counts from the date the ticket is for)
 function get7DayBounds(ticketDateStr){
-  // ticketDateStr is the distribution date on the existing ticket
-  // Returns the window [ticketDate, ticketDate + 6] that is blocked
   const d=new Date(ticketDateStr+'T00:00:00');
   const end=new Date(d);end.setDate(d.getDate()+6);
   return{start:toDateStr(d),end:toDateStr(end)};
@@ -423,7 +399,6 @@ db.ref('scheduleSettings').on('value',s=>{
   renderCard();
   renderTickets();
 });
-// slots node kept for legacy writes; live slot counts are derived from tickets listener below
 db.ref('disabledNumbers').on('value',s=>{disabledNumbers=s.val()||{};renderTickets();});
 
 async function loadMyTickets(){
@@ -436,9 +411,7 @@ async function loadMyTickets(){
 }
 loadMyTickets();
 
-// Real-time listener: recount slots from all tickets, update slotsData + UI, and sync back to Firebase
 db.ref('tickets').on('value', snap => {
-  // Recount taken slots per date per time from live ticket data
   const counts = {};
   if(snap.exists()){
     snap.forEach(c => {
@@ -448,11 +421,7 @@ db.ref('tickets').on('value', snap => {
       counts[t.date][t.time] = (counts[t.date][t.time] || 0) + 1;
     });
   }
-  // Merge computed counts into slotsData so everything stays in sync locally
   slotsData = counts;
-
-  // Sync recomputed slot counts back to Firebase so admin panel stays accurate
-  // Only write dates that are today or future (no need to update past dates)
   const todayNow = toDateStr(new Date());
   Object.entries(counts).forEach(([date, slots]) => {
     if(date >= todayNow){
@@ -462,10 +431,8 @@ db.ref('tickets').on('value', snap => {
       }).catch(e => console.warn('Slot sync error:', e));
     }
   });
-
   renderCard();
   updateSlotBanner();
-  // Refresh slot buttons if form is open
   const formOpen = document.getElementById('form-card').classList.contains('show');
   if(formOpen){
     const editDate = editingTicketId ? (myTickets.find(x=>x.id===editingTicketId)||{}).date||targetStr : targetStr;
@@ -513,8 +480,6 @@ function applySlotButtonStates(dateStr, lockedTime){
   const sl=slotsData[dateStr]||{AM:0,PM:0};
   const aF=(sl.AM||0)>=LIMIT_SLOT, pF=(sl.PM||0)>=LIMIT_SLOT;
   const ba=document.getElementById('btn-am'), bp=document.getElementById('btn-pm');
-
-  // Fully reset both buttons first
   ba.classList.remove('active','full');
   bp.classList.remove('active','full');
   ba.disabled=false;
@@ -525,11 +490,8 @@ function applySlotButtonStates(dateStr, lockedTime){
   bp.style.opacity='';
   ba.style.cursor='pointer';
   bp.style.cursor='pointer';
-
   document.getElementById('tag-am').textContent=aF?'FULL (75/75)':(sl.AM||0)+'/75 slots';
   document.getElementById('tag-pm').textContent=pF?'FULL (75/75)':(sl.PM||0)+'/75 slots';
-
-  // Apply full state only to slots that are actually full
   if(aF){
     ba.classList.add('full');
     ba.disabled=true;
@@ -542,7 +504,6 @@ function applySlotButtonStates(dateStr, lockedTime){
     bp.style.pointerEvents='none';
     bp.style.cursor='not-allowed';
   }
-
   if(lockedTime){
     selectedTime=lockedTime;
     if(lockedTime==='AM'&&!aF){ ba.classList.add('active'); }
@@ -639,7 +600,6 @@ function clearNameValidation(){
     const c=document.getElementById(id);
     if(c){c.textContent='';}
   });
-  // Reset ben2 required state
   updateBen2RequiredState(false);
 }
 
@@ -689,7 +649,6 @@ function editTicket(ticketId){
   document.getElementById('inp-id-type').value=t.idType||'';
   document.getElementById('inp-id-number').value=t.idNumber||'';
   document.getElementById('inp-ben2-name').value=t.ben2Name||'';
-  // Update ben2 required state based on pre-filled name
   updateBen2RequiredState(!!(t.ben2Name && t.ben2Name.trim()));
   document.getElementById('inp-id-type2').value=t.idType2||'';
   document.getElementById('inp-id-number2').value=t.idNumber2||'';
@@ -698,7 +657,6 @@ function editTicket(ticketId){
   applySlotButtonStates(t.date, t.time);
   updateFormWindowTags();
   document.getElementById('btn-generate').textContent='Save Changes';
-  // Re-run validation to show current state of pre-filled names
   validateNameField('inp-name','hint-name','counter-name');
   validateNameField('inp-ben1-name','hint-ben1-name','counter-ben1');
   updateSlotBanner();
@@ -707,8 +665,8 @@ function editTicket(ticketId){
   document.getElementById('form-card').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
+// ─── DUPLICATE CHECKS ─────────────────────────────────────────────────────────
 async function checkWeeklyCooldown(idType, idNumber){
-  // Both idType and idNumber must be present to check for duplicates
   if(!idType || !idNumber) return null;
   const normType = idType.trim().toLowerCase();
   const normNum  = idNumber.trim().toLowerCase();
@@ -719,16 +677,12 @@ async function checkWeeklyCooldown(idType, idNumber){
     if(found) return;
     const t=c.val();
     if(!t.date) return;
-    // For each existing ticket, check if targetStr falls within 7 days after that ticket's date
-    // i.e. block if: ticketDate <= targetStr <= ticketDate + 6
     const{start,end}=get7DayBounds(t.date);
     if(targetStr < start || targetStr > end) return;
-    // Match Beneficiary 1: same ID classification AND same ID number
     if(t.idType && t.idNumber &&
        t.idType.trim().toLowerCase()===normType &&
        t.idNumber.trim().toLowerCase()===normNum)
       found={id:c.key,...t};
-    // Match Beneficiary 2: same ID classification AND same ID number
     if(!found && t.idType2 && t.idNumber2 &&
        t.idType2.trim().toLowerCase()===normType &&
        t.idNumber2.trim().toLowerCase()===normNum)
@@ -737,27 +691,68 @@ async function checkWeeklyCooldown(idType, idNumber){
   return found;
 }
 
-function showErrorCard(dupTicket,idNumber,benName,idType,beneficiaryLabel){
-  // Next available = the day after the 7-day cooldown ends (dupTicket.date + 7)
-  const ticketDate=new Date(dupTicket.date+'T00:00:00');
-  const nextAvail=new Date(ticketDate);nextAvail.setDate(ticketDate.getDate()+7);
-  const nextMonStr=MONTHS[nextAvail.getMonth()]+' '+nextAvail.getDate()+', '+nextAvail.getFullYear();
-  const claimedDate=new Date(dupTicket.date+'T00:00:00');
-  const claimedDateStr=DAYS[claimedDate.getDay()]+', '+MONTHS[claimedDate.getMonth()]+' '+claimedDate.getDate()+', '+claimedDate.getFullYear();
-  const norm=idNumber.trim().toLowerCase();
-  const isSlot2=dupTicket.idNumber2&&dupTicket.idNumber2.trim().toLowerCase()===norm;
-  document.getElementById('error-card-subtitle').textContent=beneficiaryLabel+' ID was used within the last 7 days. Please wait before claiming again.';
-  document.getElementById('error-card-ben-name').textContent=isSlot2?(dupTicket.ben2Name||'—'):(dupTicket.ben1Name||'—');
-  document.getElementById('error-card-id-type').textContent=isSlot2?(dupTicket.idType2||'—'):(dupTicket.idType||'—');
-  document.getElementById('error-card-id').textContent=idNumber;
-  document.getElementById('error-card-name').textContent=dupTicket.name||dupTicket.ben1Name||'—';
-  document.getElementById('error-card-date').textContent=claimedDateStr+' ('+dupTicket.time+' slot)';
-  document.getElementById('error-card-next').textContent='Next available claim (7-day cooldown): '+nextMonStr;
+async function checkBeneficiaryNameCooldown(benName){
+  if(!benName || benName.trim().length < 2) return null;
+  const normName = benName.trim().toLowerCase();
+  const snap = await db.ref('tickets').once('value');
+  if(!snap.exists()) return null;
+  let found = null;
+  snap.forEach(c => {
+    if(found) return;
+    const t = c.val();
+    if(!t.date) return;
+    const {start, end} = get7DayBounds(t.date);
+    if(targetStr < start || targetStr > end) return;
+    if(t.ben1Name && t.ben1Name.trim().toLowerCase() === normName)
+      found = {id: c.key, matchedSlot: 1, ...t};
+    if(!found && t.ben2Name && t.ben2Name.trim().toLowerCase() === normName)
+      found = {id: c.key, matchedSlot: 2, ...t};
+  });
+  return found;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+// matchType: 'id' | 'name'
+function showErrorCard(dupTicket, idNumber, benName, idType, beneficiaryLabel, matchType){
+  const ticketDate = new Date(dupTicket.date+'T00:00:00');
+  const nextAvail  = new Date(ticketDate);
+  nextAvail.setDate(ticketDate.getDate()+7);
+  const nextMonStr     = MONTHS[nextAvail.getMonth()]+' '+nextAvail.getDate()+', '+nextAvail.getFullYear();
+  const claimedDate    = new Date(dupTicket.date+'T00:00:00');
+  const claimedDateStr = DAYS[claimedDate.getDay()]+', '+MONTHS[claimedDate.getMonth()]+' '+claimedDate.getDate()+', '+claimedDate.getFullYear();
+
+  const isNameMatch = matchType === 'name';
+  const norm = idNumber ? idNumber.trim().toLowerCase() : '';
+  const isSlot2 = !isNameMatch && dupTicket.idNumber2 && dupTicket.idNumber2.trim().toLowerCase() === norm;
+
+  // Update icon & title based on match type
+  document.getElementById('error-card-icon').textContent   = isNameMatch ? '⚠️' : '🚫';
+  document.getElementById('error-card-title').textContent  = isNameMatch
+    ? 'Already Claimed This Week'
+    : '7-Day Cooldown Active';
+  document.getElementById('error-card-subtitle').textContent = isNameMatch
+    ? beneficiaryLabel+' name already has a registered control number this week.'
+    : beneficiaryLabel+' ID was used within the last 7 days. Please wait before claiming again.';
+
+  document.getElementById('error-card-ben-name').textContent = isNameMatch
+    ? benName
+    : (isSlot2 ? (dupTicket.ben2Name||'—') : (dupTicket.ben1Name||'—'));
+  document.getElementById('error-card-id-type').textContent  = isNameMatch
+    ? ((dupTicket.matchedSlot===2 ? dupTicket.idType2 : dupTicket.idType)||'—')
+    : (idType||'—');
+  document.getElementById('error-card-id').textContent       = isNameMatch
+    ? ((dupTicket.matchedSlot===2 ? dupTicket.idNumber2 : dupTicket.idNumber)||'—')
+    : idNumber;
+  document.getElementById('error-card-name').textContent     = dupTicket.name||dupTicket.ben1Name||'—';
+  document.getElementById('error-card-date').textContent     = claimedDateStr+' ('+dupTicket.time+' slot)';
+  document.getElementById('error-card-next').textContent     = 'Next available claim (7-day cooldown): '+nextMonStr;
+
   document.getElementById('error-card').classList.add('show');
   document.getElementById('form-card').classList.remove('show');
   document.getElementById('slot-banner').classList.remove('show');
   document.getElementById('error-card').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
+
 function dismissErrorCard(){
   document.getElementById('error-card').classList.remove('show');
   document.getElementById('form-card').classList.add('show');
@@ -772,15 +767,14 @@ async function generateNumber(){
     else toast('Number claiming is currently closed');
     return;
   }
-  const name=document.getElementById('inp-name').value.trim();
-  const ben1Name=document.getElementById('inp-ben1-name').value.trim();
-  const idType=document.getElementById('inp-id-type').value;
-  const idNumber=document.getElementById('inp-id-number').value.trim();
-  const ben2Name=document.getElementById('inp-ben2-name').value.trim();
-  const idType2=document.getElementById('inp-id-type2').value;
-  const idNumber2=document.getElementById('inp-id-number2').value.trim();
+  const name     = document.getElementById('inp-name').value.trim();
+  const ben1Name = document.getElementById('inp-ben1-name').value.trim();
+  const idType   = document.getElementById('inp-id-type').value;
+  const idNumber = document.getElementById('inp-id-number').value.trim();
+  const ben2Name = document.getElementById('inp-ben2-name').value.trim();
+  const idType2  = document.getElementById('inp-id-type2').value;
+  const idNumber2= document.getElementById('inp-id-number2').value.trim();
 
-  // Validate claimant name
   if(!name){
     validateNameField('inp-name','hint-name','counter-name');
     return toast('Please enter the claimant name');
@@ -791,7 +785,6 @@ async function generateNumber(){
     return toast('⚠️ Claimant name must be at least 8 characters');
   }
 
-  // Validate beneficiary 1 name
   if(!ben1Name){
     validateNameField('inp-ben1-name','hint-ben1-name','counter-ben1');
     return toast('Please enter Beneficiary 1 full name');
@@ -802,35 +795,50 @@ async function generateNumber(){
     return toast('⚠️ Beneficiary 1 name must be at least 8 characters');
   }
 
-  // Validate Beneficiary 2: if name is filled, ID Classification and ID Number are required
   if(!validateBen2Fields()){
-    const idType2 = document.getElementById('inp-id-type2').value;
-    const idNum2  = document.getElementById('inp-id-number2').value.trim();
-    if(!idType2) return toast('⚠️ Please select ID Classification for Beneficiary 2');
+    const _idType2 = document.getElementById('inp-id-type2').value;
+    if(!_idType2) return toast('⚠️ Please select ID Classification for Beneficiary 2');
     return toast('⚠️ Please enter ID Number for Beneficiary 2');
   }
 
-  if(!selectedTime)return toast('Please select AM or PM');
-  const btn=document.getElementById('btn-generate');
-  btn.disabled=true;btn.textContent='Checking...';
+  if(!selectedTime) return toast('Please select AM or PM');
+
+  const btn = document.getElementById('btn-generate');
+  btn.disabled=true; btn.textContent='Checking...';
+
   if(!editingTicketId){
-    // Check Beneficiary 1: only trigger if BOTH idType and idNumber are filled
+    // ── Check Beneficiary 1 by ID ──
     if(idType && idNumber){
-      const wd=await checkWeeklyCooldown(idType, idNumber);
-      if(wd && wd.id!==editingTicketId){
-        showErrorCard(wd,idNumber,ben1Name,idType,'Beneficiary 1');
-        btn.disabled=false;btn.textContent='Generate Priority Number';return;
+      const wd = await checkWeeklyCooldown(idType, idNumber);
+      if(wd && wd.id !== editingTicketId){
+        showErrorCard(wd, idNumber, ben1Name, idType, 'Beneficiary 1', 'id');
+        btn.disabled=false; btn.textContent='Generate Priority Number'; return;
       }
     }
-    // Check Beneficiary 2: only trigger if BOTH idType2 and idNumber2 are filled
+    // ── Check Beneficiary 1 by NAME ──
+    const wn1 = await checkBeneficiaryNameCooldown(ben1Name);
+    if(wn1 && wn1.id !== editingTicketId){
+      showErrorCard(wn1, '', ben1Name, '', 'Beneficiary 1', 'name');
+      btn.disabled=false; btn.textContent='Generate Priority Number'; return;
+    }
+    // ── Check Beneficiary 2 by ID ──
     if(idType2 && idNumber2){
-      const wd2=await checkWeeklyCooldown(idType2, idNumber2);
-      if(wd2 && wd2.id!==editingTicketId){
-        showErrorCard(wd2,idNumber2,ben2Name,idType2,'Beneficiary 2');
-        btn.disabled=false;btn.textContent='Generate Priority Number';return;
+      const wd2 = await checkWeeklyCooldown(idType2, idNumber2);
+      if(wd2 && wd2.id !== editingTicketId){
+        showErrorCard(wd2, idNumber2, ben2Name, idType2, 'Beneficiary 2', 'id');
+        btn.disabled=false; btn.textContent='Generate Priority Number'; return;
+      }
+    }
+    // ── Check Beneficiary 2 by NAME ──
+    if(ben2Name){
+      const wn2 = await checkBeneficiaryNameCooldown(ben2Name);
+      if(wn2 && wn2.id !== editingTicketId){
+        showErrorCard(wn2, '', ben2Name, '', 'Beneficiary 2', 'name');
+        btn.disabled=false; btn.textContent='Generate Priority Number'; return;
       }
     }
   }
+
   btn.textContent='Saving...';
   try{
     if(editingTicketId){

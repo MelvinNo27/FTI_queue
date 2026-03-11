@@ -50,7 +50,7 @@
   <!-- About -->
   <button class="drawer-item" onclick="openAbout()">
     <span class="di-icon">ℹ️</span>
-    <span data-i18n="menuAbout">About Us</span>
+    <span data-i18n="menuAbout">About This App</span>
   </button>
 
   <div class="drawer-footer" data-i18n="drawerFooter">P20 DDN Queue System</div>
@@ -75,32 +75,29 @@
       <div class="about-divider"></div>
 
       <div class="about-team-block">
-        <div class="about-team-role" data-i18n="aboutDevRole">Developers (Interns)</div>
+        <div class="about-team-role" data-i18n="aboutDevRole">💻 Developers (Interns)</div>
         <div class="about-team-list">
-          <div class="about-team-member"><span class="atm-dot"></span>Melvin Magsalay</div>
-          <div class="about-team-member"><span class="atm-dot"></span>John Ryn Salazar</div>
-          <div class="about-team-member"><span class="atm-dot"></span>John Daryl Panes</div>
-          <div class="about-team-member"><span class="atm-dot"></span>Le Ann Zaira Diocson</div>
-          <div class="about-team-member"><span class="atm-dot"></span>Sherine Mae Lumo-os</div>
-          <div class="about-team-member"><span class="atm-dot"></span>Anna Bebz Gascon</div>
-          <div class="about-team-member"><span class="atm-dot"></span>Uj Sullan</div>
-          <div class="about-team-member"><span class="atm-dot"></span>Delayht Lupoyon</div>
+          <div class="about-team-member"><span class="atm-dot"></span>Melvin</div>
+          <div class="about-team-member"><span class="atm-dot"></span>John Ryn</div>
+          <div class="about-team-member"><span class="atm-dot"></span>John Daryl</div>
         </div>
       </div>
 
       <div class="about-team-block">
-        <div class="about-team-role" data-i18n="aboutPlanRole">Planners / Supervisors</div>
+        <div class="about-team-role" data-i18n="aboutPlanRole">📋 Planners / Supervisors</div>
         <div class="about-team-list">
           <div class="about-team-member"><span class="atm-dot supervisor"></span>Roland Casas</div>
-          <div class="about-team-member"><span class="atm-dot supervisor"></span>Andre Bonn Sumalpong</div>
-          <div class="about-team-member"><span class="atm-dot supervisor"></span>Irene Ordista</div>
-          <div class="about-team-member"><span class="atm-dot supervisor"></span>Susana Asejo</div>
-          <div class="about-team-member"><span class="atm-dot supervisor"></span>Shaira Kaye Nazareno</div>
+          <div class="about-team-member"><span class="atm-dot supervisor"></span>Bon Sumalpong</div>
         </div>
       </div>
 
       <div class="about-divider"></div>
 
+      <div class="about-office">
+        <div class="about-office-label" data-i18n="aboutOffice">Managed by</div>
+        <div class="about-office-name">FTI — Tagum City</div>
+        <div class="about-office-sub" data-i18n="aboutOfficeSub">Department of Social Welfare and Development</div>
+      </div>
 
       <div class="about-note" data-i18n="aboutNote">
         ⚠️ Your control number does not guarantee immediate service. Please arrive within your assigned time window.
@@ -1304,7 +1301,7 @@ const TRANSLATIONS = {
     appTitle:        'P20 DDN CONTROL NUMBER',
     appSubtitle:     'Get your priority number',
     menuLanguage:    '🌐 Language',
-    menuAbout:       'About Us',
+    menuAbout:       'About This App',
     drawerFooter:    'P20 DDN Queue System',
     schClaiming:     'Claiming:',
     schAM:           'AM valid:',
@@ -1350,7 +1347,7 @@ const TRANSLATIONS = {
     appTitle:        'P20 DDN NUMERO SA PAGKONTROL',
     appSubtitle:     'Kuha ang imong numero sa prayoridad',
     menuLanguage:    '🌐 Pinulongan',
-    menuAbout:       'Mahitungod kanamo',
+    menuAbout:       'Mahitungod Niini',
     drawerFooter:    'P20 DDN Queue System',
     schClaiming:     'Oras sa Pagkuha:',
     schAM:           'AM balido:',
@@ -1482,6 +1479,7 @@ function closeAboutDirect() {
 // Apply saved language on load
 applyTranslations();
 // ═══════════════════════════════════════════════════════════════════
+let tapCount=0,tapTimer=null;
 function handleTitleTap(){
   tapCount++;
   if(tapTimer)clearTimeout(tapTimer);

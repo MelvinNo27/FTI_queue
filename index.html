@@ -10,16 +10,114 @@
 <body>
 
 <div class="header">
-  <h1 id="header-title" onclick="handleTitleTap()" style="cursor:default;user-select:none;">P20 DDN CONTROL NUMBER</h1>
-  <p>Get your priority number</p>
+  <div class="header-inner">
+    <div class="header-text">
+      <h1 id="header-title" onclick="handleTitleTap()" style="cursor:default;user-select:none;" data-i18n="appTitle">P20 DDN CONTROL NUMBER</h1>
+      <p data-i18n="appSubtitle">Get your priority number</p>
+    </div>
+    <button class="burger-btn" id="burger-btn" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</div>
+
+<!-- ── Side Drawer ── -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeMenu()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-logo">🎫</div>
+    <div class="drawer-title">P20 DDN</div>
+    <button class="drawer-close" onclick="closeMenu()">✕</button>
+  </div>
+
+  <!-- Language -->
+  <div class="drawer-section-label" data-i18n="menuLanguage">🌐 Language</div>
+  <div class="lang-options">
+    <button class="lang-btn active" id="lang-en" onclick="setLang('en')">
+      <span class="lang-flag">🇺🇸</span>
+      <span class="lang-name">English</span>
+      <span class="lang-check" id="check-en">✓</span>
+    </button>
+    <button class="lang-btn" id="lang-ceb" onclick="setLang('ceb')">
+      <span class="lang-flag">🇵🇭</span>
+      <span class="lang-name">Bisaya</span>
+      <span class="lang-check" id="check-ceb"></span>
+    </button>
+  </div>
+
+  <div class="drawer-divider"></div>
+
+  <!-- About -->
+  <button class="drawer-item" onclick="openAbout()">
+    <span class="di-icon">ℹ️</span>
+    <span data-i18n="menuAbout">About Us</span>
+  </button>
+
+  <div class="drawer-footer" data-i18n="drawerFooter">P20 DDN Queue System</div>
+</div>
+
+<!-- ── About Modal ── -->
+<div class="about-overlay" id="about-overlay" onclick="closeAbout(event)">
+  <div class="about-modal" id="about-modal">
+    <div class="about-header">
+      <div class="about-logo">🎫</div>
+      <button class="about-close" onclick="closeAboutDirect()">✕</button>
+    </div>
+    <div class="about-body">
+      <div class="about-app-name" data-i18n="aboutAppName">P20 DDN Control Number System</div>
+      <div class="about-version">Version 2.0</div>
+
+      <div class="about-section-label" data-i18n="aboutSystemLabel">About the System</div>
+      <div class="about-desc" data-i18n="aboutDesc">
+        The P2 Control Number System is designed to efficiently manage and generate P2 control numbers through a digital platform. The system helps authorized personnel quickly issue and track official control numbers for documents or transactions in an organized and accurate manner. Its main purpose is to reduce long lines and waiting times when requesting actual control numbers by automating the process. This is especially helpful for senior citizens, so they no longer need to line up late at night just to secure a control number for the following day. Through this system, the process becomes faster, more convenient, and more accessible for everyone.
+      </div>
+
+      <div class="about-divider"></div>
+
+      <div class="about-team-block">
+        <div class="about-team-role" data-i18n="aboutDevRole">Developers (Interns)</div>
+        <div class="about-team-list">
+          <div class="about-team-member"><span class="atm-dot"></span>Melvin Magsalay</div>
+          <div class="about-team-member"><span class="atm-dot"></span>John Ryn Salazar</div>
+          <div class="about-team-member"><span class="atm-dot"></span>John Daryl Panes</div>
+          <div class="about-team-member"><span class="atm-dot"></span>Le Ann Zaira Diocson</div>
+          <div class="about-team-member"><span class="atm-dot"></span>Sherine Mae Lumo-os</div>
+          <div class="about-team-member"><span class="atm-dot"></span>Anna Bebz Gascon</div>
+          <div class="about-team-member"><span class="atm-dot"></span>Uj Sullan</div>
+          <div class="about-team-member"><span class="atm-dot"></span>Delayht Lupoyon</div>
+        </div>
+      </div>
+
+      <div class="about-team-block">
+        <div class="about-team-role" data-i18n="aboutPlanRole">Planners / Supervisors</div>
+        <div class="about-team-list">
+          <div class="about-team-member"><span class="atm-dot supervisor"></span>Roland Casas</div>
+          <div class="about-team-member"><span class="atm-dot supervisor"></span>Andre Bonn Sumalpong</div>
+          <div class="about-team-member"><span class="atm-dot supervisor"></span>Irene Ordista</div>
+          <div class="about-team-member"><span class="atm-dot supervisor"></span>Susana Asejo</div>
+          <div class="about-team-member"><span class="atm-dot supervisor"></span>Shaira Kaye Nazareno</div>
+        </div>
+      </div>
+
+      <div class="about-divider"></div>
+
+
+      <div class="about-note" data-i18n="aboutNote">
+        ⚠️ Your control number does not guarantee immediate service. Please arrive within your assigned time window.
+      </div>
+    </div>
+    <div class="about-footer">
+      <button class="about-ok-btn" onclick="closeAboutDirect()" data-i18n="aboutClose">Got it!</button>
+    </div>
+  </div>
 </div>
 
 <div class="wrap">
 
   <div class="schedule-info">
-    <div class="sch-item"><span class="sch-label">Claiming:</span><strong id="sch-claim">—</strong></div>
-    <div class="sch-item"><span class="sch-label">AM valid:</span><strong id="sch-am">—</strong></div>
-    <div class="sch-item"><span class="sch-label">PM valid:</span><strong id="sch-pm">—</strong></div>
+    <div class="sch-item"><span class="sch-label" data-i18n="schClaiming">Claiming:</span><strong id="sch-claim">—</strong></div>
+    <div class="sch-item"><span class="sch-label" data-i18n="schAM">AM valid:</span><strong id="sch-am">—</strong></div>
+    <div class="sch-item"><span class="sch-label" data-i18n="schPM">PM valid:</span><strong id="sch-pm">—</strong></div>
   </div>
 
   <div class="status-banner" id="status-banner"></div>
@@ -56,22 +154,22 @@
       <span><span class="leg-dot past"></span>Today &amp; past (unavailable)</span>
     </div>
     <div class="cal-notice">
-      📋 The control number you will receive is valid for <strong>tomorrow's (<span id="notice-tmr-date">—</span>)</strong> distribution only. <span id="notice-weekend-warn"></span>
+      📋 <span data-i18n="calNotice">The control number you will receive is valid for</span> <strong><span data-i18n="calNoticeTmr">tomorrow's</span> (<span id="notice-tmr-date">—</span>)</strong> <span data-i18n="calNotice2">distribution only.</span> <span id="notice-weekend-warn"></span>
     </div>
   </div>
 
   <div class="today-card" id="today-card">
-    <div class="tmr-notice">Numbers issued today are valid for <strong id="tmr-date-str">tomorrow</strong></div>
+    <div class="tmr-notice" data-i18n="tmrNotice">Numbers issued today are valid for <strong id="tmr-date-str">tomorrow</strong></div>
     <div class="today-status-row">
       <div class="today-slot-pill am" id="pill-am">
         <div class="pill-label">AM Slots</div>
         <div class="pill-count" id="pill-am-count">—</div>
-        <div class="pill-sub" id="pill-am-sub">of 75</div>
+        <div class="pill-sub" id="pill-am-sub">of —</div>
       </div>
       <div class="today-slot-pill pm" id="pill-pm">
         <div class="pill-label">PM Slots</div>
         <div class="pill-count" id="pill-pm-count">—</div>
-        <div class="pill-sub" id="pill-pm-sub">of 75</div>
+        <div class="pill-sub" id="pill-pm-sub">of —</div>
       </div>
     </div>
     <button class="btn-get-number" id="btn-get-number" onclick="openForm()">Get My Priority Number</button>
@@ -79,7 +177,7 @@
   </div>
 
   <div class="slot-banner" id="slot-banner">
-    <div class="slot-banner-title">Slot Availability — Tomorrow</div>
+    <div class="slot-banner-title" data-i18n="slotBannerTitle">Slot Availability — Tomorrow</div>
     <div class="slot-bars">
       <div class="slot-row"><div class="slot-label">Total</div><div class="slot-bar-wrap"><div class="slot-bar-fill" id="bar-total"></div></div><div class="slot-count" id="count-total"></div></div>
       <div class="slot-row"><div class="slot-label">AM</div><div class="slot-bar-wrap"><div class="slot-bar-fill" id="bar-am"></div></div><div class="slot-count" id="count-am"></div></div>
@@ -108,27 +206,27 @@
 
   <div class="form-card" id="form-card">
     <div class="form-date-label" id="form-date-label">—</div>
-    <h2>Fill in details</h2>
+    <h2 data-i18n="formTitle">Fill in details</h2>
     <div class="person-section claimant-section">
-      <div class="person-section-label">Claimant</div>
+      <div class="person-section-label" data-i18n="labelClaimant">Claimant</div>
       <div class="field">
-        <label>Claimant Full Name</label>
-        <input type="text" id="inp-name" placeholder="Enter claimant's full name (min. 8 characters)" oninput="validateNameField('inp-name','hint-name','counter-name')" onkeypress="blockNumbers(event)"/>
+        <label data-i18n="labelClaimantName">Claimant Full Name</label>
+        <input type="text" id="inp-name" placeholder="Enter claimant's full name (min. 8 characters)" data-i18n-placeholder="placeholderClaimant" oninput="validateNameField('inp-name','hint-name','counter-name')" onkeypress="blockNumbers(event)"/>
         <div class="char-counter" id="counter-name"></div>
         <div class="field-hint" id="hint-name"></div>
       </div>
     </div>
     <div class="person-section">
-      <div class="person-section-label">Beneficiary 1</div>
+      <div class="person-section-label" data-i18n="labelBen1">Beneficiary 1</div>
       <div class="field">
-        <label>Full Name <span class="opt">(as it appears on ID)</span></label>
-        <input type="text" id="inp-ben1-name" placeholder="Enter full name from ID (min. 8 characters)" oninput="validateNameField('inp-ben1-name','hint-ben1-name','counter-ben1')" onkeypress="blockNumbers(event)"/>
+        <label data-i18n="labelFullName">Full Name <span class="opt" data-i18n="asOnID">(as it appears on ID)</span></label>
+        <input type="text" id="inp-ben1-name" placeholder="Enter full name from ID (min. 8 characters)" data-i18n-placeholder="placeholderBen" oninput="validateNameField('inp-ben1-name','hint-ben1-name','counter-ben1')" onkeypress="blockNumbers(event)"/>
         <div class="char-counter" id="counter-ben1"></div>
         <div class="field-hint" id="hint-ben1-name"></div>
       </div>
-      <div class="field"><label>ID Classification</label>
+      <div class="field"><label data-i18n="labelIDClass">ID Classification</label>
         <select id="inp-id-type">
-          <option value="">— Select ID Classification —</option>
+          <option value="" data-i18n="selectIDClass">— Select ID Classification —</option>
           <optgroup label="ID TYPE">
             <option>SENIOR ID (OSCA)</option><option>4P's/IP's ID</option><option>PWD ID</option>
             <option>SOLO PARENT ID</option><option>FARMER ID (RSBSA)</option><option>DRIVER (PUV)</option>
@@ -136,15 +234,15 @@
           </optgroup>
         </select>
       </div>
-      <div class="field"><label>ID Number</label><input type="text" id="inp-id-number" placeholder="Enter ID number"/></div>
+      <div class="field"><label data-i18n="labelIDNum">ID Number</label><input type="text" id="inp-id-number" placeholder="Enter ID number" data-i18n-placeholder="placeholderIDNum"/></div>
     </div>
     <div class="person-section">
-      <div class="person-section-label">Beneficiary 2 <span style="font-size:10px;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0;">(optional)</span></div>
-      <div class="field"><label>Full Name <span class="opt">(as it appears on ID)</span></label><input type="text" id="inp-ben2-name" placeholder="Enter full name from ID" oninput="onBen2NameInput()"/></div>
+      <div class="person-section-label" data-i18n="labelBen2">Beneficiary 2 <span style="font-size:10px;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0;" data-i18n="optionalLabel">(optional)</span></div>
+      <div class="field"><label data-i18n="labelFullName2">Full Name <span class="opt" data-i18n="asOnID2">(as it appears on ID)</span></label><input type="text" id="inp-ben2-name" placeholder="Enter full name from ID" data-i18n-placeholder="placeholderBen2" oninput="onBen2NameInput()"/></div>
       <div class="field" id="field-id-type2">
-        <label id="label-id-type2">ID Classification <span class="opt" id="opt-id-type2">(optional)</span></label>
+        <label id="label-id-type2">ID Classification <span class="opt" id="opt-id-type2" data-i18n="optionalLabel">(optional)</span></label>
         <select id="inp-id-type2" onchange="onBen2FieldChange()">
-          <option value="">— Select ID Classification —</option>
+          <option value="" data-i18n="selectIDClass">— Select ID Classification —</option>
           <optgroup label="ID TYPE">
             <option>SENIOR ID (OSCA)</option><option>4P's/IP's ID</option><option>PWD ID</option>
             <option>SOLO PARENT ID</option><option>FARMER ID (RSBSA)</option><option>DRIVER (PUV)</option>
@@ -154,24 +252,24 @@
         <div class="field-hint" id="hint-id-type2"></div>
       </div>
       <div class="field" id="field-id-number2">
-        <label id="label-id-number2">ID Number <span class="opt" id="opt-id-number2">(optional)</span></label>
-        <input type="text" id="inp-id-number2" placeholder="Enter ID number" oninput="onBen2FieldChange()"/>
+        <label id="label-id-number2">ID Number <span class="opt" id="opt-id-number2" data-i18n="optionalLabel">(optional)</span></label>
+        <input type="text" id="inp-id-number2" placeholder="Enter ID number" data-i18n-placeholder="placeholderIDNum" oninput="onBen2FieldChange()"/>
         <div class="field-hint" id="hint-id-number2"></div>
       </div>
     </div>
-    <div class="id-info-box" style="margin-bottom:14px;">IDs will be verified in person by staff upon arrival.</div>
+    <div class="id-info-box" style="margin-bottom:14px;" data-i18n="idInfoBox">IDs will be verified in person by staff upon arrival.</div>
     <div class="field">
-      <label>Preferred Time</label>
+      <label data-i18n="labelPrefTime">Preferred Time</label>
       <div class="time-row">
         <button class="time-btn" id="btn-am" onclick="selectTime('AM')">AM<span class="slot-tag" id="tag-am"></span><span class="window-tag" id="win-am"></span></button>
         <button class="time-btn" id="btn-pm" onclick="selectTime('PM')">PM<span class="slot-tag" id="tag-pm"></span><span class="window-tag" id="win-pm"></span></button>
       </div>
     </div>
-    <button class="btn-generate" id="btn-generate" onclick="generateNumber()">Generate Priority Number</button>
+    <button class="btn-generate" id="btn-generate" onclick="generateNumber()" data-i18n="btnGenerate">Generate Priority Number</button>
   </div>
 
   <div class="tickets-section">
-    <div class="tickets-title">My Priority Numbers</div>
+    <div class="tickets-title" data-i18n="myNumbersTitle">My Priority Numbers</div>
     <div id="tickets-list">
       <div class="empty-tickets"><div class="icon">🎫</div><div>No numbers yet.<br>Click the button above to get your number.</div></div>
     </div>
@@ -179,6 +277,165 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<style>
+/* ── Burger Button ── */
+.header-inner { display:flex; align-items:center; justify-content:space-between; width:100%; }
+.header-text { flex:1; }
+.burger-btn {
+  width:44px; height:44px; background:rgba(255,255,255,0.18);
+  border:1.5px solid rgba(255,255,255,0.35); border-radius:12px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
+  cursor:pointer; padding:0; flex-shrink:0; transition:background .15s;
+}
+.burger-btn:hover { background:rgba(255,255,255,0.28); }
+.burger-btn span {
+  display:block; width:20px; height:2.5px; background:#fff; border-radius:99px;
+  transition:all .25s cubic-bezier(.4,0,.2,1);
+}
+.burger-btn.open span:nth-child(1) { transform:translateY(7.5px) rotate(45deg); }
+.burger-btn.open span:nth-child(2) { opacity:0; transform:scaleX(0); }
+.burger-btn.open span:nth-child(3) { transform:translateY(-7.5px) rotate(-45deg); }
+
+/* ── Drawer ── */
+.drawer-overlay {
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45);
+  z-index:1100; backdrop-filter:blur(2px);
+}
+.drawer-overlay.open { display:block; animation:fadeIn .2s; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+.drawer {
+  position:fixed; top:0; right:-300px; width:280px; height:100%;
+  background:#fff; z-index:1200; box-shadow:-6px 0 32px rgba(0,0,0,0.18);
+  display:flex; flex-direction:column; transition:right .28s cubic-bezier(.4,0,.2,1);
+  overflow-y:auto;
+}
+.drawer.open { right:0; }
+
+.drawer-header {
+  display:flex; align-items:center; gap:10px;
+  padding:20px 18px 16px; background:linear-gradient(135deg,#1e3a5f,#2563eb);
+  color:#fff;
+}
+.drawer-logo { font-size:24px; }
+.drawer-title { font-size:16px; font-weight:800; flex:1; }
+.drawer-close {
+  width:32px; height:32px; border-radius:50%; border:none;
+  background:rgba(255,255,255,0.2); color:#fff; font-size:15px;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:background .15s;
+}
+.drawer-close:hover { background:rgba(255,255,255,0.35); }
+
+.drawer-section-label {
+  font-size:11px; font-weight:800; color:#6b7280; text-transform:uppercase;
+  letter-spacing:.7px; padding:16px 18px 8px;
+}
+.lang-options { display:flex; flex-direction:column; gap:6px; padding:0 14px 4px; }
+.lang-btn {
+  display:flex; align-items:center; gap:10px; padding:10px 12px;
+  border:1.5px solid #e5e7eb; border-radius:10px; background:#f9fafb;
+  cursor:pointer; font-size:14px; font-weight:600; color:#374151;
+  transition:all .15s; text-align:left;
+}
+.lang-btn:hover { border-color:#3b82f6; background:#eff6ff; color:#1d4ed8; }
+.lang-btn.active { border-color:#2563eb; background:#dbeafe; color:#1d4ed8; }
+.lang-flag { font-size:18px; }
+.lang-name { flex:1; }
+.lang-check { font-size:14px; color:#2563eb; font-weight:800; width:16px; text-align:center; }
+
+.drawer-divider { height:1px; background:#f3f4f6; margin:10px 0; }
+
+.drawer-item {
+  display:flex; align-items:center; gap:12px;
+  padding:13px 18px; background:none; border:none;
+  width:100%; text-align:left; font-size:14px; font-weight:600; color:#374151;
+  cursor:pointer; transition:background .15s;
+}
+.drawer-item:hover { background:#f3f4f6; }
+.di-icon { font-size:18px; width:24px; text-align:center; }
+.drawer-footer {
+  margin-top:auto; padding:18px; font-size:11px; color:#9ca3af;
+  text-align:center; border-top:1px solid #f3f4f6;
+}
+
+/* ── About Modal ── */
+.about-overlay {
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55);
+  z-index:1300; align-items:center; justify-content:center;
+  backdrop-filter:blur(3px); padding:16px;
+}
+.about-overlay.open { display:flex; animation:fadeIn .2s; }
+.about-modal {
+  background:#fff; border-radius:20px; width:100%; max-width:420px;
+  max-height:92vh; overflow-y:auto; box-shadow:0 24px 60px rgba(0,0,0,0.25);
+  animation:slideUp .22s cubic-bezier(.4,0,.2,1);
+}
+@keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+
+.about-header {
+  display:flex; align-items:flex-start; justify-content:space-between;
+  padding:20px 20px 0;
+}
+.about-logo { font-size:40px; }
+.about-close {
+  width:32px; height:32px; border-radius:50%; border:none;
+  background:#f3f4f6; color:#374151; font-size:15px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; transition:background .15s;
+}
+.about-close:hover { background:#e5e7eb; }
+
+.about-body { padding:12px 20px 16px; }
+.about-app-name { font-size:18px; font-weight:800; color:#1e293b; margin-bottom:3px; line-height:1.3; }
+.about-version { font-size:12px; color:#9ca3af; font-weight:600; margin-bottom:14px; }
+.about-desc { font-size:13px; color:#4b5563; line-height:1.6; margin-bottom:16px; }
+
+.about-features { display:flex; flex-direction:column; gap:9px; margin-bottom:16px; }
+.about-feature-item {
+  display:flex; align-items:flex-start; gap:10px;
+  font-size:13px; color:#374151; line-height:1.4;
+}
+.about-feature-item span:first-child { font-size:16px; flex-shrink:0; margin-top:1px; }
+
+.about-divider { height:1px; background:#f3f4f6; margin:14px 0; }
+
+.about-office { text-align:center; margin-bottom:14px; }
+.about-office-label { font-size:11px; color:#9ca3af; font-weight:700; text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px; }
+.about-office-name { font-size:15px; font-weight:800; color:#1e293b; }
+.about-office-sub { font-size:12px; color:#6b7280; margin-top:2px; }
+
+.about-note {
+  font-size:12px; color:#92400e; background:#fffbeb;
+  border:1px solid #fde68a; border-radius:8px; padding:10px 12px; line-height:1.5;
+}
+
+.about-footer { padding:0 20px 20px; }
+.about-ok-btn {
+  width:100%; padding:12px; background:linear-gradient(135deg,#2563eb,#1d4ed8);
+  color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:800;
+  cursor:pointer; transition:opacity .15s;
+}
+.about-section-label {
+  font-size:11px; font-weight:800; color:#6b7280; text-transform:uppercase;
+  letter-spacing:.6px; margin-bottom:8px; margin-top:4px;
+}
+.about-team-block { margin-bottom:14px; }
+.about-team-role {
+  font-size:13px; font-weight:800; color:#1e293b; margin-bottom:8px;
+  display:flex; align-items:center; gap:6px;
+}
+.about-team-list { display:flex; flex-direction:column; gap:5px; padding-left:4px; }
+.about-team-member {
+  display:flex; align-items:center; gap:9px;
+  font-size:13px; font-weight:600; color:#374151;
+}
+.atm-dot {
+  width:7px; height:7px; border-radius:50%; background:#3b82f6; flex-shrink:0;
+}
+.atm-dot.supervisor { background:#059669; }
+.about-ok-btn:hover { opacity:.9; }
+</style>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -192,9 +449,39 @@ const firebaseConfig={
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 
-const LIMIT_TOTAL=150,LIMIT_SLOT=75;
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+// ── Dynamic Slot Config (synced from Firebase) ────────────────────────────────
+const DEFAULT_SLOT_CONFIG = {
+  amCount: 75, amStart: 1,  amType: 'odd',
+  pmCount: 75, pmStart: 151, pmType: 'odd'
+};
+let slotConfig = Object.assign({}, DEFAULT_SLOT_CONFIG);
+
+function buildNumbers(startNum, count, type) {
+  const nums = [];
+  let n = startNum;
+  if (type === 'odd'  && n % 2 === 0) n++;
+  if (type === 'even' && n % 2 !== 0) n++;
+  while (nums.length < count) {
+    nums.push(n);
+    n += (type === 'all') ? 1 : 2;
+  }
+  return nums;
+}
+function getAmNumbers() { return buildNumbers(slotConfig.amStart, slotConfig.amCount, slotConfig.amType); }
+function getPmNumbers() { return buildNumbers(slotConfig.pmStart, slotConfig.pmCount, slotConfig.pmType); }
+function getLimitAm()   { return slotConfig.amCount; }
+function getLimitPm()   { return slotConfig.pmCount; }
+function getLimitTotal(){ return slotConfig.amCount + slotConfig.pmCount; }
+
+// Given a slot position (1-based) and session, return the actual queue number
+function slotPositionToNumber(pos, session) {
+  const nums = session === 'AM' ? getAmNumbers() : getPmNumbers();
+  return nums[pos - 1] || null;
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 let now=new Date();
 let todayStr=toDateStr(now);
@@ -390,7 +677,19 @@ function get7DayBounds(ticketDateStr){
   return{start:toDateStr(d),end:toDateStr(end)};
 }
 
-// Firebase listeners
+// ── Firebase listeners ────────────────────────────────────────────────────────
+
+// Slot Config — load once and listen for changes
+db.ref('slotConfig').on('value', s => {
+  slotConfig = s.exists()
+    ? Object.assign({}, DEFAULT_SLOT_CONFIG, s.val())
+    : Object.assign({}, DEFAULT_SLOT_CONFIG);
+  renderCard();
+  updateSlotBanner();
+  applySlotButtonStates(targetStr, selectedTime);
+  updateFormWindowTags();
+});
+
 db.ref('scheduleSettings').on('value',s=>{
   if(s.exists()) scheduleSettings=Object.assign({},scheduleSettings,s.val());
   scheduleSettings.claimRestricted=true;
@@ -399,6 +698,7 @@ db.ref('scheduleSettings').on('value',s=>{
   renderCard();
   renderTickets();
 });
+
 db.ref('disabledNumbers').on('value',s=>{disabledNumbers=s.val()||{};renderTickets();});
 
 async function loadMyTickets(){
@@ -440,6 +740,7 @@ db.ref('tickets').on('value', snap => {
     applySlotButtonStates(editDate, keepTime);
   }
 });
+// ─────────────────────────────────────────────────────────────────────────────
 
 function updateScheduleBar(){
   const isOn=!!scheduleSettings.claimingEnabled;
@@ -478,42 +779,27 @@ function updateFormWindowTags(){
 
 function applySlotButtonStates(dateStr, lockedTime){
   const sl=slotsData[dateStr]||{AM:0,PM:0};
-  const aF=(sl.AM||0)>=LIMIT_SLOT, pF=(sl.PM||0)>=LIMIT_SLOT;
+  const limAm=getLimitAm(), limPm=getLimitPm();
+  const aF=(sl.AM||0)>=limAm, pF=(sl.PM||0)>=limPm;
   const ba=document.getElementById('btn-am'), bp=document.getElementById('btn-pm');
   ba.classList.remove('active','full');
   bp.classList.remove('active','full');
-  ba.disabled=false;
-  bp.disabled=false;
-  ba.style.pointerEvents='';
-  bp.style.pointerEvents='';
-  ba.style.opacity='';
-  bp.style.opacity='';
-  ba.style.cursor='pointer';
-  bp.style.cursor='pointer';
-  document.getElementById('tag-am').textContent=aF?'FULL (75/75)':(sl.AM||0)+'/75 slots';
-  document.getElementById('tag-pm').textContent=pF?'FULL (75/75)':(sl.PM||0)+'/75 slots';
-  if(aF){
-    ba.classList.add('full');
-    ba.disabled=true;
-    ba.style.pointerEvents='none';
-    ba.style.cursor='not-allowed';
-  }
-  if(pF){
-    bp.classList.add('full');
-    bp.disabled=true;
-    bp.style.pointerEvents='none';
-    bp.style.cursor='not-allowed';
-  }
+  ba.disabled=false; bp.disabled=false;
+  ba.style.pointerEvents=''; bp.style.pointerEvents='';
+  ba.style.opacity=''; bp.style.opacity='';
+  ba.style.cursor='pointer'; bp.style.cursor='pointer';
+  document.getElementById('tag-am').textContent=aF?'FULL ('+limAm+'/'+limAm+')':(sl.AM||0)+'/'+limAm+' slots';
+  document.getElementById('tag-pm').textContent=pF?'FULL ('+limPm+'/'+limPm+')':(sl.PM||0)+'/'+limPm+' slots';
+  if(aF){ba.classList.add('full');ba.disabled=true;ba.style.pointerEvents='none';ba.style.cursor='not-allowed';}
+  if(pF){bp.classList.add('full');bp.disabled=true;bp.style.pointerEvents='none';bp.style.cursor='not-allowed';}
   if(lockedTime){
     selectedTime=lockedTime;
     if(lockedTime==='AM'&&!aF){ ba.classList.add('active'); }
     if(lockedTime==='PM'&&!pF){ bp.classList.add('active'); }
   } else if(!aF && pF){
-    selectedTime='AM';
-    ba.classList.add('active');
+    selectedTime='AM'; ba.classList.add('active');
   } else if(aF && !pF){
-    selectedTime='PM';
-    bp.classList.add('active');
+    selectedTime='PM'; bp.classList.add('active');
   } else {
     selectedTime=null;
   }
@@ -558,15 +844,19 @@ function renderCard(){
   const tmr=addDays(now,1);
   document.getElementById('tmr-date-str').textContent=MONTHS[tmr.getMonth()].slice(0,3)+' '+tmr.getDate()+', '+tmr.getFullYear();
   const sl=slotsData[targetStr]||{AM:0,PM:0};
-  const amTaken=sl.AM||0,pmTaken=sl.PM||0;
-  const amLeft=LIMIT_SLOT-amTaken,pmLeft=LIMIT_SLOT-pmTaken;
-  const allFull=(amTaken+pmTaken)>=LIMIT_TOTAL;
+  const amTaken=sl.AM||0, pmTaken=sl.PM||0;
+  const limAm=getLimitAm(), limPm=getLimitPm(), limTotal=getLimitTotal();
+  const amLeft=limAm-amTaken, pmLeft=limPm-pmTaken;
+  const allFull=(amTaken+pmTaken)>=limTotal;
+
   document.getElementById('pill-am-count').textContent=amLeft>0?amLeft+' left':'FULL';
-  document.getElementById('pill-am-sub').textContent=amTaken+'/75 taken';
+  document.getElementById('pill-am-sub').textContent=amTaken+'/'+limAm+' taken';
   document.getElementById('pill-am').classList.toggle('full-slot',amLeft<=0);
+
   document.getElementById('pill-pm-count').textContent=pmLeft>0?pmLeft+' left':'FULL';
-  document.getElementById('pill-pm-sub').textContent=pmTaken+'/75 taken';
+  document.getElementById('pill-pm-sub').textContent=pmTaken+'/'+limPm+' taken';
   document.getElementById('pill-pm').classList.toggle('full-slot',pmLeft<=0);
+
   const btn=document.getElementById('btn-get-number');
   const msg=document.getElementById('today-closed-msg');
   const status=getClaimingStatus();
@@ -629,7 +919,7 @@ function openForm(){
 function selectTime(t){
   if(!isClaimingOpen())return;
   const sl=slotsData[targetStr]||{AM:0,PM:0};
-  const aF=(sl.AM||0)>=LIMIT_SLOT, pF=(sl.PM||0)>=LIMIT_SLOT;
+  const aF=(sl.AM||0)>=getLimitAm(), pF=(sl.PM||0)>=getLimitPm();
   if(t==='AM'&&aF)return;
   if(t==='PM'&&pF)return;
   selectedTime=t;
@@ -712,7 +1002,6 @@ async function checkBeneficiaryNameCooldown(benName){
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
-// matchType: 'id' | 'name'
 function showErrorCard(dupTicket, idNumber, benName, idType, beneficiaryLabel, matchType){
   const ticketDate = new Date(dupTicket.date+'T00:00:00');
   const nextAvail  = new Date(ticketDate);
@@ -725,11 +1014,8 @@ function showErrorCard(dupTicket, idNumber, benName, idType, beneficiaryLabel, m
   const norm = idNumber ? idNumber.trim().toLowerCase() : '';
   const isSlot2 = !isNameMatch && dupTicket.idNumber2 && dupTicket.idNumber2.trim().toLowerCase() === norm;
 
-  // Update icon & title based on match type
   document.getElementById('error-card-icon').textContent   = isNameMatch ? '⚠️' : '🚫';
-  document.getElementById('error-card-title').textContent  = isNameMatch
-    ? 'Already Claimed This Week'
-    : '7-Day Cooldown Active';
+  document.getElementById('error-card-title').textContent  = isNameMatch ? 'Already Claimed This Week' : '7-Day Cooldown Active';
   document.getElementById('error-card-subtitle').textContent = isNameMatch
     ? beneficiaryLabel+' name already has a registered control number this week.'
     : beneficiaryLabel+' ID was used within the last 7 days. Please wait before claiming again.';
@@ -775,39 +1061,27 @@ async function generateNumber(){
   const idType2  = document.getElementById('inp-id-type2').value;
   const idNumber2= document.getElementById('inp-id-number2').value.trim();
 
-  if(!name){
-    validateNameField('inp-name','hint-name','counter-name');
-    return toast('Please enter the claimant name');
-  }
+  if(!name){ validateNameField('inp-name','hint-name','counter-name'); return toast('Please enter the claimant name'); }
   if(!isNameValid(name)){
     validateNameField('inp-name','hint-name','counter-name');
-    if(/\d/.test(name)) return toast('⚠️ Claimant name cannot contain numbers');
-    return toast('⚠️ Claimant name must be at least 8 characters');
+    return toast(/\d/.test(name) ? '⚠️ Claimant name cannot contain numbers' : '⚠️ Claimant name must be at least 8 characters');
   }
-
-  if(!ben1Name){
-    validateNameField('inp-ben1-name','hint-ben1-name','counter-ben1');
-    return toast('Please enter Beneficiary 1 full name');
-  }
+  if(!ben1Name){ validateNameField('inp-ben1-name','hint-ben1-name','counter-ben1'); return toast('Please enter Beneficiary 1 full name'); }
   if(!isNameValid(ben1Name)){
     validateNameField('inp-ben1-name','hint-ben1-name','counter-ben1');
-    if(/\d/.test(ben1Name)) return toast('⚠️ Beneficiary 1 name cannot contain numbers');
-    return toast('⚠️ Beneficiary 1 name must be at least 8 characters');
+    return toast(/\d/.test(ben1Name) ? '⚠️ Beneficiary 1 name cannot contain numbers' : '⚠️ Beneficiary 1 name must be at least 8 characters');
   }
-
   if(!validateBen2Fields()){
-    const _idType2 = document.getElementById('inp-id-type2').value;
-    if(!_idType2) return toast('⚠️ Please select ID Classification for Beneficiary 2');
-    return toast('⚠️ Please enter ID Number for Beneficiary 2');
+    return toast(!document.getElementById('inp-id-type2').value
+      ? '⚠️ Please select ID Classification for Beneficiary 2'
+      : '⚠️ Please enter ID Number for Beneficiary 2');
   }
-
   if(!selectedTime) return toast('Please select AM or PM');
 
   const btn = document.getElementById('btn-generate');
   btn.disabled=true; btn.textContent='Checking...';
 
   if(!editingTicketId){
-    // ── Check Beneficiary 1 by ID ──
     if(idType && idNumber){
       const wd = await checkWeeklyCooldown(idType, idNumber);
       if(wd && wd.id !== editingTicketId){
@@ -815,13 +1089,11 @@ async function generateNumber(){
         btn.disabled=false; btn.textContent='Generate Priority Number'; return;
       }
     }
-    // ── Check Beneficiary 1 by NAME ──
     const wn1 = await checkBeneficiaryNameCooldown(ben1Name);
     if(wn1 && wn1.id !== editingTicketId){
       showErrorCard(wn1, '', ben1Name, '', 'Beneficiary 1', 'name');
       btn.disabled=false; btn.textContent='Generate Priority Number'; return;
     }
-    // ── Check Beneficiary 2 by ID ──
     if(idType2 && idNumber2){
       const wd2 = await checkWeeklyCooldown(idType2, idNumber2);
       if(wd2 && wd2.id !== editingTicketId){
@@ -829,7 +1101,6 @@ async function generateNumber(){
         btn.disabled=false; btn.textContent='Generate Priority Number'; return;
       }
     }
-    // ── Check Beneficiary 2 by NAME ──
     if(ben2Name){
       const wn2 = await checkBeneficiaryNameCooldown(ben2Name);
       if(wn2 && wn2.id !== editingTicketId){
@@ -855,20 +1126,38 @@ async function generateNumber(){
       document.getElementById('slot-banner').classList.remove('show');
       renderTickets();btn.disabled=false;btn.textContent='Generate Priority Number';return;
     }
-    const slotRef=db.ref('slots/'+targetStr+'/'+selectedTime);
-    const result=await slotRef.transaction(c=>{const v=c||0;if(v>=LIMIT_SLOT)return;return v+1;});
-    if(!result.committed){toast('Slot just filled up! Choose another.');btn.disabled=false;btn.textContent='Generate Priority Number';return;}
-    const pos=result.snapshot.val();
-    const num=selectedTime==='AM'?(2*pos-1):(149+(2*pos));
+
+    // ── Atomic slot increment; use dynamic limit ──────────────────────────────
+    const limitForSession = selectedTime === 'AM' ? getLimitAm() : getLimitPm();
+    const slotRef = db.ref('slots/'+targetStr+'/'+selectedTime);
+    const result = await slotRef.transaction(c => {
+      const v = c || 0;
+      if(v >= limitForSession) return; // abort
+      return v + 1;
+    });
+    if(!result.committed){
+      toast('Slot just filled up! Choose another.');
+      btn.disabled=false; btn.textContent='Generate Priority Number'; return;
+    }
+    const pos = result.snapshot.val(); // 1-based position
+    // ── Derive the actual queue number from slot config ───────────────────────
+    const num = slotPositionToNumber(pos, selectedTime);
+    if(num === null){
+      toast('Error: could not assign a number. Please try again.');
+      // Roll back the slot increment
+      await slotRef.transaction(c => Math.max((c||1)-1, 0));
+      btn.disabled=false; btn.textContent='Generate Priority Number'; return;
+    }
+    // ─────────────────────────────────────────────────────────────────────────
     const tmr=addDays(now,1);
     const expiry=new Date(targetStr+'T'+(scheduleSettings.pmEnd||'17:00')+':00');
     const td={
-      number:num,name,
-      ben1Name:ben1Name||'',idType:idType||'',idNumber:idNumber||'',
-      ben2Name:ben2Name||'',idType2:idType2||'',idNumber2:idNumber2||'',
-      time:selectedTime,date:targetStr,
-      issuedAt:new Date().toISOString(),expiresAt:expiry.toISOString(),
-      createdAt:firebase.database.ServerValue.TIMESTAMP,disabled:false
+      number:num, name,
+      ben1Name:ben1Name||'', idType:idType||'', idNumber:idNumber||'',
+      ben2Name:ben2Name||'', idType2:idType2||'', idNumber2:idNumber2||'',
+      time:selectedTime, date:targetStr,
+      issuedAt:new Date().toISOString(), expiresAt:expiry.toISOString(),
+      createdAt:firebase.database.ServerValue.TIMESTAMP, disabled:false
     };
     const ref=db.ref('tickets').push();
     await ref.set(td);
@@ -886,7 +1175,9 @@ async function generateNumber(){
 function updateSlotBanner(){
   const sl=slotsData[targetStr]||{AM:0,PM:0};
   const tot=(sl.AM||0)+(sl.PM||0);
-  setBar('total',tot,LIMIT_TOTAL);setBar('am',sl.AM||0,LIMIT_SLOT);setBar('pm',sl.PM||0,LIMIT_SLOT);
+  setBar('total',tot,getLimitTotal());
+  setBar('am',sl.AM||0,getLimitAm());
+  setBar('pm',sl.PM||0,getLimitPm());
 }
 function setBar(id,used,max){
   const pct=Math.min((used/max)*100,100);
@@ -964,7 +1255,7 @@ async function purgeExpiredTickets(){
   const del=myTickets.filter(t=>nowMs>new Date(t.date+'T23:59:59').getTime()+86400000);
   if(!del.length)return;
   for(const t of del){
-    try{await db.ref('tickets/'+t.id).remove();await db.ref('slots/'+t.date+'/'+t.time).transaction(c=>{const n=(c||1)-1;return n<=0?null:n;});}catch(e){console.warn(e);}
+    try{await db.ref('tickets/'+t.id).remove();}catch(e){console.warn(e);}
   }
   const ud=[...new Set(del.map(t=>t.date))];
   for(const date of ud){await db.ref('disabledNumbers/'+date).remove();}
@@ -1003,7 +1294,194 @@ setInterval(()=>{
   updateStatusBanner();renderCard();renderTickets();purgeExpiredTickets();
 },60000);
 
-let tapCount=0,tapTimer=null;
+// ═══════════════════════════════════════════════════════════════════
+// BURGER MENU, TRANSLATIONS & ABOUT
+// ═══════════════════════════════════════════════════════════════════
+
+// ── i18n strings ─────────────────────────────────────────────────
+const TRANSLATIONS = {
+  en: {
+    appTitle:        'P20 DDN CONTROL NUMBER',
+    appSubtitle:     'Get your priority number',
+    menuLanguage:    '🌐 Language',
+    menuAbout:       'About Us',
+    drawerFooter:    'P20 DDN Queue System',
+    schClaiming:     'Claiming:',
+    schAM:           'AM valid:',
+    schPM:           'PM valid:',
+    calNotice:       'The control number you will receive is valid for',
+    calNoticeTmr:    "tomorrow's",
+    calNotice2:      'distribution only.',
+    tmrNotice:       'Numbers issued today are valid for tomorrow',
+    slotBannerTitle: 'Slot Availability — Tomorrow',
+    formTitle:       'Fill in details',
+    labelClaimant:   'Claimant',
+    labelClaimantName:'Claimant Full Name',
+    placeholderClaimant:"Enter claimant's full name (min. 8 characters)",
+    labelBen1:       'Beneficiary 1',
+    labelFullName:   'Full Name',
+    labelFullName2:  'Full Name',
+    asOnID:          '(as it appears on ID)',
+    asOnID2:         '(as it appears on ID)',
+    placeholderBen:  'Enter full name from ID (min. 8 characters)',
+    placeholderBen2: 'Enter full name from ID',
+    labelIDClass:    'ID Classification',
+    selectIDClass:   '— Select ID Classification —',
+    labelIDNum:      'ID Number',
+    placeholderIDNum:'Enter ID number',
+    labelBen2:       'Beneficiary 2',
+    optionalLabel:   '(optional)',
+    idInfoBox:       'IDs will be verified in person by staff upon arrival.',
+    labelPrefTime:   'Preferred Time',
+    btnGenerate:     'Generate Priority Number',
+    myNumbersTitle:  'My Priority Numbers',
+    // About
+    aboutAppName:    'P20 DDN Control Number System',
+    aboutSystemLabel:'About the System',
+    aboutDesc:       'The P2 Control Number System is designed to efficiently manage and generate P2 control numbers through a digital platform. The system helps authorized personnel quickly issue and track official control numbers for documents or transactions in an organized and accurate manner. Its main purpose is to reduce long lines and waiting times when requesting actual control numbers by automating the process. This is especially helpful for senior citizens, so they no longer need to line up late at night just to secure a control number for the following day. Through this system, the process becomes faster, more convenient, and more accessible for everyone.',
+    aboutDevRole:    '💻 Developers (Interns)',
+    aboutPlanRole:   '📋 Planners / Supervisors',
+    aboutOffice:     'Managed by',
+    aboutOfficeSub:  'Department of Social Welfare and Development',
+    aboutNote:       '⚠️ Your control number does not guarantee immediate service. Please arrive within your assigned time window.',
+    aboutClose:      'Got it!',
+  },
+  ceb: {
+    appTitle:        'P20 DDN NUMERO SA PAGKONTROL',
+    appSubtitle:     'Kuha ang imong numero sa prayoridad',
+    menuLanguage:    '🌐 Pinulongan',
+    menuAbout:       'Mahitungod kanamo',
+    drawerFooter:    'P20 DDN Queue System',
+    schClaiming:     'Oras sa Pagkuha:',
+    schAM:           'AM balido:',
+    schPM:           'PM balido:',
+    calNotice:       'Ang numero nga imong makuha balido lamang para',
+    calNoticeTmr:    'sa ugma',
+    calNotice2:      'nga distribusyon.',
+    tmrNotice:       'Ang mga numero karon balido alang sa distribusyon ugma',
+    slotBannerTitle: 'Availability sa Slot — Ugma',
+    formTitle:       'Pun-on ang mga detalye',
+    labelClaimant:   'Nagkuha',
+    labelClaimantName:'Tibuok Ngalan sa Nagkuha',
+    placeholderClaimant:'Isulod ang tibuok ngalan (labing menos 8 karakter)',
+    labelBen1:       'Benepisyaryo 1',
+    labelFullName:   'Tibuok Ngalan',
+    labelFullName2:  'Tibuok Ngalan',
+    asOnID:          '(sama sa nakasulat sa ID)',
+    asOnID2:         '(sama sa nakasulat sa ID)',
+    placeholderBen:  'Isulod ang tibuok ngalan gikan sa ID (labing menos 8)',
+    placeholderBen2: 'Isulod ang tibuok ngalan gikan sa ID',
+    labelIDClass:    'Klase sa ID',
+    selectIDClass:   '— Pilia ang Klase sa ID —',
+    labelIDNum:      'Numero sa ID',
+    placeholderIDNum:'Isulod ang numero sa ID',
+    labelBen2:       'Benepisyaryo 2',
+    optionalLabel:   '(dili kinahanglan)',
+    idInfoBox:       'Ang mga ID susihon sa personal sa mga kawani sa pag-abot.',
+    labelPrefTime:   'Gusto nga Oras',
+    btnGenerate:     'Kuha og Numero sa Prayoridad',
+    myNumbersTitle:  'Akong mga Numero sa Prayoridad',
+    // About
+    aboutAppName:    'Sistema sa P20 DDN Control Number',
+    aboutSystemLabel:'Mahitungod sa Sistema',
+    aboutDesc:       'Ang P2 Control Number System gidisenyo aron episyenteng mapamahalan ug mapatunghag ang mga P2 control number pinaagi sa digital nga plataporma. Gitabangan niini ang mga awtorisadong personahe nga dali makapagawas ug makasubay sa mga opisyal nga control number alang sa mga dokumento o transaksyon sa organisado ug tukma nga paagi. Ang panguna niining katuyoan mao ang pagpakunhod sa taas nga linya ug paghulat kon mangayo og kontrol numero pinaagi sa automation sa proseso. Kini labi ka makatabang sa mga tigulang, aron dili na kinahanglan nga mag-pila sa kagabhion aron makakuha og control number para sa sunod adlaw. Pinaagi niini nga sistema, mas paspas, mas kombinyente, ug mas accessible ang proseso alang sa tanan.',
+    aboutDevRole:    '💻 Mga Developer (Intern)',
+    aboutPlanRole:   '📋 Mga Plano / Superbisor',
+    aboutOffice:     'Gidumala ni',
+    aboutOfficeSub:  'Departamento sa Katilingbanon nga Kaayohan ug Pag-uswag',
+    aboutNote:       '⚠️ Ang imong control number dili garantiya sa dayon nga serbisyo. Pakiabut sulod sa imong gihulagway nga oras.',
+    aboutClose:      'Nasabtan na!',
+  }
+};
+
+let currentLang = localStorage.getItem('pq_lang') || 'en';
+
+function t(key) {
+  return (TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang][key])
+    || TRANSLATIONS.en[key] || key;
+}
+
+function applyTranslations() {
+  // Text content
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const val = t(key);
+    // Preserve child elements (like <strong id="tmr-date-str">)
+    if (el.children.length === 0) {
+      el.textContent = val;
+    } else {
+      // Update text nodes only, skip child elements
+      const textNodes = [...el.childNodes].filter(n => n.nodeType === 3);
+      if (textNodes.length) textNodes[0].textContent = val + ' ';
+    }
+  });
+  // Placeholders
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+  });
+  // Select first options
+  document.querySelectorAll('[data-i18n="selectIDClass"]').forEach(el => {
+    el.textContent = t('selectIDClass');
+  });
+  // Lang button active state
+  document.getElementById('lang-en').className  = 'lang-btn' + (currentLang==='en' ?' active':'');
+  document.getElementById('lang-ceb').className = 'lang-btn' + (currentLang==='ceb'?' active':'');
+  document.getElementById('check-en').textContent  = currentLang==='en'  ? '✓' : '';
+  document.getElementById('check-ceb').textContent = currentLang==='ceb' ? '✓' : '';
+  // Update dynamic toast messages language if needed
+  document.getElementById('btn-generate').textContent =
+    document.getElementById('btn-generate').dataset.generating
+      ? t('btnGenerate')
+      : t('btnGenerate');
+  // Re-render dynamic content that uses translated strings
+  renderCard();
+  renderTickets();
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('pq_lang', lang);
+  applyTranslations();
+  toast(lang === 'ceb' ? '✅ Gibag-o na ang pinulongan sa Bisaya' : '✅ Language set to English');
+}
+
+// ── Burger Menu ───────────────────────────────────────────────────
+function toggleMenu() {
+  const drawer  = document.getElementById('drawer');
+  const overlay = document.getElementById('drawer-overlay');
+  const btn     = document.getElementById('burger-btn');
+  const isOpen  = drawer.classList.contains('open');
+  if (isOpen) {
+    drawer.classList.remove('open');
+    overlay.classList.remove('open');
+    btn.classList.remove('open');
+  } else {
+    drawer.classList.add('open');
+    overlay.classList.add('open');
+    btn.classList.add('open');
+  }
+}
+function closeMenu() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.getElementById('burger-btn').classList.remove('open');
+}
+
+// ── About Modal ───────────────────────────────────────────────────
+function openAbout() {
+  closeMenu();
+  document.getElementById('about-overlay').classList.add('open');
+}
+function closeAbout(e) {
+  if (e.target === document.getElementById('about-overlay')) closeAboutDirect();
+}
+function closeAboutDirect() {
+  document.getElementById('about-overlay').classList.remove('open');
+}
+
+// Apply saved language on load
+applyTranslations();
+// ═══════════════════════════════════════════════════════════════════
 function handleTitleTap(){
   tapCount++;
   if(tapTimer)clearTimeout(tapTimer);

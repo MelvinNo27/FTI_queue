@@ -13,7 +13,7 @@
   <div class="header-inner">
     <div class="header-text">
       <h1 id="header-title" onclick="handleTitleTap()" style="cursor:default;user-select:none;" data-i18n="appTitle">P20 DDN CONTROL NUMBER</h1>
-      <p data-i18n="appSubtitle">Get your priority number</p>
+      <p data-i18n="appSubtitle">Get your Control number</p>
     </div>
     <button class="burger-btn" id="burger-btn" onclick="toggleMenu()" aria-label="Menu">
       <span></span><span></span><span></span>
@@ -161,7 +161,7 @@
         <div class="pill-sub" id="pill-pm-sub">of —</div>
       </div>
     </div>
-    <button class="btn-get-number" id="btn-get-number" onclick="openForm()">Get My Priority Number</button>
+    <button class="btn-get-number" id="btn-get-number" onclick="openForm()">Get My Control Number</button>
     <div class="today-closed-msg" id="today-closed-msg" style="display:none;"></div>
   </div>
 
@@ -254,11 +254,11 @@
         <button class="time-btn" id="btn-pm" onclick="selectTime('PM')">PM<span class="slot-tag" id="tag-pm"></span><span class="window-tag" id="win-pm"></span></button>
       </div>
     </div>
-    <button class="btn-generate" id="btn-generate" onclick="generateNumber()" data-i18n="btnGenerate">Generate Priority Number</button>
+    <button class="btn-generate" id="btn-generate" onclick="generateNumber()" data-i18n="btnGenerate">Generate Control Number</button>
   </div>
 
   <div class="tickets-section">
-    <div class="tickets-title" data-i18n="myNumbersTitle">My Priority Numbers</div>
+    <div class="tickets-title" data-i18n="myNumbersTitle">My Control Numbers</div>
     <div id="tickets-list">
       <div class="empty-tickets"><div class="icon">🎫</div><div>No numbers yet.<br>Click the button above to get your number.</div></div>
     </div>
@@ -862,7 +862,7 @@ function renderCard(){
     btn.textContent='All Slots Full for Tomorrow';btn.classList.add('full-btn');msg.style.display='none';
   } else {
     btn.style.display='block';btn.disabled=false;
-    btn.textContent='Get My Priority Number';btn.classList.remove('full-btn');msg.style.display='none';
+    btn.textContent='Get My Control Number';btn.classList.remove('full-btn');msg.style.display='none';
   }
 }
 
@@ -891,7 +891,7 @@ function openForm(){
     return;
   }
   editingTicketId=null;
-  document.getElementById('btn-generate').textContent='Generate Priority Number';
+  document.getElementById('btn-generate').textContent='Generate Control Number';
   const tmr=addDays(now,1);
   document.getElementById('form-date-label').textContent='For: '+DAYS[tmr.getDay()]+', '+MONTHS[tmr.getMonth()]+' '+tmr.getDate()+', '+tmr.getFullYear();
   applySlotButtonStates(targetStr, null);
@@ -1075,26 +1075,26 @@ async function generateNumber(){
       const wd = await checkWeeklyCooldown(idType, idNumber);
       if(wd && wd.id !== editingTicketId){
         showErrorCard(wd, idNumber, ben1Name, idType, 'Beneficiary 1', 'id');
-        btn.disabled=false; btn.textContent='Generate Priority Number'; return;
+        btn.disabled=false; btn.textContent='Generate Control Number'; return;
       }
     }
     const wn1 = await checkBeneficiaryNameCooldown(ben1Name);
     if(wn1 && wn1.id !== editingTicketId){
       showErrorCard(wn1, '', ben1Name, '', 'Beneficiary 1', 'name');
-      btn.disabled=false; btn.textContent='Generate Priority Number'; return;
+      btn.disabled=false; btn.textContent='Generate Control Number'; return;
     }
     if(idType2 && idNumber2){
       const wd2 = await checkWeeklyCooldown(idType2, idNumber2);
       if(wd2 && wd2.id !== editingTicketId){
         showErrorCard(wd2, idNumber2, ben2Name, idType2, 'Beneficiary 2', 'id');
-        btn.disabled=false; btn.textContent='Generate Priority Number'; return;
+        btn.disabled=false; btn.textContent='Generate Control Number'; return;
       }
     }
     if(ben2Name){
       const wn2 = await checkBeneficiaryNameCooldown(ben2Name);
       if(wn2 && wn2.id !== editingTicketId){
         showErrorCard(wn2, '', ben2Name, '', 'Beneficiary 2', 'name');
-        btn.disabled=false; btn.textContent='Generate Priority Number'; return;
+        btn.disabled=false; btn.textContent='Generate Control Number'; return;
       }
     }
   }
@@ -1110,10 +1110,10 @@ async function generateNumber(){
       if(idx>-1)myTickets[idx]=Object.assign({},myTickets[idx],updates);
       toast('✅ Number updated successfully!');
       editingTicketId=null;
-      document.getElementById('btn-generate').textContent='Generate Priority Number';
+      document.getElementById('btn-generate').textContent='Generate Control Number';
       document.getElementById('form-card').classList.remove('show');
       document.getElementById('slot-banner').classList.remove('show');
-      renderTickets();btn.disabled=false;btn.textContent='Generate Priority Number';return;
+      renderTickets();btn.disabled=false;btn.textContent='Generate Control Number';return;
     }
 
     // ── Atomic slot increment; use dynamic limit ──────────────────────────────
@@ -1126,7 +1126,7 @@ async function generateNumber(){
     });
     if(!result.committed){
       toast('Slot just filled up! Choose another.');
-      btn.disabled=false; btn.textContent='Generate Priority Number'; return;
+      btn.disabled=false; btn.textContent='Generate Control Number'; return;
     }
     const pos = result.snapshot.val(); // 1-based position
     // ── Derive the actual queue number from slot config ───────────────────────
@@ -1135,7 +1135,7 @@ async function generateNumber(){
       toast('Error: could not assign a number. Please try again.');
       // Roll back the slot increment
       await slotRef.transaction(c => Math.max((c||1)-1, 0));
-      btn.disabled=false; btn.textContent='Generate Priority Number'; return;
+      btn.disabled=false; btn.textContent='Generate Control Number'; return;
     }
     // ─────────────────────────────────────────────────────────────────────────
     const tmr=addDays(now,1);
@@ -1154,11 +1154,11 @@ async function generateNumber(){
     localStorage.setItem('pq_my_ticket_ids',JSON.stringify(myTicketIds));
     myTickets.unshift({id:ref.key,...td});
     renderTickets();
-    toast('Priority #'+pad3(num)+' for '+MONTHS[tmr.getMonth()].slice(0,3)+' '+tmr.getDate()+'!');
+    toast('Control #'+pad3(num)+' for '+MONTHS[tmr.getMonth()].slice(0,3)+' '+tmr.getDate()+'!');
     document.getElementById('form-card').classList.remove('show');
     document.getElementById('slot-banner').classList.remove('show');
   }catch(e){console.error(e);toast('Error. Please try again.');}
-  btn.disabled=false;btn.textContent='Generate Priority Number';
+  btn.disabled=false;btn.textContent='Generate Control Number';
 }
 
 function updateSlotBanner(){
@@ -1243,11 +1243,7 @@ async function purgeExpiredTickets(){
   const nowMs=Date.now();
   const del=myTickets.filter(t=>nowMs>new Date(t.date+'T23:59:59').getTime()+86400000);
   if(!del.length)return;
-  for(const t of del){
-    try{await db.ref('tickets/'+t.id).remove();}catch(e){console.warn(e);}
-  }
-  const ud=[...new Set(del.map(t=>t.date))];
-  for(const date of ud){await db.ref('disabledNumbers/'+date).remove();}
+  // Only remove from local UI — Firebase data is kept
   const ids=new Set(del.map(t=>t.id));
   myTickets=myTickets.filter(t=>!ids.has(t.id));
   myTicketIds=myTicketIds.filter(id=>!ids.has(id));
@@ -1291,7 +1287,7 @@ setInterval(()=>{
 const TRANSLATIONS = {
   en: {
     appTitle:        'P20 DDN CONTROL NUMBER',
-    appSubtitle:     'Get your priority number',
+    appSubtitle:     'Get your Control number',
     menuLanguage:    '🌐 Language',
     menuAbout:       'About Us',
     drawerFooter:    'P20 DDN Queue System',
@@ -1322,8 +1318,8 @@ const TRANSLATIONS = {
     optionalLabel:   '(optional)',
     idInfoBox:       'IDs will be verified in person by staff upon arrival.',
     labelPrefTime:   'Preferred Time',
-    btnGenerate:     'Generate Priority Number',
-    myNumbersTitle:  'My Priority Numbers',
+    btnGenerate:     'Generate Control Number',
+    myNumbersTitle:  'My Control Numbers',
     // About
     aboutAppName:    'P20 DDN Control Number System',
     aboutSystemLabel:'About the System',

@@ -39,11 +39,10 @@
   </div>
 
   <div class="search-bar">
-    <div class="search-bar-title">🔍 Search by Claimant Name or Priority Number</div>
+    <div class="search-bar-title">🔍 Search by Claimant Name or Control Number</div>
     <div class="search-row">
-      <input class="search-input" type="text" id="search-input" placeholder="Enter claimant name or priority number" onkeydown="if(event.key==='Enter')doSearch()"/>
-      <button class="btn-search" onclick="doSearch()">Search</button>
-      <button class="btn-clear-search" onclick="clearSearch()">Clear</button>
+    <input class="search-input" type="text" id="search-input" placeholder="Enter claimant name or priority number" oninput="autoSearch()" onkeydown="if(event.key==='Escape')clearSearch()"/>
+    <button class="btn-clear-search" onclick="clearSearch()">Clear</button>
     </div>
     <div class="search-results" id="search-results" style="display:none;"></div>
   </div>
@@ -175,7 +174,15 @@
     <div class="section-card">
       <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
         <span>All Numbers <span id="ticket-count-label"></span></span>
-        <button class="btn-print-list" onclick="openPrintView()">🖨️ Print List</button>
+        <!-- ── AM / PM Filter Buttons ── -->
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <div style="display:flex;gap:4px;">
+            <button class="btn-filter-session active" id="filter-all" onclick="setListFilter('all')">All</button>
+            <button class="btn-filter-session" id="filter-am" onclick="setListFilter('am')">🌅 AM</button>
+            <button class="btn-filter-session" id="filter-pm" onclick="setListFilter('pm')">🌇 PM</button>
+          </div>
+          <button class="btn-print-list" onclick="openPrintView()">🖨️ Print List</button>
+        </div>
       </div>
       <div id="ticket-list-content"><div class="empty-msg">No numbers found for this date.</div></div>
     </div>
@@ -442,6 +449,15 @@
 }
 .btn-sc-save:hover { background: #047857; }
 
+/* ── AM / PM Filter Buttons ── */
+.btn-filter-session {
+  padding: 6px 14px; border-radius: 8px; border: 1.5px solid #d1d5db;
+  background: #f3f4f6; color: #374151; font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: all .15s;
+}
+.btn-filter-session:hover { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
+.btn-filter-session.active { background: #dbeafe; border-color: #3b82f6; color: #1d4ed8; }
+
 /* ── Database Tab Styles ── */
 .tab-danger { color: #dc2626 !important; font-weight: 800 !important; }
 .tab-danger.active { background: #fef2f2 !important; border-bottom-color: #dc2626 !important; color: #dc2626 !important; }
@@ -517,20 +533,17 @@ firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 
 // ── Dynamic Slot Config ──────────────────────────────────────────────────────
-// Default: odd numbers, AM 1–149, PM 151–299
 const DEFAULT_SLOT_CONFIG = {
   amCount: 75, amStart: 1,  amType: 'odd',
   pmCount: 75, pmStart: 151, pmType: 'odd'
 };
 let slotConfig = Object.assign({}, DEFAULT_SLOT_CONFIG);
 
-// In-memory state for modal
 let _scAmType = 'odd', _scPmType = 'odd';
 
 function buildNumbers(startNum, count, type) {
   const nums = [];
   let n = startNum;
-  // Align start to correct parity if needed
   if (type === 'odd' && n % 2 === 0) n++;
   if (type === 'even' && n % 2 !== 0) n++;
   while (nums.length < count) {
@@ -582,7 +595,6 @@ function updateGridTitles() {
 
 // ── Slot Modal ────────────────────────────────────────────────────────────────
 function openSlotModal() {
-  // Load current config into form
   document.getElementById('sc-am-count').value = slotConfig.amCount;
   document.getElementById('sc-am-start').value = slotConfig.amStart;
   document.getElementById('sc-pm-count').value = slotConfig.pmCount;
@@ -668,6 +680,7 @@ let currentDate=null;
 let disabledNums={};
 let ticketsForDate=[];
 let allTickets={};
+let listFilter='all'; // ── NEW: 'all' | 'am' | 'pm'
 let scheduleSettings={
   claimStart:'06:00',claimEnd:'10:00',
   amStart:'08:00',amEnd:'12:00',
@@ -676,8 +689,7 @@ let scheduleSettings={
   claimRestricted:true
 };
 
-// Firebase Realtime DB free tier: 1 GB storage, 10 GB/month download
-const FB_FREE_STORAGE_BYTES = 1 * 1024 * 1024 * 1024; // 1 GB
+const FB_FREE_STORAGE_BYTES = 1 * 1024 * 1024 * 1024;
 
 // ── Populate year dropdown ──
 (function(){
@@ -689,7 +701,6 @@ const FB_FREE_STORAGE_BYTES = 1 * 1024 * 1024 * 1024; // 1 GB
     if(y===thisYear)o.selected=true;
     sel.appendChild(o);
   }
-  // Set current month
   const cm=String(new Date().getMonth()+1).padStart(2,'0');
   document.getElementById('del-month').value=cm;
 })();
@@ -874,7 +885,6 @@ function refreshStats(){
   document.getElementById('s-avail').textContent=total-tot-dc;
   document.getElementById('s-dis').textContent=dc;
   document.getElementById('s-tick').textContent=tot;
-  // Update stat card subtitles dynamically
   const amArr=getAmNumbers(), pmArr=getPmNumbers();
   document.querySelector('#s-total').closest('.stat-card').querySelector('.s-sub').textContent='of '+total+' max';
   document.querySelector('#s-am').closest('.stat-card').querySelector('.s-sub').textContent='of '+slotConfig.amCount+' ('+slotConfig.amStart+'–'+(amArr[amArr.length-1]||'?')+')';
@@ -913,13 +923,33 @@ async function toggleNumber(num){
   toast((isDis?'✅ Enabled':'⊘ Disabled')+' #'+num);
 }
 
+// ── NEW: AM/PM filter for Number List ────────────────────────────────────────
+function setListFilter(f) {
+  listFilter = f;
+  ['all','am','pm'].forEach(x => {
+    document.getElementById('filter-'+x).classList.toggle('active', x === f);
+  });
+  renderTicketList();
+}
+
 function renderTicketList(){
   const c=document.getElementById('ticket-list-content');
   const df=disabledNums[currentDate]||{};
-  document.getElementById('ticket-count-label').textContent=ticketsForDate.length+' ticket(s)';
-  if(!ticketsForDate.length){c.innerHTML='<div class="empty-msg">No numbers found for this date.</div>';return;}
+
+  // Apply AM/PM filter
+  const filtered = listFilter === 'all'
+    ? ticketsForDate
+    : ticketsForDate.filter(t => t.time === listFilter.toUpperCase());
+
+  document.getElementById('ticket-count-label').textContent=
+    filtered.length + ' ticket(s)' + (listFilter !== 'all' ? ' · ' + listFilter.toUpperCase() + ' only' : '');
+
+  if(!filtered.length){
+    c.innerHTML='<div class="empty-msg">No '+(listFilter==='all'?'':''+listFilter.toUpperCase()+' ')+'numbers found for this date.</div>';
+    return;
+  }
   const nowMs=Date.now();
-  c.innerHTML=ticketsForDate.map(t=>{
+  c.innerHTML=filtered.map(t=>{
     const isExp=new Date(t.expiresAt).getTime()<nowMs;
     const isDis=!!df[t.number];
     const iss=new Date(t.issuedAt);
@@ -944,7 +974,7 @@ function renderTicketList(){
 
 function doSearch(){
   const query=document.getElementById('search-input').value.trim();
-  if(!query){toast('⚠ Enter a claimant name or priority number');return;}
+  if(!query){toast('⚠ Enter a Claimant Name or Control Number');return;}
   if(!currentDate){toast('⚠ Please load a date first');return;}
   const resultsDiv=document.getElementById('search-results');
   resultsDiv.style.display='block';resultsDiv.innerHTML='<div class="search-empty">🔍 Searching...</div>';
@@ -976,6 +1006,15 @@ function doSearch(){
       '<div class="sr-badges"><span class="badge '+(t.time==='AM'?'badge-am':'badge-pm')+'">'+t.time+'</span>'+statusBadge+'</div>'+
       '</div></div>'+personCardsHTML(t,'sr')+'</div>';
   }).join('');
+}
+let _searchTimer = null;
+function autoSearch(){
+  const query = document.getElementById('search-input').value.trim();
+  clearTimeout(_searchTimer);
+  if(!query){ clearSearch(); return; }
+  document.getElementById('search-results').style.display='block';
+  document.getElementById('search-results').innerHTML='<div class="search-empty">🔍 Searching...</div>';
+  _searchTimer = setTimeout(doSearch, 350);
 }
 function clearSearch(){
   document.getElementById('search-input').value='';
@@ -1083,7 +1122,6 @@ async function calcStorage(){
     document.getElementById('dbn-disabled-val').textContent=fmtBytes(dBytes)+'\n('+Object.keys(dData).length+' dates)';
     document.getElementById('dbn-schedule-val').textContent=fmtBytes(scBytes);
 
-    // Style cards
     ['tickets','slots','disabled','schedule'].forEach(k=>{
       const el=document.getElementById('dbn-'+k+'-val');
       el.style.whiteSpace='pre-line';
@@ -1103,13 +1141,12 @@ let _pendingDeleteMonth=null;
 async function previewMonthDelete(){
   const month=document.getElementById('del-month').value;
   const year=document.getElementById('del-year').value;
-  const prefix=year+'-'+month; // e.g. "2025-03"
+  const prefix=year+'-'+month;
 
   document.getElementById('delete-preview').style.display='none';
   document.getElementById('delete-done').style.display='none';
   document.getElementById('delete-progress').style.display='none';
 
-  // Count matching records
   const [tickSnap,slotSnap,disSnap]=await Promise.all([
     db.ref('tickets').once('value'),
     db.ref('slots').once('value'),
@@ -1166,18 +1203,15 @@ async function confirmMonthDelete(){
 
   let done=0;
   try{
-    // Delete tickets
     for(const [key] of matchTickets){
       progText.textContent='Deleting tickets… ('+done+'/'+matchTickets.length+')';
       await db.ref('tickets/'+key).remove();
       done++;
     }
-    // Delete slots
     for(const date of matchSlots){
       progText.textContent='Deleting slot entries… ('+matchSlots.indexOf(date)+'/'+matchSlots.length+')';
       await db.ref('slots/'+date).remove();
     }
-    // Delete disabled numbers
     for(const date of matchDisabled){
       progText.textContent='Deleting disabled number entries…';
       await db.ref('disabledNumbers/'+date).remove();

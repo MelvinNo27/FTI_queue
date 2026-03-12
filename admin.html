@@ -482,12 +482,12 @@
 .btn-refresh-storage:hover { background: #dbeafe; }
 
 /* Delete form */
-.db-delete-form { }
+
 .db-form-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 16px; }
 .db-field { display: flex; flex-direction: column; gap: 5px; }
 .db-field label { font-size: 12px; font-weight: 700; color: #374151; }
 .db-field select { padding: 8px 12px; border: 1.5px solid #d1d5db; border-radius: 8px; font-size: 14px; font-family: inherit; background: #fff; cursor: pointer; min-width: 120px; }
-.db-field-btn { }
+
 .btn-preview-delete { padding: 9px 18px; background: #1e40af; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer; transition: background .2s; }
 .btn-preview-delete:hover { background: #1d4ed8; }
 
@@ -1013,7 +1013,7 @@ function autoSearch(){
   clearTimeout(_searchTimer);
   if(!query){ clearSearch(); return; }
   document.getElementById('search-results').style.display='block';
-  document.getElementById('search-results').innerHTML='<div class="search-empty">🔍 Searching...</div>';
+  document.getElementById('search-results').innerHTML='<div class="search-empty">Searching...</div>';
   _searchTimer = setTimeout(doSearch, 350);
 }
 function clearSearch(){

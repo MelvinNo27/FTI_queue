@@ -90,7 +90,6 @@
 
       <div class="about-divider"></div>
 
-
       <div class="about-note" data-i18n="aboutNote">
         ⚠️ Your control number does not guarantee immediate service. Please arrive within your assigned time window.
       </div>
@@ -205,16 +204,20 @@
         <div class="field-hint" id="hint-name"></div>
       </div>
     </div>
+
     <div class="person-section">
       <div class="person-section-label" data-i18n="labelBen1">Beneficiary 1</div>
       <div class="field">
         <label data-i18n="labelFullName">Full Name <span class="opt" data-i18n="asOnID">(as it appears on ID)</span></label>
-        <input type="text" id="inp-ben1-name" placeholder="Enter full name from ID (min. 8 characters)" data-i18n-placeholder="placeholderBen" oninput="validateNameField('inp-ben1-name','hint-ben1-name','counter-ben1')" onkeypress="blockNumbers(event)"/>
+        <input type="text" id="inp-ben1-name" placeholder="Enter full name from ID (min. 8 characters)" data-i18n-placeholder="placeholderBen" oninput="validateNameField('inp-ben1-name','hint-ben1-name','counter-ben1');onBen1NameInput()" onkeypress="blockNumbers(event)"/>
         <div class="char-counter" id="counter-ben1"></div>
         <div class="field-hint" id="hint-ben1-name"></div>
       </div>
-      <div class="field"><label data-i18n="labelIDClass">ID Classification</label>
-        <select id="inp-id-type">
+
+      <!-- ── ID Classification — always required for Ben 1 ── -->
+      <div class="field">
+        <label data-i18n="labelIDClass">ID Classification <span style="color:#ef4444;font-size:11px;font-weight:700;" id="req-id-type1">(required)</span></label>
+        <select id="inp-id-type" onchange="validateBen1Fields()">
           <option value="" data-i18n="selectIDClass">— Select ID Classification —</option>
           <optgroup label="ID TYPE">
             <option>SENIOR ID (OSCA)</option><option>4P's/IP's ID</option><option>PWD ID</option>
@@ -222,9 +225,17 @@
             <option>FisherFolk</option><option>MINIMUM WAGE EARNER</option>
           </optgroup>
         </select>
+        <div class="field-hint" id="hint-id-type1"></div>
       </div>
-      <div class="field"><label data-i18n="labelIDNum">ID Number</label><input type="text" id="inp-id-number" placeholder="Enter ID number" data-i18n-placeholder="placeholderIDNum"/></div>
+
+      <!-- ── ID Number — always required for Ben 1 ── -->
+      <div class="field">
+        <label data-i18n="labelIDNum">ID Number <span style="color:#ef4444;font-size:11px;font-weight:700;">(required)</span></label>
+        <input type="text" id="inp-id-number" placeholder="Enter ID number" data-i18n-placeholder="placeholderIDNum" oninput="validateBen1Fields()"/>
+        <div class="field-hint" id="hint-id-number1"></div>
+      </div>
     </div>
+
     <div class="person-section">
       <div class="person-section-label" data-i18n="labelBen2">Beneficiary 2 <span style="font-size:10px;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0;" data-i18n="optionalLabel">(optional)</span></div>
       <div class="field"><label data-i18n="labelFullName2">Full Name <span class="opt" data-i18n="asOnID2">(as it appears on ID)</span></label><input type="text" id="inp-ben2-name" placeholder="Enter full name from ID" data-i18n-placeholder="placeholderBen2" oninput="onBen2NameInput()"/></div>
@@ -246,6 +257,7 @@
         <div class="field-hint" id="hint-id-number2"></div>
       </div>
     </div>
+
     <div class="id-info-box" style="margin-bottom:14px;" data-i18n="idInfoBox">IDs will be verified in person by staff upon arrival.</div>
     <div class="field">
       <label data-i18n="labelPrefTime">Preferred Time</label>
@@ -465,7 +477,6 @@ function getLimitAm()   { return slotConfig.amCount; }
 function getLimitPm()   { return slotConfig.pmCount; }
 function getLimitTotal(){ return slotConfig.amCount + slotConfig.pmCount; }
 
-// Given a slot position (1-based) and session, return the actual queue number
 function slotPositionToNumber(pos, session) {
   const nums = session === 'AM' ? getAmNumbers() : getPmNumbers();
   return nums[pos - 1] || null;
@@ -541,6 +552,60 @@ function isNameValid(value){
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ─── BENEFICIARY 1 REQUIRED ID LOGIC ─────────────────────────────────────────
+function onBen1NameInput(){
+  // Re-validate Ben1 ID fields live whenever name changes
+  const ben1Name = document.getElementById('inp-ben1-name').value.trim();
+  if(ben1Name.length > 0){
+    validateBen1Fields();
+  } else {
+    // Clear Ben1 ID hints if name is empty
+    const selType = document.getElementById('inp-id-type');
+    const inpNum  = document.getElementById('inp-id-number');
+    const hintType= document.getElementById('hint-id-type1');
+    const hintNum = document.getElementById('hint-id-number1');
+    selType.classList.remove('input-error','input-ok');
+    inpNum.classList.remove('input-error','input-ok');
+    hintType.className='field-hint'; hintType.textContent='';
+    hintNum.className='field-hint';  hintNum.textContent='';
+  }
+}
+
+function validateBen1Fields(){
+  const idType  = document.getElementById('inp-id-type').value;
+  const idNum   = document.getElementById('inp-id-number').value.trim();
+  const selType = document.getElementById('inp-id-type');
+  const inpNum  = document.getElementById('inp-id-number');
+  const hintType= document.getElementById('hint-id-type1');
+  const hintNum = document.getElementById('hint-id-number1');
+  let valid = true;
+
+  if(!idType){
+    selType.classList.add('input-error'); selType.classList.remove('input-ok');
+    hintType.className='field-hint error show';
+    hintType.textContent='⚠️ ID Classification is required for Beneficiary 1.';
+    valid=false;
+  } else {
+    selType.classList.remove('input-error'); selType.classList.add('input-ok');
+    hintType.className='field-hint ok show';
+    hintType.textContent='✅ Looks good!';
+  }
+
+  if(!idNum){
+    inpNum.classList.add('input-error'); inpNum.classList.remove('input-ok');
+    hintNum.className='field-hint error show';
+    hintNum.textContent='⚠️ ID Number is required for Beneficiary 1.';
+    valid=false;
+  } else {
+    inpNum.classList.remove('input-error'); inpNum.classList.add('input-ok');
+    hintNum.className='field-hint ok show';
+    hintNum.textContent='✅ Looks good!';
+  }
+
+  return valid;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 // ─── BENEFICIARY 2 CONDITIONAL REQUIRED LOGIC ────────────────────────────────
 function onBen2NameInput(){
   const name = document.getElementById('inp-ben2-name').value.trim();
@@ -554,6 +619,9 @@ function onBen2FieldChange(){
 }
 
 document.addEventListener('DOMContentLoaded', function(){
+  document.getElementById('inp-id-type').addEventListener('change', function(){
+    validateBen1Fields();
+  });
   document.getElementById('inp-id-type2').addEventListener('change', function(){
     const name = document.getElementById('inp-ben2-name').value.trim();
     if(!name) return;
@@ -662,13 +730,11 @@ function isClaimingOpen(){return getClaimingStatus()==='open';}
 
 function get7DayBounds(ticketDateStr){
   const d=new Date(ticketDateStr+'T00:00:00');
-  const end=new Date(d);end.setDate(d.getDate()+6);
+  const end=new Date(d);end.setDate(d.getDate()+5);
   return{start:toDateStr(d),end:toDateStr(end)};
 }
 
 // ── Firebase listeners ────────────────────────────────────────────────────────
-
-// Slot Config — load once and listen for changes
 db.ref('slotConfig').on('value', s => {
   slotConfig = s.exists()
     ? Object.assign({}, DEFAULT_SLOT_CONFIG, s.val())
@@ -879,6 +945,13 @@ function clearNameValidation(){
     const c=document.getElementById(id);
     if(c){c.textContent='';}
   });
+  // Clear Ben1 ID fields
+  document.getElementById('inp-id-type').classList.remove('input-error','input-ok');
+  document.getElementById('inp-id-number').classList.remove('input-error','input-ok');
+  document.getElementById('hint-id-type1').className='field-hint';
+  document.getElementById('hint-id-type1').textContent='';
+  document.getElementById('hint-id-number1').className='field-hint';
+  document.getElementById('hint-id-number1').textContent='';
   updateBen2RequiredState(false);
 }
 
@@ -934,10 +1007,20 @@ function editTicket(ticketId){
   const d=new Date(t.date+'T00:00:00');
   document.getElementById('form-date-label').textContent='Editing number for: '+DAYS[d.getDay()]+', '+MONTHS[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();
   applySlotButtonStates(t.date, t.time);
+  // Disable AM/PM buttons when editing — time cannot be changed
+  document.getElementById('btn-am').disabled = true;
+  document.getElementById('btn-pm').disabled = true;
+  document.getElementById('btn-am').style.pointerEvents = 'none';
+  document.getElementById('btn-pm').style.pointerEvents = 'none';
+  document.getElementById('btn-am').style.opacity = '0.5';
+  document.getElementById('btn-pm').style.opacity = '0.5';
+  document.getElementById('btn-am').style.cursor = 'not-allowed';
+  document.getElementById('btn-pm').style.cursor = 'not-allowed';
   updateFormWindowTags();
   document.getElementById('btn-generate').textContent='Save Changes';
   validateNameField('inp-name','hint-name','counter-name');
   validateNameField('inp-ben1-name','hint-ben1-name','counter-ben1');
+  validateBen1Fields();
   updateSlotBanner();
   document.getElementById('slot-banner').classList.add('show');
   document.getElementById('form-card').classList.add('show');
@@ -994,7 +1077,7 @@ async function checkBeneficiaryNameCooldown(benName){
 function showErrorCard(dupTicket, idNumber, benName, idType, beneficiaryLabel, matchType){
   const ticketDate = new Date(dupTicket.date+'T00:00:00');
   const nextAvail  = new Date(ticketDate);
-  nextAvail.setDate(ticketDate.getDate()+7);
+  nextAvail.setDate(ticketDate.getDate()+6);
   const nextMonStr     = MONTHS[nextAvail.getMonth()]+' '+nextAvail.getDate()+', '+nextAvail.getFullYear();
   const claimedDate    = new Date(dupTicket.date+'T00:00:00');
   const claimedDateStr = DAYS[claimedDate.getDay()]+', '+MONTHS[claimedDate.getMonth()]+' '+claimedDate.getDate()+', '+claimedDate.getFullYear();
@@ -1004,10 +1087,10 @@ function showErrorCard(dupTicket, idNumber, benName, idType, beneficiaryLabel, m
   const isSlot2 = !isNameMatch && dupTicket.idNumber2 && dupTicket.idNumber2.trim().toLowerCase() === norm;
 
   document.getElementById('error-card-icon').textContent   = isNameMatch ? '⚠️' : '🚫';
-  document.getElementById('error-card-title').textContent  = isNameMatch ? 'Already Claimed This Week' : '7-Day Cooldown Active';
+  document.getElementById('error-card-title').textContent  = isNameMatch ? 'Already Claimed This Week' : '6-Day Cooldown Active';
   document.getElementById('error-card-subtitle').textContent = isNameMatch
     ? beneficiaryLabel+' name already has a registered control number this week.'
-    : beneficiaryLabel+' ID was used within the last 7 days. Please wait before claiming again.';
+    : beneficiaryLabel+' ID was used within the last 6 days. Please wait before claiming again.';
 
   document.getElementById('error-card-ben-name').textContent = isNameMatch
     ? benName
@@ -1020,7 +1103,7 @@ function showErrorCard(dupTicket, idNumber, benName, idType, beneficiaryLabel, m
     : idNumber;
   document.getElementById('error-card-name').textContent     = dupTicket.name||dupTicket.ben1Name||'—';
   document.getElementById('error-card-date').textContent     = claimedDateStr+' ('+dupTicket.time+' slot)';
-  document.getElementById('error-card-next').textContent     = 'Next available claim (7-day cooldown): '+nextMonStr;
+  document.getElementById('error-card-next').textContent     = 'Next available claim : '+nextMonStr;
 
   document.getElementById('error-card').classList.add('show');
   document.getElementById('form-card').classList.remove('show');
@@ -1059,6 +1142,12 @@ async function generateNumber(){
   if(!isNameValid(ben1Name)){
     validateNameField('inp-ben1-name','hint-ben1-name','counter-ben1');
     return toast(/\d/.test(ben1Name) ? '⚠️ Beneficiary 1 name cannot contain numbers' : '⚠️ Beneficiary 1 name must be at least 8 characters');
+  }
+  // ── Ben 1 ID fields are always required ──────────────────────────────────
+  if(!validateBen1Fields()){
+    return toast(!idType
+      ? '⚠️ Please select ID Classification for Beneficiary 1'
+      : '⚠️ Please enter ID Number for Beneficiary 1');
   }
   if(!validateBen2Fields()){
     return toast(!document.getElementById('inp-id-type2').value
@@ -1116,28 +1205,24 @@ async function generateNumber(){
       renderTickets();btn.disabled=false;btn.textContent='Generate Control Number';return;
     }
 
-    // ── Atomic slot increment; use dynamic limit ──────────────────────────────
     const limitForSession = selectedTime === 'AM' ? getLimitAm() : getLimitPm();
     const slotRef = db.ref('slots/'+targetStr+'/'+selectedTime);
     const result = await slotRef.transaction(c => {
       const v = c || 0;
-      if(v >= limitForSession) return; // abort
+      if(v >= limitForSession) return;
       return v + 1;
     });
     if(!result.committed){
       toast('Slot just filled up! Choose another.');
       btn.disabled=false; btn.textContent='Generate Control Number'; return;
     }
-    const pos = result.snapshot.val(); // 1-based position
-    // ── Derive the actual queue number from slot config ───────────────────────
+    const pos = result.snapshot.val();
     const num = slotPositionToNumber(pos, selectedTime);
     if(num === null){
       toast('Error: could not assign a number. Please try again.');
-      // Roll back the slot increment
       await slotRef.transaction(c => Math.max((c||1)-1, 0));
       btn.disabled=false; btn.textContent='Generate Control Number'; return;
     }
-    // ─────────────────────────────────────────────────────────────────────────
     const tmr=addDays(now,1);
     const expiry=new Date(targetStr+'T'+(scheduleSettings.pmEnd||'17:00')+':00');
     const td={
@@ -1282,8 +1367,6 @@ setInterval(()=>{
 // ═══════════════════════════════════════════════════════════════════
 // BURGER MENU, TRANSLATIONS & ABOUT
 // ═══════════════════════════════════════════════════════════════════
-
-// ── i18n strings ─────────────────────────────────────────────────
 const TRANSLATIONS = {
   en: {
     appTitle:        'P20 DDN CONTROL NUMBER',
@@ -1320,7 +1403,6 @@ const TRANSLATIONS = {
     labelPrefTime:   'Preferred Time',
     btnGenerate:     'Generate Control Number',
     myNumbersTitle:  'My Control Numbers',
-    // About
     aboutAppName:    'P20 DDN Control Number System',
     aboutSystemLabel:'About the System',
     aboutDesc:       'The P20 Control Number System is designed to efficiently manage and generate P20 control numbers through a digital platform. The system helps authorized personnel quickly issue and track official control numbers for documents or transactions in an organized and accurate manner. Its main purpose is to reduce long lines and waiting times when requesting actual control numbers by automating the process. This is especially helpful for senior citizens, so they no longer need to line up late at night just to secure a control number for the following day. Through this system, the process becomes faster, more convenient, and more accessible for everyone.',
@@ -1366,7 +1448,6 @@ const TRANSLATIONS = {
     labelPrefTime:   'Gusto nga Oras',
     btnGenerate:     'Kuha og Numero sa Prayoridad',
     myNumbersTitle:  'Akong mga Numero sa Prayoridad',
-    // About
     aboutAppName:    'Sistema sa P20 DDN Control Number',
     aboutSystemLabel:'Mahitungod sa Sistema',
     aboutDesc:       'Ang P20 Control Number System gidisenyo aron episyenteng mapamahalan ug mapatunghag ang mga P20 control number pinaagi sa digital nga plataporma. Gitabangan niini ang mga awtorisadong personahe nga dali makapagawas ug makasubay sa mga opisyal nga control number alang sa mga dokumento o transaksyon sa organisado ug tukma nga paagi. Ang panguna niining katuyoan mao ang pagpakunhod sa taas nga linya ug paghulat kon mangayo og kontrol numero pinaagi sa automation sa proseso. Kini labi ka makatabang sa mga tigulang, aron dili na kinahanglan nga mag-pila sa kagabhion aron makakuha og control number para sa sunod adlaw. Pinaagi niini nga sistema, mas paspas, mas kombinyente, ug mas accessible ang proseso alang sa tanan.',
@@ -1387,38 +1468,27 @@ function t(key) {
 }
 
 function applyTranslations() {
-  // Text content
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
     const val = t(key);
-    // Preserve child elements (like <strong id="tmr-date-str">)
     if (el.children.length === 0) {
       el.textContent = val;
     } else {
-      // Update text nodes only, skip child elements
       const textNodes = [...el.childNodes].filter(n => n.nodeType === 3);
       if (textNodes.length) textNodes[0].textContent = val + ' ';
     }
   });
-  // Placeholders
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
     el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
   });
-  // Select first options
   document.querySelectorAll('[data-i18n="selectIDClass"]').forEach(el => {
     el.textContent = t('selectIDClass');
   });
-  // Lang button active state
   document.getElementById('lang-en').className  = 'lang-btn' + (currentLang==='en' ?' active':'');
   document.getElementById('lang-ceb').className = 'lang-btn' + (currentLang==='ceb'?' active':'');
   document.getElementById('check-en').textContent  = currentLang==='en'  ? '✓' : '';
   document.getElementById('check-ceb').textContent = currentLang==='ceb' ? '✓' : '';
-  // Update dynamic toast messages language if needed
-  document.getElementById('btn-generate').textContent =
-    document.getElementById('btn-generate').dataset.generating
-      ? t('btnGenerate')
-      : t('btnGenerate');
-  // Re-render dynamic content that uses translated strings
+  document.getElementById('btn-generate').textContent = t('btnGenerate');
   renderCard();
   renderTickets();
 }
@@ -1430,7 +1500,6 @@ function setLang(lang) {
   toast(lang === 'ceb' ? '✅ Gibag-o na ang pinulongan sa Bisaya' : '✅ Language set to English');
 }
 
-// ── Burger Menu ───────────────────────────────────────────────────
 function toggleMenu() {
   const drawer  = document.getElementById('drawer');
   const overlay = document.getElementById('drawer-overlay');
@@ -1452,7 +1521,6 @@ function closeMenu() {
   document.getElementById('burger-btn').classList.remove('open');
 }
 
-// ── About Modal ───────────────────────────────────────────────────
 function openAbout() {
   closeMenu();
   document.getElementById('about-overlay').classList.add('open');
@@ -1464,9 +1532,8 @@ function closeAboutDirect() {
   document.getElementById('about-overlay').classList.remove('open');
 }
 
-// Apply saved language on load
 applyTranslations();
-// ═══════════════════════════════════════════════════════════════════
+
 let tapCount=0,tapTimer=null;
 function handleTitleTap(){
   tapCount++;

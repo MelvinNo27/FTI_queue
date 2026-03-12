@@ -39,10 +39,11 @@
   </div>
 
   <div class="search-bar">
-    <div class="search-bar-title">🔍 Search by Claimant Name or Control Number</div>
+    <div class="search-bar-title">🔍 Search by Claimant Name or Priority Number</div>
     <div class="search-row">
-    <input class="search-input" type="text" id="search-input" placeholder="Enter claimant name or priority number" oninput="autoSearch()" onkeydown="if(event.key==='Escape')clearSearch()"/>
-    <button class="btn-clear-search" onclick="clearSearch()">Clear</button>
+      <input class="search-input" type="text" id="search-input" placeholder="Enter claimant name or priority number" onkeydown="if(event.key==='Enter')doSearch()"/>
+      <button class="btn-search" onclick="doSearch()">Search</button>
+      <button class="btn-clear-search" onclick="clearSearch()">Clear</button>
     </div>
     <div class="search-results" id="search-results" style="display:none;"></div>
   </div>
@@ -198,6 +199,8 @@
         <div class="cs-item">🌅 AM valid: <strong id="cs-am">—</strong></div>
         <div class="cs-sep">|</div>
         <div class="cs-item">🌇 PM valid: <strong id="cs-pm">—</strong></div>
+        <div class="cs-sep">|</div>
+        <div class="cs-item">📱 Per device: <strong id="cs-device">—</strong></div>
       </div>
       <div class="settings-grid">
         <div class="settings-block">
@@ -239,6 +242,29 @@
           <div class="field-row"><label>PM Service Ends</label><input type="time" id="pm-end" value="17:00"/></div>
         </div>
       </div>
+              <div class="settings-block">
+          <h3><span class="icon">📱</span> Device Generation Limit</h3>
+          <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">Set how many control numbers a single device can generate per day. Set to 0 for unlimited.</p>
+          <div class="field-row" style="margin-bottom:10px;">
+            <label>Limit Type</label>
+            <div style="display:flex;gap:8px;margin-top:4px;">
+              <button class="sc-type-btn" id="dlimit-btn-limited" onclick="setDeviceLimitMode('limited')" style="flex:1;text-align:center;">
+                🔢 Limited<br><small>Set max per day</small>
+              </button>
+              <button class="sc-type-btn active" id="dlimit-btn-unlimited" onclick="setDeviceLimitMode('unlimited')" style="flex:1;text-align:center;">
+                ♾️ Unlimited<br><small>No restriction</small>
+              </button>
+            </div>
+          </div>
+          <div class="field-row" id="dlimit-count-row" style="display:none;">
+            <label>Max Numbers Per Device (per day)</label>
+            <input type="number" id="device-limit" min="1" max="99" value="1"/>
+            <div class="hint">How many control numbers one device can generate per day.</div>
+          </div>
+          <div class="field-row" id="dlimit-unlimited-msg" style="display:block;">
+            <div class="hint" style="color:#059669;font-weight:700;font-size:13px;">♾️ All devices can generate unlimited numbers per day.</div>
+          </div>
+        </div>
       <button class="btn-save-settings" onclick="saveSettings()">💾 Save All Settings</button>
       <div class="settings-status" id="settings-status" style="display:none;"></div>
     </div>
@@ -482,12 +508,12 @@
 .btn-refresh-storage:hover { background: #dbeafe; }
 
 /* Delete form */
-
+.db-delete-form { }
 .db-form-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 16px; }
 .db-field { display: flex; flex-direction: column; gap: 5px; }
 .db-field label { font-size: 12px; font-weight: 700; color: #374151; }
 .db-field select { padding: 8px 12px; border: 1.5px solid #d1d5db; border-radius: 8px; font-size: 14px; font-family: inherit; background: #fff; cursor: pointer; min-width: 120px; }
-
+.db-field-btn { }
 .btn-preview-delete { padding: 9px 18px; background: #1e40af; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer; transition: background .2s; }
 .btn-preview-delete:hover { background: #1d4ed8; }
 
@@ -814,6 +840,13 @@ function applySettingsToUI(){
   document.getElementById('am-end').value=scheduleSettings.amEnd||'12:00';
   document.getElementById('pm-start').value=scheduleSettings.pmStart||'12:00';
   document.getElementById('pm-end').value=scheduleSettings.pmEnd||'17:00';
+  const savedLimit = scheduleSettings.deviceLimit ?? 0;
+  if(savedLimit === 0){
+    setDeviceLimitMode('unlimited');
+  } else {
+    setDeviceLimitMode('limited');
+    document.getElementById('device-limit').value = savedLimit;
+  }
 }
 
 function updateCurrentSettingsBar(){
@@ -828,12 +861,25 @@ function updateCurrentSettingsBar(){
   }
   document.getElementById('cs-am').textContent=fmt(scheduleSettings.amStart)+' – '+fmt(scheduleSettings.amEnd);
   document.getElementById('cs-pm').textContent=fmt(scheduleSettings.pmStart)+' – '+fmt(scheduleSettings.pmEnd);
+  const dl = scheduleSettings.deviceLimit ?? 1;
+  const csDevice = document.getElementById('cs-device');
+  if(csDevice) csDevice.textContent = dl === 0 ? 'Unlimited' : dl + '/day';
 }
 
 function fmt(t){if(!t)return'—';const[h,m]=t.split(':').map(Number);const ap=h>=12?'PM':'AM';const hr=h%12||12;return hr+':'+String(m).padStart(2,'0')+' '+ap;}
 
+function setDeviceLimitMode(mode){
+  const isLimited = mode === 'limited';
+  document.getElementById('dlimit-btn-limited').classList.toggle('active', isLimited);
+  document.getElementById('dlimit-btn-unlimited').classList.toggle('active', !isLimited);
+  document.getElementById('dlimit-count-row').style.display = isLimited ? 'block' : 'none';
+  document.getElementById('dlimit-unlimited-msg').style.display = isLimited ? 'none' : 'block';
+}
+
 async function saveSettings(){
   const isOn=document.getElementById('claiming-toggle').checked;
+  const isUnlimited = document.getElementById('dlimit-btn-unlimited').classList.contains('active');
+  const deviceLimit = isUnlimited ? 0 : (parseInt(document.getElementById('device-limit').value) || 1);
   const ns={
     claimingEnabled:isOn,claimRestricted:true,
     claimStart:document.getElementById('claim-start').value,
@@ -841,7 +887,8 @@ async function saveSettings(){
     amStart:document.getElementById('am-start').value,
     amEnd:document.getElementById('am-end').value,
     pmStart:document.getElementById('pm-start').value,
-    pmEnd:document.getElementById('pm-end').value
+    pmEnd:document.getElementById('pm-end').value,
+    deviceLimit:deviceLimit
   };
   if(isOn&&ns.claimStart>=ns.claimEnd){showSettingsStatus('❌ Claiming window: start must be before end',false);return;}
   if(ns.amStart>=ns.amEnd){showSettingsStatus('❌ AM window: start must be before end',false);return;}
@@ -974,7 +1021,7 @@ function renderTicketList(){
 
 function doSearch(){
   const query=document.getElementById('search-input').value.trim();
-  if(!query){toast('⚠ Enter a Claimant Name or Control Number');return;}
+  if(!query){toast('⚠ Enter a claimant name or priority number');return;}
   if(!currentDate){toast('⚠ Please load a date first');return;}
   const resultsDiv=document.getElementById('search-results');
   resultsDiv.style.display='block';resultsDiv.innerHTML='<div class="search-empty">🔍 Searching...</div>';
@@ -1006,15 +1053,6 @@ function doSearch(){
       '<div class="sr-badges"><span class="badge '+(t.time==='AM'?'badge-am':'badge-pm')+'">'+t.time+'</span>'+statusBadge+'</div>'+
       '</div></div>'+personCardsHTML(t,'sr')+'</div>';
   }).join('');
-}
-let _searchTimer = null;
-function autoSearch(){
-  const query = document.getElementById('search-input').value.trim();
-  clearTimeout(_searchTimer);
-  if(!query){ clearSearch(); return; }
-  document.getElementById('search-results').style.display='block';
-  document.getElementById('search-results').innerHTML='<div class="search-empty">Searching...</div>';
-  _searchTimer = setTimeout(doSearch, 350);
 }
 function clearSearch(){
   document.getElementById('search-input').value='';

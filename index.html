@@ -1007,15 +1007,6 @@ function editTicket(ticketId){
   const d=new Date(t.date+'T00:00:00');
   document.getElementById('form-date-label').textContent='Editing number for: '+DAYS[d.getDay()]+', '+MONTHS[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();
   applySlotButtonStates(t.date, t.time);
-  // Disable AM/PM buttons when editing — time cannot be changed
-  document.getElementById('btn-am').disabled = true;
-  document.getElementById('btn-pm').disabled = true;
-  document.getElementById('btn-am').style.pointerEvents = 'none';
-  document.getElementById('btn-pm').style.pointerEvents = 'none';
-  document.getElementById('btn-am').style.opacity = '0.5';
-  document.getElementById('btn-pm').style.opacity = '0.5';
-  document.getElementById('btn-am').style.cursor = 'not-allowed';
-  document.getElementById('btn-pm').style.cursor = 'not-allowed';
   updateFormWindowTags();
   document.getElementById('btn-generate').textContent='Save Changes';
   validateNameField('inp-name','hint-name','counter-name');
@@ -1124,6 +1115,16 @@ async function generateNumber(){
     if(s==='blocked') toast('⛔ Number generation is currently disabled');
     else toast('Number claiming is currently closed');
     return;
+  }
+  // ── Device limit check ──────────────────────────────────────────────
+  const deviceLimit = scheduleSettings.deviceLimit ?? 1;
+  if(deviceLimit > 0 && !editingTicketId){
+    const todayKey = 'pq_gen_count_' + todayStr;
+    const genCount = parseInt(localStorage.getItem(todayKey) || '0');
+    if(genCount >= deviceLimit){
+      toast('⚠️ This device has reached the limit of ' + deviceLimit + ' number(s) per day.');
+      return;
+    }
   }
   const name     = document.getElementById('inp-name').value.trim();
   const ben1Name = document.getElementById('inp-ben1-name').value.trim();
@@ -1237,6 +1238,9 @@ async function generateNumber(){
     await ref.set(td);
     myTicketIds.push(ref.key);
     localStorage.setItem('pq_my_ticket_ids',JSON.stringify(myTicketIds));
+    // Increment device generation count for today
+    const todayKey2 = 'pq_gen_count_' + todayStr;
+    localStorage.setItem(todayKey2, (parseInt(localStorage.getItem(todayKey2)||'0')+1).toString());
     myTickets.unshift({id:ref.key,...td});
     renderTickets();
     toast('Control #'+pad3(num)+' for '+MONTHS[tmr.getMonth()].slice(0,3)+' '+tmr.getDate()+'!');

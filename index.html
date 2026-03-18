@@ -779,7 +779,8 @@ db.ref('tickets').on('value', snap => {
   slotsData = counts;
   const todayNow = toDateStr(new Date());
   Object.entries(counts).forEach(([date, slots]) => {
-    if(date >= todayNow){
+    // Only sync future dates (tomorrow onwards), never today or past
+    if(date > todayNow){
       db.ref('slots/' + date).set({
         AM: slots.AM || 0,
         PM: slots.PM || 0
@@ -1206,24 +1207,32 @@ async function generateNumber(){
       renderTickets();btn.disabled=false;btn.textContent='Generate Control Number';return;
     }
 
-    const limitForSession = selectedTime === 'AM' ? getLimitAm() : getLimitPm();
-    const slotRef = db.ref('slots/'+targetStr+'/'+selectedTime);
-    const result = await slotRef.transaction(c => {
-      const v = c || 0;
-      if(v >= limitForSession) return;
-      return v + 1;
-    });
-    if(!result.committed){
-      toast('Slot just filled up! Choose another.');
+    const availableNums = selectedTime === 'AM' ? getAmNumbers() : getPmNumbers();
+
+    // Atomically claim a specific number directly on the number node
+    let assignedNum = null;
+    for (const candidate of availableNums) {
+      const numRef = db.ref('takenNumbers/' + targetStr + '/' + candidate);
+      const result = await numRef.transaction(current => {
+        if (current === null) return true; // claim it
+        return; // already taken — abort
+      });
+      if (result.committed) {
+        assignedNum = candidate;
+        break;
+      }
+    }
+
+    if (assignedNum === null) {
+      toast('All slots just filled up! Please try again.');
       btn.disabled=false; btn.textContent='Generate Control Number'; return;
     }
-    const pos = result.snapshot.val();
-    const num = slotPositionToNumber(pos, selectedTime);
-    if(num === null){
-      toast('Error: could not assign a number. Please try again.');
-      await slotRef.transaction(c => Math.max((c||1)-1, 0));
-      btn.disabled=false; btn.textContent='Generate Control Number'; return;
-    }
+    const num = assignedNum;
+
+    // Keep slots counter in sync for the slot availability display
+    const slotRef = db.ref('slots/' + targetStr + '/' + selectedTime);
+    await slotRef.transaction(c => (c || 0) + 1);
+
     const tmr=addDays(now,1);
     const expiry=new Date(targetStr+'T'+(scheduleSettings.pmEnd||'17:00')+':00');
     const td={

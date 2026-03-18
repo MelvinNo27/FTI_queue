@@ -508,12 +508,12 @@
 .btn-refresh-storage:hover { background: #dbeafe; }
 
 /* Delete form */
-.db-delete-form { }
+
 .db-form-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 16px; }
 .db-field { display: flex; flex-direction: column; gap: 5px; }
 .db-field label { font-size: 12px; font-weight: 700; color: #374151; }
 .db-field select { padding: 8px 12px; border: 1.5px solid #d1d5db; border-radius: 8px; font-size: 14px; font-family: inherit; background: #fff; cursor: pointer; min-width: 120px; }
-.db-field-btn { }
+
 .btn-preview-delete { padding: 9px 18px; background: #1e40af; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer; transition: background .2s; }
 .btn-preview-delete:hover { background: #1d4ed8; }
 
@@ -590,7 +590,6 @@ function buildPreviewText(startNum, count, type) {
   const nums = buildNumbers(startNum, count, type);
   if (!nums.length) return 'No numbers';
   const last = nums[nums.length - 1];
-  const step = type === 'all' ? 1 : 2;
   const dots = count > 3 ? ', …, ' + last : '';
   return '#' + nums[0] + ', #' + (nums[1]||'') + (nums[2] ? ', #'+nums[2] : '') + dots + '  (' + count + ' slots)';
 }
@@ -706,7 +705,7 @@ let currentDate=null;
 let disabledNums={};
 let ticketsForDate=[];
 let allTickets={};
-let listFilter='all'; // ── NEW: 'all' | 'am' | 'pm'
+let listFilter='all';
 let scheduleSettings={
   claimStart:'06:00',claimEnd:'10:00',
   amStart:'08:00',amEnd:'12:00',
@@ -758,24 +757,17 @@ function initAdmin(){
     disabledNums=s.val()||{};
     if(currentDate){refreshStats();renderGrid();renderTicketList();}
   });
+
+  // ── CHANGE 1: Removed slot sync from tickets listener ──────────────────────
+  // Previously this block re-wrote slots/YYYY-MM-DD every time any ticket
+  // changed, which caused manually deleted slot entries to immediately
+  // reappear. Slot counts are now managed only by index.html transactions.
   db.ref('tickets').on('value',s=>{
     allTickets=s.val()||{};
     if(currentDate){rebuildTicketsForDate(currentDate);refreshStats();renderGrid();renderTicketList();}
-    const counts={};
-    Object.values(allTickets).forEach(t=>{
-      if(!t||!t.date||!t.time) return;
-      if(!counts[t.date]) counts[t.date]={AM:0,PM:0};
-      counts[t.date][t.time]=(counts[t.date][t.time]||0)+1;
-    });
-    const todayNow=new Date();
-    const todayStr=todayNow.getFullYear()+'-'+String(todayNow.getMonth()+1).padStart(2,'0')+'-'+String(todayNow.getDate()).padStart(2,'0');
-    Object.entries(counts).forEach(([date,slots])=>{
-      if(date>=todayStr){
-        db.ref('slots/'+date).set({AM:slots.AM||0,PM:slots.PM||0})
-          .catch(e=>console.warn('Slot sync error (admin):',e));
-      }
-    });
   });
+  // ── END CHANGE 1 ───────────────────────────────────────────────────────────
+
   db.ref('scheduleSettings').on('value',s=>{
     if(s.exists()) scheduleSettings=Object.assign({},scheduleSettings,s.val());
     applySettingsToUI();
@@ -970,7 +962,6 @@ async function toggleNumber(num){
   toast((isDis?'✅ Enabled':'⊘ Disabled')+' #'+num);
 }
 
-// ── NEW: AM/PM filter for Number List ────────────────────────────────────────
 function setListFilter(f) {
   listFilter = f;
   ['all','am','pm'].forEach(x => {
@@ -983,7 +974,6 @@ function renderTicketList(){
   const c=document.getElementById('ticket-list-content');
   const df=disabledNums[currentDate]||{};
 
-  // Apply AM/PM filter
   const filtered = listFilter === 'all'
     ? ticketsForDate
     : ticketsForDate.filter(t => t.time === listFilter.toUpperCase());
@@ -1004,7 +994,9 @@ function renderTicketList(){
     const sk=t.time==='AM'?'amStart':'pmStart',ek=t.time==='AM'?'amEnd':'pmEnd';
     const wl='Valid: '+fmt(scheduleSettings[sk])+' – '+fmt(scheduleSettings[ek]);
     const sb=isDis?'<span class="badge badge-disabled-b">⊘ Disabled</span>':isExp?'<span class="badge badge-expired">✕ Expired</span>':'<span class="badge badge-valid">✓ Valid</span>';
-    const tb='<span class="badge '+(t.time==='AM'?'badge-am':'badge-pm')+'">'+t.time+'</span>';
+    // ── CHANGE 2: Guard against undefined t.time in ticket list badge ─────────
+    const tb=t.time?'<span class="badge '+(t.time==='AM'?'badge-am':'badge-pm')+'">'+t.time+'</span>':'';
+    // ── END CHANGE 2 ──────────────────────────────────────────────────────────
     return '<div class="ticket-row">'+
       '<div class="ticket-row-top">'+
         '<div class="tr-num">#'+pad3(t.number)+'</div>'+
@@ -1050,7 +1042,9 @@ function doSearch(){
       '<div class="sr-info"><div class="sr-name">'+esc(t.name||'—')+'</div>'+
       '<div class="sr-meta">📅 '+dateLabel+' &nbsp;|&nbsp; Issued: '+issuedLbl+'</div>'+
       '<div class="sr-meta" style="color:var(--blue);font-weight:700;margin-top:2px;">⏰ '+windowLbl+'</div>'+
-      '<div class="sr-badges"><span class="badge '+(t.time==='AM'?'badge-am':'badge-pm')+'">'+t.time+'</span>'+statusBadge+'</div>'+
+      // ── CHANGE 3: Guard against undefined t.time in search results badge ────
+      '<div class="sr-badges">'+(t.time?'<span class="badge '+(t.time==='AM'?'badge-am':'badge-pm')+'">'+t.time+'</span>':'')+statusBadge+'</div>'+
+      // ── END CHANGE 3 ────────────────────────────────────────────────────────
       '</div></div>'+personCardsHTML(t,'sr')+'</div>';
   }).join('');
 }

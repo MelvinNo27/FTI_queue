@@ -13,7 +13,7 @@
   <div class="login-box">
     <h2>🔐 Admin Login</h2>
     <p>Enter admin credentials to continue</p>
-    <input type="text" id="login-user" placeholder="Username"/>
+    <input type="email" id="login-user" placeholder="Admin email address"/>
     <input type="password" id="login-pass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()"/>
     <button onclick="doLogin()">Login</button>
     <div class="login-error" id="login-error">Invalid username or password.</div>
@@ -547,8 +547,9 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script>
-const ADMIN_USER='tagumfti.admin@gmail.com',ADMIN_PASS='adminfti@2025';
+const ALLOWED_ADMIN_EMAILS=['tagumfti.admin@gmail.com'];
 const firebaseConfig={
   apiKey:"AIzaSyAiRK64ZYzF8lBKnxmubCZEO9qrCN42B1g",authDomain:"fti-queue.firebaseapp.com",
   databaseURL:"https://fti-queue-default-rtdb.firebaseio.com",projectId:"fti-queue",
@@ -730,22 +731,46 @@ const FB_FREE_STORAGE_BYTES = 1 * 1024 * 1024 * 1024;
   document.getElementById('del-month').value=cm;
 })();
 
-if(sessionStorage.getItem('admin_auth')==='1'){
-  document.getElementById('login-screen').classList.add('hide');
-  initAdmin();
-}
-function doLogin(){
-  const u=document.getElementById('login-user').value.trim();
-  const p=document.getElementById('login-pass').value;
-  if(u===ADMIN_USER&&p===ADMIN_PASS){
-    sessionStorage.setItem('admin_auth','1');
-    document.getElementById('login-screen').classList.add('hide');
-    initAdmin();
-  } else {
-    document.getElementById('login-error').classList.add('show');
+  // CHANGED: Firebase Email Authentication login
+  const auth = firebase.auth();
+  auth.onAuthStateChanged(user => {
+    if (user && ALLOWED_ADMIN_EMAILS.includes(user.email)) {
+      document.getElementById('login-screen').classList.add('hide');
+      initAdmin();
+    } else if (user) {
+      auth.signOut();
+      showLoginError('⛔ This account is not authorized as admin.');
+    }
+  });
+
+  async function doLogin() {
+    const email = document.getElementById('login-user').value.trim();
+    const pass  = document.getElementById('login-pass').value;
+    const err   = document.getElementById('login-error');
+    err.classList.remove('show');
+    if (!email || !pass) { err.textContent='Please enter email and password.'; err.classList.add('show'); return; }
+    try {
+      await auth.signInWithEmailAndPassword(email, pass);
+    } catch (e) {
+      err.textContent = e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found'
+        ? 'Invalid email or password.'
+        : e.code === 'auth/too-many-requests'
+        ? 'Too many attempts. Try again later.'
+        : 'Login failed: ' + e.message;
+      err.classList.add('show');
+    }
   }
+
+  function showLoginError(msg) {
+    const err = document.getElementById('login-error');
+    err.textContent = msg; err.classList.add('show');
+  }
+
+function doLogout() {
+  auth.signOut().then(() => {
+    document.getElementById('login-screen').classList.remove('hide');
+  });
 }
-function doLogout(){sessionStorage.removeItem('admin_auth');location.reload();}
 
 function initAdmin(){
   db.ref('.info/connected').on('value',s=>{

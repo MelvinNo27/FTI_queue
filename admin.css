@@ -103,6 +103,21 @@
   .sr-person-name{font-size:13px;font-weight:800;color:var(--text);}
   .sr-person-id{font-size:11px;color:var(--gray);font-weight:600;margin-top:2px;}
 
+
+  .login-pass-wrap {
+  position: relative; display: flex; align-items: center; margin-bottom: 12px;
+}
+.login-pass-wrap input {
+  margin-bottom: 0; flex: 1; padding-right: 44px;
+}
+.btn-toggle-pass {
+  position: absolute; right: 10px;
+  background: none; border: none; cursor: pointer;
+  font-size: 16px; color: #6b7280; padding: 4px;
+  line-height: 1; transition: color .15s;
+}
+.btn-toggle-pass:hover { color: #374151; }
+
   /* ── BADGES ── */
   .badge{font-size:10px;font-weight:800;padding:3px 9px;border-radius:100px;}
   .badge-am{background:var(--blue-light);color:var(--blue);}

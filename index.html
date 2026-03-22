@@ -797,7 +797,7 @@ db.ref('tickets').on('value', snap => {
   const formOpen = document.getElementById('form-card').classList.contains('show');
   if(formOpen){
     const editDate = editingTicketId ? (myTickets.find(x=>x.id===editingTicketId)||{}).date||targetStr : targetStr;
-    const keepTime = editingTicketId ? selectedTime : null;
+    const keepTime = selectedTime;
     applySlotButtonStates(editDate, keepTime);
   }
 });

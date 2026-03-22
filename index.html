@@ -978,6 +978,15 @@ function openForm(){
   const tmr=addDays(now,1);
   document.getElementById('form-date-label').textContent='For: '+DAYS[tmr.getDay()]+', '+MONTHS[tmr.getMonth()]+' '+tmr.getDate()+', '+tmr.getFullYear();
   applySlotButtonStates(targetStr, null);
+  // ── Unlock time buttons for fresh form ──
+  const ba2 = document.getElementById('btn-am');
+  const bp2 = document.getElementById('btn-pm');
+  ba2.style.pointerEvents = '';
+  ba2.style.opacity = '';
+  ba2.style.cursor = 'pointer';
+  bp2.style.pointerEvents = '';
+  bp2.style.opacity = '';
+  bp2.style.cursor = 'pointer';
   updateFormWindowTags();
   ['inp-name','inp-ben1-name','inp-id-number','inp-ben2-name','inp-id-number2'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('inp-id-type').value='';document.getElementById('inp-id-type2').value='';
@@ -1019,6 +1028,28 @@ function editTicket(ticketId){
   applySlotButtonStates(t.date, t.time);
   updateFormWindowTags();
   document.getElementById('btn-generate').textContent='Save Changes';
+  // ── Lock time buttons when editing — cannot change AM/PM ──
+  const ba = document.getElementById('btn-am');
+  const bp = document.getElementById('btn-pm');
+  if(t.time === 'AM'){
+    bp.disabled = true;
+    bp.style.pointerEvents = 'none';
+    bp.style.opacity = '0.4';
+    bp.style.cursor = 'not-allowed';
+    ba.disabled = false;
+    ba.style.pointerEvents = 'none'; // keep it visually selected but unclickable
+    ba.style.opacity = '1';
+    ba.style.cursor = 'default';
+  } else {
+    ba.disabled = true;
+    ba.style.pointerEvents = 'none';
+    ba.style.opacity = '0.4';
+    ba.style.cursor = 'not-allowed';
+    bp.disabled = false;
+    bp.style.pointerEvents = 'none';
+    bp.style.opacity = '1';
+    bp.style.cursor = 'default';
+  }
   validateNameField('inp-name','hint-name','counter-name');
   validateNameField('inp-ben1-name','hint-ben1-name','counter-ben1');
   validateBen1Fields();
@@ -1201,20 +1232,60 @@ async function generateNumber(){
 
   btn.textContent='Saving...';
   try{
-    if(editingTicketId){
-      const existing=myTickets.find(x=>x.id===editingTicketId);
-      if(!existing){toast('Error: number not found');btn.disabled=false;btn.textContent='Save Changes';return;}
-      const updates={name,ben1Name:ben1Name||'',idType:idType||'',idNumber:idNumber||'',ben2Name:ben2Name||'',idType2:idType2||'',idNumber2:idNumber2||''};
-      await db.ref('tickets/'+editingTicketId).update(updates);
-      const idx=myTickets.findIndex(x=>x.id===editingTicketId);
-      if(idx>-1)myTickets[idx]=Object.assign({},myTickets[idx],updates);
-      toast('✅ Number updated successfully!');
-      editingTicketId=null;
-      document.getElementById('btn-generate').textContent='Generate Control Number';
-      document.getElementById('form-card').classList.remove('show');
-      document.getElementById('slot-banner').classList.remove('show');
-      renderTickets();btn.disabled=false;btn.textContent='Generate Control Number';return;
+if(editingTicketId){
+    const existing = myTickets.find(x => x.id === editingTicketId);
+    if(!existing){
+      toast('Error: number not found');
+      btn.disabled=false; btn.textContent='Save Changes'; return;
     }
+
+    // ── Duplicate checks for editing (skip own ticket) ──
+    btn.textContent = 'Checking...';
+
+    if(idType && idNumber){
+      const wd = await checkWeeklyCooldown(idType, idNumber);
+      if(wd && wd.id !== editingTicketId){
+        showErrorCard(wd, idNumber, ben1Name, idType, 'Beneficiary 1', 'id');
+        btn.disabled=false; btn.textContent='Save Changes'; return;
+      }
+    }
+    const wn1 = await checkBeneficiaryNameCooldown(ben1Name);
+    if(wn1 && wn1.id !== editingTicketId){
+      showErrorCard(wn1, '', ben1Name, '', 'Beneficiary 1', 'name');
+      btn.disabled=false; btn.textContent='Save Changes'; return;
+    }
+    if(idType2 && idNumber2){
+      const wd2 = await checkWeeklyCooldown(idType2, idNumber2);
+      if(wd2 && wd2.id !== editingTicketId){
+        showErrorCard(wd2, idNumber2, ben2Name, idType2, 'Beneficiary 2', 'id');
+        btn.disabled=false; btn.textContent='Save Changes'; return;
+      }
+    }
+    if(ben2Name){
+      const wn2 = await checkBeneficiaryNameCooldown(ben2Name);
+      if(wn2 && wn2.id !== editingTicketId){
+        showErrorCard(wn2, '', ben2Name, '', 'Beneficiary 2', 'name');
+        btn.disabled=false; btn.textContent='Save Changes'; return;
+      }
+    }
+    // ── All checks passed, save updates ──
+    btn.textContent = 'Saving...';
+    const updates={
+      name,
+      ben1Name:ben1Name||'', idType:idType||'', idNumber:idNumber||'',
+      ben2Name:ben2Name||'', idType2:idType2||'', idNumber2:idNumber2||''
+    };
+    await db.ref('tickets/'+editingTicketId).update(updates);
+    const idx=myTickets.findIndex(x=>x.id===editingTicketId);
+    if(idx>-1) myTickets[idx]=Object.assign({},myTickets[idx],updates);
+    toast('✅ Number updated successfully!');
+    editingTicketId=null;
+    document.getElementById('btn-generate').textContent='Generate Control Number';
+    document.getElementById('form-card').classList.remove('show');
+    document.getElementById('slot-banner').classList.remove('show');
+    renderTickets();
+    btn.disabled=false; btn.textContent='Generate Control Number'; return;
+  }
 
     const availableNums = selectedTime === 'AM' ? getAmNumbers() : getPmNumbers();
 

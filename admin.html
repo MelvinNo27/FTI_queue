@@ -1316,26 +1316,11 @@ async function deleteAllRecords(){
     toast('❌ Error: '+e.message);
   }
 }
-
-async function purgeAllExpired(){
-  const nowMs=Date.now();
-  const snap=await db.ref('tickets').once('value');
-  if(!snap.exists()) return;
-  const dels=[];
-  snap.forEach(c=>{const t=c.val();if(nowMs>new Date(t.date+'T23:59:59').getTime()+86400000)dels.push({key:c.key,...t});});
-  if(!dels.length) return;
-  for(const d of dels) await db.ref('tickets/'+d.key).remove();
-  const ud=[...new Set(dels.map(d=>d.date))];
-  for(const date of ud) await db.ref('disabledNumbers/'+date).remove();
-  toast('🗑 '+dels.length+' expired ticket(s) cleaned up');
-}
-
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 function pad(n){return String(n).padStart(2,'0');}
 function pad3(n){return String(n).padStart(3,'0');}
 function toast(msg){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2800);}
-setTimeout(purgeAllExpired,3000);
-setInterval(purgeAllExpired,5*60*1000);
+
 </script>
 </body>
 </html>

@@ -65,7 +65,6 @@
   </div>
 
   <div id="view-grid">
-    <!-- Slot Config Bar -->
     <div class="slot-config-bar" id="slot-config-bar">
       <div class="scb-left">
         <span class="scb-icon">🔢</span>
@@ -104,8 +103,6 @@
       </div>
       <div class="sc-modal-body">
         <p class="sc-desc">Set how many slots each session has, which numbers to use, and where to start. Changes save to Firebase and apply immediately.</p>
-
-        <!-- AM Config -->
         <div class="sc-section">
           <div class="sc-section-label">🌅 AM Session</div>
           <div class="sc-row">
@@ -130,8 +127,6 @@
           </div>
           <div class="sc-preview-pill" id="sc-am-preview">Preview: —</div>
         </div>
-
-        <!-- PM Config -->
         <div class="sc-section">
           <div class="sc-section-label">🌇 PM Session</div>
           <div class="sc-row">
@@ -156,8 +151,6 @@
           </div>
           <div class="sc-preview-pill" id="sc-pm-preview">Preview: —</div>
         </div>
-
-        <!-- Reset to Default -->
         <div class="sc-reset-row">
           <button class="btn-sc-reset" onclick="resetSlotDefaults()">↺ Reset to Default (Odd 1–149 / 151–299)</button>
         </div>
@@ -175,7 +168,6 @@
     <div class="section-card">
       <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
         <span>All Numbers <span id="ticket-count-label"></span></span>
-        <!-- ── AM / PM Filter Buttons ── -->
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <div style="display:flex;gap:4px;">
             <button class="btn-filter-session active" id="filter-all" onclick="setListFilter('all')">All</button>
@@ -242,29 +234,29 @@
           <div class="field-row"><label>PM Service Ends</label><input type="time" id="pm-end" value="17:00"/></div>
         </div>
       </div>
-              <div class="settings-block">
-          <h3><span class="icon">📱</span> Device Generation Limit</h3>
-          <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">Set how many control numbers a single device can generate per day. Set to 0 for unlimited.</p>
-          <div class="field-row" style="margin-bottom:10px;">
-            <label>Limit Type</label>
-            <div style="display:flex;gap:8px;margin-top:4px;">
-              <button class="sc-type-btn" id="dlimit-btn-limited" onclick="setDeviceLimitMode('limited')" style="flex:1;text-align:center;">
-                🔢 Limited<br><small>Set max per day</small>
-              </button>
-              <button class="sc-type-btn active" id="dlimit-btn-unlimited" onclick="setDeviceLimitMode('unlimited')" style="flex:1;text-align:center;">
-                ♾️ Unlimited<br><small>No restriction</small>
-              </button>
-            </div>
-          </div>
-          <div class="field-row" id="dlimit-count-row" style="display:none;">
-            <label>Max Numbers Per Device (per day)</label>
-            <input type="number" id="device-limit" min="1" max="99" value="1"/>
-            <div class="hint">How many control numbers one device can generate per day.</div>
-          </div>
-          <div class="field-row" id="dlimit-unlimited-msg" style="display:block;">
-            <div class="hint" style="color:#059669;font-weight:700;font-size:13px;">♾️ All devices can generate unlimited numbers per day.</div>
+      <div class="settings-block">
+        <h3><span class="icon">📱</span> Device Generation Limit</h3>
+        <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">Set how many control numbers a single device can generate per day. Set to 0 for unlimited.</p>
+        <div class="field-row" style="margin-bottom:10px;">
+          <label>Limit Type</label>
+          <div style="display:flex;gap:8px;margin-top:4px;">
+            <button class="sc-type-btn" id="dlimit-btn-limited" onclick="setDeviceLimitMode('limited')" style="flex:1;text-align:center;">
+              🔢 Limited<br><small>Set max per day</small>
+            </button>
+            <button class="sc-type-btn active" id="dlimit-btn-unlimited" onclick="setDeviceLimitMode('unlimited')" style="flex:1;text-align:center;">
+              ♾️ Unlimited<br><small>No restriction</small>
+            </button>
           </div>
         </div>
+        <div class="field-row" id="dlimit-count-row" style="display:none;">
+          <label>Max Numbers Per Device (per day)</label>
+          <input type="number" id="device-limit" min="1" max="99" value="1"/>
+          <div class="hint">How many control numbers one device can generate per day.</div>
+        </div>
+        <div class="field-row" id="dlimit-unlimited-msg" style="display:block;">
+          <div class="hint" style="color:#059669;font-weight:700;font-size:13px;">♾️ All devices can generate unlimited numbers per day.</div>
+        </div>
+      </div>
       <button class="btn-save-settings" onclick="saveSettings()">💾 Save All Settings</button>
       <div class="settings-status" id="settings-status" style="display:none;"></div>
     </div>
@@ -272,8 +264,6 @@
 
   <!-- ============================== DATABASE MANAGEMENT TAB ============================== -->
   <div id="view-dbmanage" style="display:none;">
-
-    <!-- Storage Usage Card -->
     <div class="section-card db-section">
       <div class="section-title">📊 Firebase Storage Usage</div>
       <div class="db-storage-bar-wrap">
@@ -295,13 +285,11 @@
       <button class="btn-refresh-storage" onclick="calcStorage()">🔄 Refresh Storage Info</button>
     </div>
 
-    <!-- Delete by Month Card -->
     <div class="section-card db-section">
       <div class="section-title">🗑️ Delete Records by Month</div>
       <p style="font-size:13px;color:var(--gray);margin-bottom:16px;">
         Select a month and year below. All <strong>tickets</strong>, <strong>slots</strong>, and <strong>disabled numbers</strong> whose date falls within that month will be permanently deleted from Firebase.
       </p>
-
       <div class="db-delete-form">
         <div class="db-form-row">
           <div class="db-field">
@@ -324,8 +312,6 @@
             <button class="btn-preview-delete" onclick="previewMonthDelete()">🔍 Preview</button>
           </div>
         </div>
-
-        <!-- Preview result -->
         <div id="delete-preview" style="display:none;" class="delete-preview-box">
           <div class="dp-header" id="dp-header"></div>
           <div class="dp-breakdown" id="dp-breakdown"></div>
@@ -335,7 +321,6 @@
             <button class="btn-cancel-delete" onclick="cancelDeletePreview()">Cancel</button>
           </div>
         </div>
-
         <div id="delete-progress" style="display:none;" class="delete-progress-box">
           <div class="dp-spinner"></div>
           <span id="delete-progress-text">Deleting…</span>
@@ -346,7 +331,6 @@
       </div>
     </div>
 
-    <!-- Delete All Card -->
     <div class="section-card db-section db-danger-card">
       <div class="section-title danger-title">☢️ Danger Zone — Delete ALL Records</div>
       <p style="font-size:13px;color:#b91c1c;margin-bottom:16px;">
@@ -354,7 +338,6 @@
       </p>
       <button class="btn-delete-all" onclick="deleteAllRecords()">☢️ Delete ALL Tickets &amp; Slots</button>
     </div>
-
   </div>
   <!-- ============================== END DATABASE MANAGEMENT TAB ============================== -->
 
@@ -363,7 +346,6 @@
 <div class="toast" id="toast"></div>
 
 <style>
-/* ── Slot Config Bar ── */
 .slot-config-bar {
   display: flex; align-items: center; justify-content: space-between;
   background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
@@ -381,7 +363,6 @@
 }
 .btn-configure-slots:hover { background: #1d4ed8; transform: translateY(-1px); }
 
-/* ── Slot Config Modal Overlay ── */
 .sc-overlay {
   display: none; position: fixed; inset: 0;
   background: rgba(0,0,0,0.55); z-index: 9999;
@@ -395,7 +376,6 @@
   margin: 16px; animation: scSlideIn .22s cubic-bezier(.4,0,.2,1);
 }
 @keyframes scSlideIn { from { opacity:0; transform:translateY(-18px) scale(.97); } to { opacity:1; transform:none; } }
-
 .sc-modal-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 20px 24px 16px; border-bottom: 1.5px solid #e5e7eb;
@@ -407,10 +387,8 @@
   display: flex; align-items: center; justify-content: center; transition: background .15s;
 }
 .sc-close:hover { background: #e5e7eb; }
-
 .sc-modal-body { padding: 20px 24px; }
 .sc-desc { font-size: 13px; color: #6b7280; margin-bottom: 20px; line-height: 1.5; }
-
 .sc-section {
   background: #f8fafc; border: 1.5px solid #e2e8f0;
   border-radius: 12px; padding: 16px 18px; margin-bottom: 16px;
@@ -418,18 +396,15 @@
 .sc-section-label { font-size: 14px; font-weight: 800; color: #374151; margin-bottom: 14px; }
 .sc-row { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 14px; align-items: start; }
 @media(max-width:560px){ .sc-row { grid-template-columns: 1fr 1fr; } }
-
 .sc-field { display: flex; flex-direction: column; gap: 5px; }
 .sc-field label { font-size: 11px; font-weight: 800; color: #374151; text-transform: uppercase; letter-spacing: .4px; }
 .sc-field input[type=number] {
   padding: 8px 10px; border: 1.5px solid #d1d5db; border-radius: 8px;
   font-size: 15px; font-weight: 700; font-family: 'Courier Prime', monospace;
-  color: #1e293b; width: 100%; box-sizing: border-box;
-  transition: border-color .15s;
+  color: #1e293b; width: 100%; box-sizing: border-box; transition: border-color .15s;
 }
 .sc-field input[type=number]:focus { outline: none; border-color: #3b82f6; }
 .sc-hint { font-size: 11px; color: #9ca3af; line-height: 1.3; }
-
 .sc-type-group { display: flex; flex-direction: column; gap: 5px; }
 .sc-type-btn {
   padding: 7px 10px; border: 1.5px solid #d1d5db; border-radius: 8px;
@@ -439,14 +414,11 @@
 .sc-type-btn small { font-weight: 400; color: #9ca3af; font-size: 11px; }
 .sc-type-btn:hover { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
 .sc-type-btn.active { border-color: #3b82f6; background: #dbeafe; color: #1d4ed8; }
-
 .sc-preview-pill {
   margin-top: 10px; padding: 7px 12px;
   background: #fff; border: 1.5px solid #e2e8f0; border-radius: 8px;
-  font-size: 12px; font-weight: 700; color: #374151;
-  font-family: 'Courier Prime', monospace;
+  font-size: 12px; font-weight: 700; color: #374151; font-family: 'Courier Prime', monospace;
 }
-
 .sc-reset-row { text-align: right; margin-top: 4px; }
 .btn-sc-reset {
   background: none; border: 1.5px solid #d1d5db; border-radius: 8px;
@@ -454,7 +426,6 @@
   cursor: pointer; transition: all .15s;
 }
 .btn-sc-reset:hover { border-color: #f59e0b; color: #92400e; background: #fffbeb; }
-
 .sc-modal-footer {
   display: flex; align-items: center; justify-content: flex-end; gap: 10px;
   padding: 16px 24px 20px; border-top: 1.5px solid #e5e7eb; flex-wrap: wrap;
@@ -470,12 +441,10 @@
 .btn-sc-cancel:hover { background: #e5e7eb; }
 .btn-sc-save {
   padding: 9px 22px; background: #059669; color: #fff; border: none;
-  border-radius: 9px; font-size: 13px; font-weight: 800; cursor: pointer;
-  transition: background .15s;
+  border-radius: 9px; font-size: 13px; font-weight: 800; cursor: pointer; transition: background .15s;
 }
 .btn-sc-save:hover { background: #047857; }
 
-/* ── AM / PM Filter Buttons ── */
 .btn-filter-session {
   padding: 6px 14px; border-radius: 8px; border: 1.5px solid #d1d5db;
   background: #f3f4f6; color: #374151; font-size: 12px; font-weight: 700;
@@ -484,40 +453,28 @@
 .btn-filter-session:hover { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
 .btn-filter-session.active { background: #dbeafe; border-color: #3b82f6; color: #1d4ed8; }
 
-/* ── Database Tab Styles ── */
 .tab-danger { color: #dc2626 !important; font-weight: 800 !important; }
 .tab-danger.active { background: #fef2f2 !important; border-bottom-color: #dc2626 !important; color: #dc2626 !important; }
-
 .db-section { margin-bottom: 18px; }
-
-/* Storage bar */
 .db-storage-bar-wrap { margin: 10px 0 18px; }
 .db-storage-labels { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: #374151; }
 .db-storage-track { width: 100%; height: 18px; background: #f3f4f6; border-radius: 99px; overflow: hidden; border: 1px solid #e5e7eb; }
 .db-storage-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #10b981); border-radius: 99px; transition: width 0.8s cubic-bezier(.4,0,.2,1); }
 .db-storage-fill.warn { background: linear-gradient(90deg, #f59e0b, #ef4444); }
 .db-storage-sub { font-size: 12px; color: #6b7280; margin-top: 5px; }
-
 .db-node-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(130px,1fr)); gap: 12px; margin: 16px 0 14px; }
 .db-node-card { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 14px 10px; text-align: center; }
 .dbn-icon { font-size: 22px; margin-bottom: 4px; }
 .dbn-label { font-size: 11px; color: #6b7280; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
 .dbn-val { font-size: 15px; font-weight: 800; color: #1e293b; margin-top: 4px; font-family: 'Courier Prime', monospace; }
-
 .btn-refresh-storage { background: #eff6ff; color: #2563eb; border: 1.5px solid #bfdbfe; border-radius: 8px; padding: 7px 16px; font-size: 13px; font-weight: 700; cursor: pointer; transition: background .2s; }
 .btn-refresh-storage:hover { background: #dbeafe; }
-
-/* Delete form */
-
 .db-form-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 16px; }
 .db-field { display: flex; flex-direction: column; gap: 5px; }
 .db-field label { font-size: 12px; font-weight: 700; color: #374151; }
 .db-field select { padding: 8px 12px; border: 1.5px solid #d1d5db; border-radius: 8px; font-size: 14px; font-family: inherit; background: #fff; cursor: pointer; min-width: 120px; }
-
 .btn-preview-delete { padding: 9px 18px; background: #1e40af; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer; transition: background .2s; }
 .btn-preview-delete:hover { background: #1d4ed8; }
-
-/* Preview box */
 .delete-preview-box { background: #fffbeb; border: 2px solid #fbbf24; border-radius: 12px; padding: 18px 20px; margin-top: 4px; }
 .dp-header { font-size: 15px; font-weight: 800; color: #92400e; margin-bottom: 10px; }
 .dp-breakdown { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
@@ -530,14 +487,10 @@
 .btn-confirm-delete:disabled { background: #9ca3af; cursor: not-allowed; }
 .btn-cancel-delete { padding: 9px 16px; background: #f3f4f6; color: #374151; border: 1.5px solid #d1d5db; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; }
 .btn-cancel-delete:hover { background: #e5e7eb; }
-
-/* Progress & Done */
 .delete-progress-box { display: flex; align-items: center; gap: 12px; background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 10px; padding: 14px 18px; margin-top: 8px; font-size: 14px; font-weight: 700; color: #1d4ed8; }
 .dp-spinner { width: 20px; height: 20px; border: 3px solid #bfdbfe; border-top-color: #2563eb; border-radius: 50%; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .delete-done-box { background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 10px; padding: 14px 18px; margin-top: 8px; font-size: 14px; font-weight: 700; color: #15803d; }
-
-/* Danger zone */
 .db-danger-card { border: 2px solid #fca5a5 !important; background: #fff8f8 !important; }
 .danger-title { color: #dc2626 !important; }
 .btn-delete-all { padding: 11px 24px; background: #dc2626; color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 800; cursor: pointer; letter-spacing: .3px; transition: background .2s, transform .1s; }
@@ -550,172 +503,136 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script>
 const ALLOWED_ADMIN_EMAILS=['tagumfti.admin@gmail.com'];
-const firebaseConfig={
-  apiKey:"AIzaSyAiRK64ZYzF8lBKnxmubCZEO9qrCN42B1g",authDomain:"fti-queue.firebaseapp.com",
-  databaseURL:"https://fti-queue-default-rtdb.firebaseio.com",projectId:"fti-queue",
-  storageBucket:"fti-queue.firebasestorage.app",messagingSenderId:"794859488896",
-  appId:"1:794859488896:web:4e7dcb7e830fc4bf334865"
+const firebaseConfig = {
+  apiKey: "AIzaSyAiRK64ZYzF8lBKnxmubCZEO9qrCN42B1g",
+  authDomain: "fti-queue.firebaseapp.com",
+  databaseURL: "https://fti-queue-default-rtdb.firebaseio.com",
+  projectId: "fti-queue",
+  storageBucket: "fti-queue.firebasestorage.app",
+  messagingSenderId: "794859488896",
+  appId: "1:794859488896:web:4e7dcb7e830fc4bf334865",
+  measurementId: "G-HSTB5FR8G9"
 };
+
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 
 // ── Dynamic Slot Config ──────────────────────────────────────────────────────
-const DEFAULT_SLOT_CONFIG = {
-  amCount: 75, amStart: 1,  amType: 'odd',
-  pmCount: 75, pmStart: 151, pmType: 'odd'
-};
-let slotConfig = Object.assign({}, DEFAULT_SLOT_CONFIG);
+const DEFAULT_SLOT_CONFIG={amCount:75,amStart:1,amType:'odd',pmCount:75,pmStart:151,pmType:'odd'};
+let slotConfig=Object.assign({},DEFAULT_SLOT_CONFIG);
+let _scAmType='odd',_scPmType='odd';
 
-let _scAmType = 'odd', _scPmType = 'odd';
-
-function buildNumbers(startNum, count, type) {
-  const nums = [];
-  let n = startNum;
-  if (type === 'odd' && n % 2 === 0) n++;
-  if (type === 'even' && n % 2 !== 0) n++;
-  while (nums.length < count) {
-    nums.push(n);
-    n += (type === 'all') ? 1 : 2;
-  }
+function buildNumbers(startNum,count,type){
+  const nums=[];let n=startNum;
+  if(type==='odd'&&n%2===0)n++;
+  if(type==='even'&&n%2!==0)n++;
+  while(nums.length<count){nums.push(n);n+=(type==='all')?1:2;}
   return nums;
 }
-
-function getAmNumbers() { return buildNumbers(slotConfig.amStart, slotConfig.amCount, slotConfig.amType); }
-function getPmNumbers() { return buildNumbers(slotConfig.pmStart, slotConfig.pmCount, slotConfig.pmType); }
-function getTotalSlots() { return slotConfig.amCount + slotConfig.pmCount; }
-
-function typeLabel(type) {
-  return type === 'odd' ? 'odd' : type === 'even' ? 'even' : 'all';
+function getAmNumbers(){return buildNumbers(slotConfig.amStart,slotConfig.amCount,slotConfig.amType);}
+function getPmNumbers(){return buildNumbers(slotConfig.pmStart,slotConfig.pmCount,slotConfig.pmType);}
+function getTotalSlots(){return slotConfig.amCount+slotConfig.pmCount;}
+function typeLabel(type){return type==='odd'?'odd':type==='even'?'even':'all';}
+function buildPreviewText(startNum,count,type){
+  const nums=buildNumbers(startNum,count,type);
+  if(!nums.length)return'No numbers';
+  const last=nums[nums.length-1];
+  const dots=count>3?', …, '+last:'';
+  return'#'+nums[0]+', #'+(nums[1]||'')+(nums[2]?', #'+nums[2]:'')+dots+'  ('+count+' slots)';
 }
-function buildPreviewText(startNum, count, type) {
-  const nums = buildNumbers(startNum, count, type);
-  if (!nums.length) return 'No numbers';
-  const last = nums[nums.length - 1];
-  const dots = count > 3 ? ', …, ' + last : '';
-  return '#' + nums[0] + ', #' + (nums[1]||'') + (nums[2] ? ', #'+nums[2] : '') + dots + '  (' + count + ' slots)';
+function updateScbSummary(){
+  const amNums=getAmNumbers(),pmNums=getPmNumbers();
+  const amLast=amNums.length?amNums[amNums.length-1]:'?';
+  const pmLast=pmNums.length?pmNums[pmNums.length-1]:'?';
+  document.getElementById('scb-summary').textContent=
+    'AM: '+slotConfig.amCount+' slots · '+typeLabel(slotConfig.amType)+
+    ' · #'+slotConfig.amStart+'–#'+amLast+
+    '  |  PM: '+slotConfig.pmCount+' slots · '+typeLabel(slotConfig.pmType)+
+    ' · #'+slotConfig.pmStart+'–#'+pmLast+
+    '  |  Total: '+getTotalSlots()+' slots';
 }
-
-function updateScbSummary() {
-  const amNums = getAmNumbers(), pmNums = getPmNumbers();
-  const amLast = amNums.length ? amNums[amNums.length-1] : '?';
-  const pmLast = pmNums.length ? pmNums[pmNums.length-1] : '?';
-  document.getElementById('scb-summary').textContent =
-    'AM: ' + slotConfig.amCount + ' slots · ' + typeLabel(slotConfig.amType) +
-    ' · #' + slotConfig.amStart + '–#' + amLast +
-    '  |  PM: ' + slotConfig.pmCount + ' slots · ' + typeLabel(slotConfig.pmType) +
-    ' · #' + slotConfig.pmStart + '–#' + pmLast +
-    '  |  Total: ' + getTotalSlots() + ' slots';
-}
-
-function updateGridTitles() {
-  const amNums = getAmNumbers(), pmNums = getPmNumbers();
-  const amLast = amNums.length ? amNums[amNums.length-1] : '?';
-  const pmLast = pmNums.length ? pmNums[pmNums.length-1] : '?';
-  document.getElementById('grid-am-title').textContent =
-    '🌅 AM — ' + (slotConfig.amType==='odd'?'Odd ':slotConfig.amType==='even'?'Even ':'All ') +
-    'Numbers ' + slotConfig.amStart + ' to ' + amLast;
-  document.getElementById('grid-pm-title').textContent =
-    '🌇 PM — ' + (slotConfig.pmType==='odd'?'Odd ':slotConfig.pmType==='even'?'Even ':'All ') +
-    'Numbers ' + slotConfig.pmStart + ' to ' + pmLast;
+function updateGridTitles(){
+  const amNums=getAmNumbers(),pmNums=getPmNumbers();
+  const amLast=amNums.length?amNums[amNums.length-1]:'?';
+  const pmLast=pmNums.length?pmNums[pmNums.length-1]:'?';
+  document.getElementById('grid-am-title').textContent=
+    '🌅 AM — '+(slotConfig.amType==='odd'?'Odd ':slotConfig.amType==='even'?'Even ':'All ')+
+    'Numbers '+slotConfig.amStart+' to '+amLast;
+  document.getElementById('grid-pm-title').textContent=
+    '🌇 PM — '+(slotConfig.pmType==='odd'?'Odd ':slotConfig.pmType==='even'?'Even ':'All ')+
+    'Numbers '+slotConfig.pmStart+' to '+pmLast;
 }
 
 // ── Slot Modal ────────────────────────────────────────────────────────────────
-function openSlotModal() {
-  document.getElementById('sc-am-count').value = slotConfig.amCount;
-  document.getElementById('sc-am-start').value = slotConfig.amStart;
-  document.getElementById('sc-pm-count').value = slotConfig.pmCount;
-  document.getElementById('sc-pm-start').value = slotConfig.pmStart;
-  _scAmType = slotConfig.amType;
-  _scPmType = slotConfig.pmType;
-  setType('am', _scAmType, true);
-  setType('pm', _scPmType, true);
+function openSlotModal(){
+  document.getElementById('sc-am-count').value=slotConfig.amCount;
+  document.getElementById('sc-am-start').value=slotConfig.amStart;
+  document.getElementById('sc-pm-count').value=slotConfig.pmCount;
+  document.getElementById('sc-pm-start').value=slotConfig.pmStart;
+  _scAmType=slotConfig.amType;_scPmType=slotConfig.pmType;
+  setType('am',_scAmType,true);setType('pm',_scPmType,true);
   updateSlotPreview();
-  document.getElementById('sc-save-status').style.display = 'none';
+  document.getElementById('sc-save-status').style.display='none';
   document.getElementById('sc-overlay').classList.add('open');
 }
-function closeSlotModal(e) {
-  if (e.target === document.getElementById('sc-overlay')) closeSlotModalDirect();
+function closeSlotModal(e){if(e.target===document.getElementById('sc-overlay'))closeSlotModalDirect();}
+function closeSlotModalDirect(){document.getElementById('sc-overlay').classList.remove('open');}
+function setType(session,val,silent){
+  if(session==='am')_scAmType=val;else _scPmType=val;
+  const grp=document.getElementById('sc-'+session+'-type-group');
+  grp.querySelectorAll('.sc-type-btn').forEach(btn=>{btn.classList.toggle('active',btn.dataset.val===val);});
+  if(!silent)updateSlotPreview();
 }
-function closeSlotModalDirect() {
-  document.getElementById('sc-overlay').classList.remove('open');
+function updateSlotPreview(){
+  const amCount=parseInt(document.getElementById('sc-am-count').value)||1;
+  const amStart=parseInt(document.getElementById('sc-am-start').value)||1;
+  const pmCount=parseInt(document.getElementById('sc-pm-count').value)||1;
+  const pmStart=parseInt(document.getElementById('sc-pm-start').value)||1;
+  document.getElementById('sc-am-preview').textContent='Preview: '+buildPreviewText(amStart,amCount,_scAmType);
+  document.getElementById('sc-pm-preview').textContent='Preview: '+buildPreviewText(pmStart,pmCount,_scPmType);
 }
-function setType(session, val, silent) {
-  if (session === 'am') _scAmType = val;
-  else _scPmType = val;
-  const grp = document.getElementById('sc-' + session + '-type-group');
-  grp.querySelectorAll('.sc-type-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.val === val);
-  });
-  if (!silent) updateSlotPreview();
+function resetSlotDefaults(){
+  document.getElementById('sc-am-count').value=75;document.getElementById('sc-am-start').value=1;
+  document.getElementById('sc-pm-count').value=75;document.getElementById('sc-pm-start').value=151;
+  _scAmType='odd';_scPmType='odd';setType('am','odd',true);setType('pm','odd',true);updateSlotPreview();
 }
-function updateSlotPreview() {
-  const amCount = parseInt(document.getElementById('sc-am-count').value) || 1;
-  const amStart = parseInt(document.getElementById('sc-am-start').value) || 1;
-  const pmCount = parseInt(document.getElementById('sc-pm-count').value) || 1;
-  const pmStart = parseInt(document.getElementById('sc-pm-start').value) || 1;
-  document.getElementById('sc-am-preview').textContent = 'Preview: ' + buildPreviewText(amStart, amCount, _scAmType);
-  document.getElementById('sc-pm-preview').textContent = 'Preview: ' + buildPreviewText(pmStart, pmCount, _scPmType);
-}
-function resetSlotDefaults() {
-  document.getElementById('sc-am-count').value = 75;
-  document.getElementById('sc-am-start').value = 1;
-  document.getElementById('sc-pm-count').value = 75;
-  document.getElementById('sc-pm-start').value = 151;
-  _scAmType = 'odd'; _scPmType = 'odd';
-  setType('am', 'odd', true);
-  setType('pm', 'odd', true);
-  updateSlotPreview();
-}
-async function saveSlotConfig() {
-  const amCount = parseInt(document.getElementById('sc-am-count').value);
-  const amStart = parseInt(document.getElementById('sc-am-start').value);
-  const pmCount = parseInt(document.getElementById('sc-pm-count').value);
-  const pmStart = parseInt(document.getElementById('sc-pm-start').value);
-
-  if (!amCount||amCount<1||!amStart||amStart<1||!pmCount||pmCount<1||!pmStart||pmStart<1) {
-    showScStatus('❌ All fields must be positive numbers', false); return;
-  }
-  if (amCount > 500 || pmCount > 500) {
-    showScStatus('❌ Max 500 slots per session', false); return;
-  }
-  const ns = { amCount, amStart, amType: _scAmType, pmCount, pmStart, pmType: _scPmType };
-  try {
+async function saveSlotConfig(){
+  const amCount=parseInt(document.getElementById('sc-am-count').value);
+  const amStart=parseInt(document.getElementById('sc-am-start').value);
+  const pmCount=parseInt(document.getElementById('sc-pm-count').value);
+  const pmStart=parseInt(document.getElementById('sc-pm-start').value);
+  if(!amCount||amCount<1||!amStart||amStart<1||!pmCount||pmCount<1||!pmStart||pmStart<1){showScStatus('❌ All fields must be positive numbers',false);return;}
+  if(amCount>500||pmCount>500){showScStatus('❌ Max 500 slots per session',false);return;}
+  const ns={amCount,amStart,amType:_scAmType,pmCount,pmStart,pmType:_scPmType};
+  try{
     await db.ref('slotConfig').set(ns);
-    slotConfig = ns;
-    updateScbSummary();
-    updateGridTitles();
-    refreshStats();
-    renderGrid();
-    showScStatus('✅ Slot config saved!', true);
-    toast('✅ Slot config updated — ' + getTotalSlots() + ' total slots');
-    setTimeout(closeSlotModalDirect, 1200);
-  } catch(e) {
-    showScStatus('❌ Error: ' + e.message, false);
-  }
+    slotConfig=ns;updateScbSummary();updateGridTitles();refreshStats();renderGrid();
+    showScStatus('✅ Slot config saved!',true);
+    toast('✅ Slot config updated — '+getTotalSlots()+' total slots');
+    setTimeout(closeSlotModalDirect,1200);
+  }catch(e){showScStatus('❌ Error: '+e.message,false);}
 }
-function showScStatus(msg, ok) {
-  const el = document.getElementById('sc-save-status');
-  el.textContent = msg;
-  el.className = 'sc-save-status ' + (ok ? 'ok' : 'err');
-  el.style.display = 'block';
-  if (ok) setTimeout(() => el.style.display = 'none', 2000);
+function showScStatus(msg,ok){
+  const el=document.getElementById('sc-save-status');
+  el.textContent=msg;el.className='sc-save-status '+(ok?'ok':'err');el.style.display='block';
+  if(ok)setTimeout(()=>el.style.display='none',2000);
 }
-// ── End Slot Config ───────────────────────────────────────────────────────────
 
+// ── GLOBAL STATE — FIX: takenNumbersData must be global so all functions can access it ──
 let currentDate=null;
 let disabledNums={};
 let ticketsForDate=[];
 let allTickets={};
+let takenNumbersData={};   // ✅ FIX: was declared inside initAdmin() — caused ReferenceError in refreshStats/renderGrid/renderTicketList
 let listFilter='all';
 let scheduleSettings={
   claimStart:'06:00',claimEnd:'10:00',
   amStart:'08:00',amEnd:'12:00',
   pmStart:'12:00',pmEnd:'17:00',
-  claimingEnabled:false,
-  claimRestricted:true
+  claimingEnabled:false,claimRestricted:true
 };
 
-const FB_FREE_STORAGE_BYTES = 1 * 1024 * 1024 * 1024;
+const FB_FREE_STORAGE_BYTES=1*1024*1024*1024;
 
 // ── Populate year dropdown ──
 (function(){
@@ -723,54 +640,42 @@ const FB_FREE_STORAGE_BYTES = 1 * 1024 * 1024 * 1024;
   const thisYear=new Date().getFullYear();
   for(let y=thisYear+1;y>=thisYear-5;y--){
     const o=document.createElement('option');
-    o.value=y;o.textContent=y;
-    if(y===thisYear)o.selected=true;
-    sel.appendChild(o);
+    o.value=y;o.textContent=y;if(y===thisYear)o.selected=true;sel.appendChild(o);
   }
   const cm=String(new Date().getMonth()+1).padStart(2,'0');
   document.getElementById('del-month').value=cm;
 })();
 
-  // CHANGED: Firebase Email Authentication login
-  const auth = firebase.auth();
-  auth.onAuthStateChanged(user => {
-    if (user && ALLOWED_ADMIN_EMAILS.includes(user.email)) {
-      document.getElementById('login-screen').classList.add('hide');
-      initAdmin();
-    } else if (user) {
-      auth.signOut();
-      showLoginError('⛔ This account is not authorized as admin.');
-    }
-  });
-
-  async function doLogin() {
-    const email = document.getElementById('login-user').value.trim();
-    const pass  = document.getElementById('login-pass').value;
-    const err   = document.getElementById('login-error');
-    err.classList.remove('show');
-    if (!email || !pass) { err.textContent='Please enter email and password.'; err.classList.add('show'); return; }
-    try {
-      await auth.signInWithEmailAndPassword(email, pass);
-    } catch (e) {
-      err.textContent = e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found'
-        ? 'Invalid email or password.'
-        : e.code === 'auth/too-many-requests'
-        ? 'Too many attempts. Try again later.'
-        : 'Login failed: ' + e.message;
-      err.classList.add('show');
-    }
+const auth=firebase.auth();
+auth.onAuthStateChanged(user=>{
+  if(user&&ALLOWED_ADMIN_EMAILS.includes(user.email)){
+    document.getElementById('login-screen').classList.add('hide');
+    initAdmin();
+  }else if(user){
+    auth.signOut();
+    showLoginError('⛔ This account is not authorized as admin.');
   }
+});
 
-  function showLoginError(msg) {
-    const err = document.getElementById('login-error');
-    err.textContent = msg; err.classList.add('show');
+async function doLogin(){
+  const email=document.getElementById('login-user').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  const err=document.getElementById('login-error');
+  err.classList.remove('show');
+  if(!email||!pass){err.textContent='Please enter email and password.';err.classList.add('show');return;}
+  try{
+    await auth.signInWithEmailAndPassword(email,pass);
+  }catch(e){
+    err.textContent=e.code==='auth/invalid-credential'||e.code==='auth/wrong-password'||e.code==='auth/user-not-found'
+      ?'Invalid email or password.'
+      :e.code==='auth/too-many-requests'
+      ?'Too many attempts. Try again later.'
+      :'Login failed: '+e.message;
+    err.classList.add('show');
   }
-
-function doLogout() {
-  auth.signOut().then(() => {
-    document.getElementById('login-screen').classList.remove('hide');
-  });
 }
+function showLoginError(msg){const err=document.getElementById('login-error');err.textContent=msg;err.classList.add('show');}
+function doLogout(){auth.signOut().then(()=>{document.getElementById('login-screen').classList.remove('hide');});}
 
 function initAdmin(){
   db.ref('.info/connected').on('value',s=>{
@@ -778,33 +683,35 @@ function initAdmin(){
     document.getElementById('fb-dot').className='fb-dot'+(ok?' connected':'');
     document.getElementById('fb-status-text').textContent=ok?'Connected to Firebase':'Reconnecting...';
   });
+
   db.ref('disabledNumbers').on('value',s=>{
     disabledNums=s.val()||{};
     if(currentDate){refreshStats();renderGrid();renderTicketList();}
   });
 
-  // ── CHANGE 1: Removed slot sync from tickets listener ──────────────────────
-  // Previously this block re-wrote slots/YYYY-MM-DD every time any ticket
-  // changed, which caused manually deleted slot entries to immediately
-  // reappear. Slot counts are now managed only by index.html transactions.
+  // ✅ FIX: takenNumbersData is now global — no longer declared with 'let' here
+  db.ref('takenNumbers').on('value',s=>{
+    takenNumbersData=s.val()||{};
+    if(currentDate){refreshStats();renderGrid();}
+  });
+
   db.ref('tickets').on('value',s=>{
     allTickets=s.val()||{};
     if(currentDate){rebuildTicketsForDate(currentDate);refreshStats();renderGrid();renderTicketList();}
   });
-  // ── END CHANGE 1 ───────────────────────────────────────────────────────────
 
   db.ref('scheduleSettings').on('value',s=>{
-    if(s.exists()) scheduleSettings=Object.assign({},scheduleSettings,s.val());
-    applySettingsToUI();
-    updateCurrentSettingsBar();
+    if(s.exists())scheduleSettings=Object.assign({},scheduleSettings,s.val());
+    applySettingsToUI();updateCurrentSettingsBar();
   });
+
   db.ref('slotConfig').on('value',s=>{
-    if(s.exists()) slotConfig=Object.assign({},DEFAULT_SLOT_CONFIG,s.val());
+    if(s.exists())slotConfig=Object.assign({},DEFAULT_SLOT_CONFIG,s.val());
     else slotConfig=Object.assign({},DEFAULT_SLOT_CONFIG);
-    updateScbSummary();
-    updateGridTitles();
+    updateScbSummary();updateGridTitles();
     if(currentDate){refreshStats();renderGrid();}
   });
+
   const today=new Date();
   const ts=today.getFullYear()+'-'+pad(today.getMonth()+1)+'-'+pad(today.getDate());
   document.getElementById('date-input').value=ts;
@@ -814,20 +721,13 @@ function initAdmin(){
 function rebuildTicketsForDate(ds){
   ticketsForDate=[];
   Object.entries(allTickets).forEach(([key,t])=>{
-    if(t&&t.date===ds) ticketsForDate.push({id:key,...t});
+    if(t&&t.date===ds)ticketsForDate.push({id:key,...t});
   });
   ticketsForDate.sort((a,b)=>a.number-b.number);
 }
 
-function onToggleChange(){
-  const isOn=document.getElementById('claiming-toggle').checked;
-  applyToggleUI(isOn);
-}
-
-function openPrintView() {
-  if (!currentDate) return toast('⚠ Load a date first');
-  window.open('print.html?date=' + currentDate, '_blank');
-}
+function onToggleChange(){applyToggleUI(document.getElementById('claiming-toggle').checked);}
+function openPrintView(){if(!currentDate)return toast('⚠ Load a date first');window.open('print.html?date='+currentDate,'_blank');}
 
 function applyToggleUI(isOn){
   const row=document.getElementById('toggle-row');
@@ -835,68 +735,54 @@ function applyToggleUI(isOn){
   const sub=document.getElementById('toggle-sub-label');
   const fields=document.getElementById('time-fields');
   if(isOn){
-    row.className='toggle-row state-on';
-    lbl.textContent='✅ Claiming: ON';
-    sub.textContent='Users can generate numbers within the time window below';
-    fields.classList.remove('dimmed');
-  } else {
-    row.className='toggle-row state-off';
-    lbl.textContent='⛔ Claiming: OFF';
-    sub.textContent='Users cannot generate numbers';
-    fields.classList.add('dimmed');
+    row.className='toggle-row state-on';lbl.textContent='✅ Claiming: ON';
+    sub.textContent='Users can generate numbers within the time window below';fields.classList.remove('dimmed');
+  }else{
+    row.className='toggle-row state-off';lbl.textContent='⛔ Claiming: OFF';
+    sub.textContent='Users cannot generate numbers';fields.classList.add('dimmed');
   }
 }
 
 function applySettingsToUI(){
   const isOn=!!scheduleSettings.claimingEnabled;
-  document.getElementById('claiming-toggle').checked=isOn;
-  applyToggleUI(isOn);
+  document.getElementById('claiming-toggle').checked=isOn;applyToggleUI(isOn);
   document.getElementById('claim-start').value=scheduleSettings.claimStart||'06:00';
   document.getElementById('claim-end').value=scheduleSettings.claimEnd||'10:00';
   document.getElementById('am-start').value=scheduleSettings.amStart||'08:00';
   document.getElementById('am-end').value=scheduleSettings.amEnd||'12:00';
   document.getElementById('pm-start').value=scheduleSettings.pmStart||'12:00';
   document.getElementById('pm-end').value=scheduleSettings.pmEnd||'17:00';
-  const savedLimit = scheduleSettings.deviceLimit ?? 0;
-  if(savedLimit === 0){
-    setDeviceLimitMode('unlimited');
-  } else {
-    setDeviceLimitMode('limited');
-    document.getElementById('device-limit').value = savedLimit;
-  }
+  const savedLimit=scheduleSettings.deviceLimit??0;
+  if(savedLimit===0){setDeviceLimitMode('unlimited');}
+  else{setDeviceLimitMode('limited');document.getElementById('device-limit').value=savedLimit;}
 }
 
 function updateCurrentSettingsBar(){
   const isOn=!!scheduleSettings.claimingEnabled;
   const clEl=document.getElementById('cs-claim');
-  if(isOn){
-    clEl.textContent=fmt(scheduleSettings.claimStart)+' – '+fmt(scheduleSettings.claimEnd);
-    clEl.style.color='var(--green)';
-  } else {
-    clEl.textContent='⛔ DISABLED';
-    clEl.style.color='var(--red)';
-  }
+  if(isOn){clEl.textContent=fmt(scheduleSettings.claimStart)+' – '+fmt(scheduleSettings.claimEnd);clEl.style.color='var(--green)';}
+  else{clEl.textContent='⛔ DISABLED';clEl.style.color='var(--red)';}
   document.getElementById('cs-am').textContent=fmt(scheduleSettings.amStart)+' – '+fmt(scheduleSettings.amEnd);
   document.getElementById('cs-pm').textContent=fmt(scheduleSettings.pmStart)+' – '+fmt(scheduleSettings.pmEnd);
-  const dl = scheduleSettings.deviceLimit ?? 1;
-  const csDevice = document.getElementById('cs-device');
-  if(csDevice) csDevice.textContent = dl === 0 ? 'Unlimited' : dl + '/day';
+  const dl=scheduleSettings.deviceLimit??1;
+  const csDevice=document.getElementById('cs-device');
+  if(csDevice)csDevice.textContent=dl===0?'Unlimited':dl+'/day';
 }
 
 function fmt(t){if(!t)return'—';const[h,m]=t.split(':').map(Number);const ap=h>=12?'PM':'AM';const hr=h%12||12;return hr+':'+String(m).padStart(2,'0')+' '+ap;}
 
 function setDeviceLimitMode(mode){
-  const isLimited = mode === 'limited';
-  document.getElementById('dlimit-btn-limited').classList.toggle('active', isLimited);
-  document.getElementById('dlimit-btn-unlimited').classList.toggle('active', !isLimited);
-  document.getElementById('dlimit-count-row').style.display = isLimited ? 'block' : 'none';
-  document.getElementById('dlimit-unlimited-msg').style.display = isLimited ? 'none' : 'block';
+  const isLimited=mode==='limited';
+  document.getElementById('dlimit-btn-limited').classList.toggle('active',isLimited);
+  document.getElementById('dlimit-btn-unlimited').classList.toggle('active',!isLimited);
+  document.getElementById('dlimit-count-row').style.display=isLimited?'block':'none';
+  document.getElementById('dlimit-unlimited-msg').style.display=isLimited?'none':'block';
 }
 
 async function saveSettings(){
   const isOn=document.getElementById('claiming-toggle').checked;
-  const isUnlimited = document.getElementById('dlimit-btn-unlimited').classList.contains('active');
-  const deviceLimit = isUnlimited ? 0 : (parseInt(document.getElementById('device-limit').value) || 1);
+  const isUnlimited=document.getElementById('dlimit-btn-unlimited').classList.contains('active');
+  const deviceLimit=isUnlimited?0:(parseInt(document.getElementById('device-limit').value)||1);
   const ns={
     claimingEnabled:isOn,claimRestricted:true,
     claimStart:document.getElementById('claim-start').value,
@@ -912,8 +798,7 @@ async function saveSettings(){
   if(ns.pmStart>=ns.pmEnd){showSettingsStatus('❌ PM window: start must be before end',false);return;}
   try{
     await db.ref('scheduleSettings').set(ns);
-    scheduleSettings=ns;
-    updateCurrentSettingsBar();
+    scheduleSettings=ns;updateCurrentSettingsBar();
     showSettingsStatus('✅ Settings saved!',true);
     toast(isOn?'✅ Claiming ON · '+fmt(ns.claimStart)+' – '+fmt(ns.claimEnd):'⛔ Claiming OFF — users cannot generate numbers');
   }catch(err){showSettingsStatus('❌ Failed: '+err.message,false);}
@@ -927,18 +812,23 @@ function showSettingsStatus(msg,ok){
 
 async function loadDate(){
   currentDate=document.getElementById('date-input').value;
-  if(!currentDate) return toast('⚠ Select a date first');
+  if(!currentDate)return toast('⚠ Select a date first');
   document.getElementById('loading-overlay').classList.remove('hide');
   rebuildTicketsForDate(currentDate);
-  refreshStats();renderGrid();renderTicketList();
+  refreshStats();
+  renderGrid();
+  renderTicketList();
   document.getElementById('loading-overlay').classList.add('hide');
 }
 
 function refreshStats(){
-  const amNums = new Set(getAmNumbers());
-  const pmNums = new Set(getPmNumbers());
-  const amTaken=ticketsForDate.filter(t=>t.time==='AM'&&amNums.has(t.number)).length;
-  const pmTaken=ticketsForDate.filter(t=>t.time==='PM'&&pmNums.has(t.number)).length;
+  const amNums=new Set(getAmNumbers());
+  const pmNums=new Set(getPmNumbers());
+  const takenFromTickets=new Set(ticketsForDate.map(t=>t.number));
+  const takenFromAtomic=new Set(Object.keys(takenNumbersData[currentDate]||{}).map(Number));
+  const allTaken=new Set([...takenFromTickets,...takenFromAtomic]);
+  const amTaken=[...allTaken].filter(n=>amNums.has(n)).length;
+  const pmTaken=[...allTaken].filter(n=>pmNums.has(n)).length;
   const tot=amTaken+pmTaken;
   const df=disabledNums[currentDate]||{};
   const dc=Object.entries(df).filter(([n,v])=>v&&(amNums.has(parseInt(n))||pmNums.has(parseInt(n)))).length;
@@ -949,19 +839,22 @@ function refreshStats(){
   document.getElementById('s-avail').textContent=total-tot-dc;
   document.getElementById('s-dis').textContent=dc;
   document.getElementById('s-tick').textContent=tot;
-  const amArr=getAmNumbers(), pmArr=getPmNumbers();
+  const amArr=getAmNumbers(),pmArr=getPmNumbers();
   document.querySelector('#s-total').closest('.stat-card').querySelector('.s-sub').textContent='of '+total+' max';
   document.querySelector('#s-am').closest('.stat-card').querySelector('.s-sub').textContent='of '+slotConfig.amCount+' ('+slotConfig.amStart+'–'+(amArr[amArr.length-1]||'?')+')';
   document.querySelector('#s-pm').closest('.stat-card').querySelector('.s-sub').textContent='of '+slotConfig.pmCount+' ('+slotConfig.pmStart+'–'+(pmArr[pmArr.length-1]||'?')+')';
 }
 
 function renderGrid(){
-  if(!currentDate) return;
+  if(!currentDate)return;
   const df=disabledNums[currentDate]||{};
-  const taken=new Set(ticketsForDate.map(t=>t.number));
+  const takenFromTickets=new Set(ticketsForDate.map(t=>t.number));
+  const takenFromAtomic=new Set(Object.keys(takenNumbersData[currentDate]||{}).map(Number));
+  const taken=new Set([...takenFromTickets,...takenFromAtomic]);
   renderHalf('grid-am',getAmNumbers(),taken,df);
   renderHalf('grid-pm',getPmNumbers(),taken,df);
 }
+
 function renderHalf(gid,nums,taken,df){
   const grid=document.getElementById(gid);grid.innerHTML='';
   for(const n of nums){
@@ -975,42 +868,72 @@ function renderHalf(gid,nums,taken,df){
     grid.appendChild(el);
   }
 }
+
 async function toggleNumber(num){
-  if(!currentDate) return;
+  if(!currentDate)return;
   const df=disabledNums[currentDate]||{};
   const isDis=!!df[num];
   const isTaken=ticketsForDate.some(t=>t.number===num);
   const action=isDis?'Re-enable':'Disable';
   const extra=(!isDis&&isTaken)?'\nThis number is currently held by a client.':'';
-  if(!confirm(action+' number #'+num+'?'+extra)) return;
+  if(!confirm(action+' number #'+num+'?'+extra))return;
   await db.ref('disabledNumbers/'+currentDate+'/'+num).set(!isDis);
   toast((isDis?'✅ Enabled':'⊘ Disabled')+' #'+num);
 }
 
-function setListFilter(f) {
-  listFilter = f;
-  ['all','am','pm'].forEach(x => {
-    document.getElementById('filter-'+x).classList.toggle('active', x === f);
-  });
+async function releaseGhostNumber(num){
+  if(!currentDate)return;
+  if(!confirm('Release ghost slot #'+num+'?\nThis will free the slot so it can be claimed again.'))return;
+  try{
+    await db.ref('takenNumbers/'+currentDate+'/'+num).remove();
+    toast('🔓 Released ghost slot #'+num);
+  }catch(e){toast('❌ Error: '+e.message);}
+}
+
+function setListFilter(f){
+  listFilter=f;
+  ['all','am','pm'].forEach(x=>{document.getElementById('filter-'+x).classList.toggle('active',x===f);});
   renderTicketList();
 }
 
 function renderTicketList(){
   const c=document.getElementById('ticket-list-content');
   const df=disabledNums[currentDate]||{};
+  const filtered=listFilter==='all'?ticketsForDate:ticketsForDate.filter(t=>t.time===listFilter.toUpperCase());
 
-  const filtered = listFilter === 'all'
-    ? ticketsForDate
-    : ticketsForDate.filter(t => t.time === listFilter.toUpperCase());
-
+  const takenAtomic=new Set(Object.keys(takenNumbersData[currentDate]||{}).map(Number));
+  const amNums=new Set(getAmNumbers()),pmNums=new Set(getPmNumbers());
+  let atomicExtra=0;
+  if(listFilter==='all'){
+    atomicExtra=[...takenAtomic].filter(n=>!new Set(ticketsForDate.map(t=>t.number)).has(n)).length;
+  }else if(listFilter==='am'){
+    atomicExtra=[...takenAtomic].filter(n=>amNums.has(n)&&!new Set(ticketsForDate.map(t=>t.number)).has(n)).length;
+  }else{
+    atomicExtra=[...takenAtomic].filter(n=>pmNums.has(n)&&!new Set(ticketsForDate.map(t=>t.number)).has(n)).length;
+  }
   document.getElementById('ticket-count-label').textContent=
-    filtered.length + ' ticket(s)' + (listFilter !== 'all' ? ' · ' + listFilter.toUpperCase() + ' only' : '');
+    (filtered.length+atomicExtra)+' ticket(s)'+(listFilter!=='all'?' · '+listFilter.toUpperCase()+' only':'');
 
   if(!filtered.length){
     c.innerHTML='<div class="empty-msg">No '+(listFilter==='all'?'':''+listFilter.toUpperCase()+' ')+'numbers found for this date.</div>';
     return;
   }
+
   const nowMs=Date.now();
+  const ticketNumSet=new Set(ticketsForDate.map(t=>t.number));
+  const ghostNums=[...new Set(Object.keys(takenNumbersData[currentDate]||{}).map(Number))].filter(n=>!ticketNumSet.has(n));
+  const shouldShowGhosts=listFilter==='all';
+  const ghostHTML=shouldShowGhosts?ghostNums.map(n=>
+    '<div class="ticket-row" style="background:#fff8f8;border-left:3px solid #fca5a5;padding:10px 14px;">'+
+    '<div class="ticket-row-top">'+
+    '<div class="tr-num" style="color:#dc2626;">#'+pad3(n)+'</div>'+
+    '<div class="tr-info">'+
+    '<div class="tr-name" style="color:#b91c1c;font-weight:700;">⚠️ Ghost — slot claimed, no ticket written</div>'+
+    '<div class="tr-meta" style="margin-top:4px;">'+
+    '<button onclick="releaseGhostNumber('+n+')" style="padding:4px 10px;background:#dc2626;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">🔓 Release</button>'+
+    '</div></div></div></div>'
+  ).join(''):'';
+
   c.innerHTML=filtered.map(t=>{
     const isExp=new Date(t.expiresAt).getTime()<nowMs;
     const isDis=!!df[t.number];
@@ -1019,21 +942,16 @@ function renderTicketList(){
     const sk=t.time==='AM'?'amStart':'pmStart',ek=t.time==='AM'?'amEnd':'pmEnd';
     const wl='Valid: '+fmt(scheduleSettings[sk])+' – '+fmt(scheduleSettings[ek]);
     const sb=isDis?'<span class="badge badge-disabled-b">⊘ Disabled</span>':isExp?'<span class="badge badge-expired">✕ Expired</span>':'<span class="badge badge-valid">✓ Valid</span>';
-    // ── CHANGE 2: Guard against undefined t.time in ticket list badge ─────────
     const tb=t.time?'<span class="badge '+(t.time==='AM'?'badge-am':'badge-pm')+'">'+t.time+'</span>':'';
-    // ── END CHANGE 2 ──────────────────────────────────────────────────────────
-    return '<div class="ticket-row">'+
+    return'<div class="ticket-row">'+
       '<div class="ticket-row-top">'+
-        '<div class="tr-num">#'+pad3(t.number)+'</div>'+
-        '<div class="tr-info">'+
-          '<div class="tr-name">'+esc(t.name||'—')+'</div>'+
-          '<div class="tr-meta">Issued: '+il+' &nbsp;'+tb+' &nbsp;'+sb+'</div>'+
-          '<div class="tr-meta" style="color:var(--blue);font-weight:700;margin-top:2px;">⏰ '+wl+'</div>'+
-        '</div>'+
-      '</div>'+
-      personCardsHTML(t,'tr')+
-    '</div>';
-  }).join('');
+      '<div class="tr-num">#'+pad3(t.number)+'</div>'+
+      '<div class="tr-info">'+
+      '<div class="tr-name">'+esc(t.name||'—')+'</div>'+
+      '<div class="tr-meta">Issued: '+il+' &nbsp;'+tb+' &nbsp;'+sb+'</div>'+
+      '<div class="tr-meta" style="color:var(--blue);font-weight:700;margin-top:2px;">⏰ '+wl+'</div>'+
+      '</div></div>'+personCardsHTML(t,'tr')+'</div>';
+  }).join('')+ghostHTML;
 }
 
 function doSearch(){
@@ -1045,9 +963,8 @@ function doSearch(){
   const norm=query.toLowerCase(),isNum=/^\d+$/.test(query),targetNum=isNum?parseInt(query,10):null;
   const matches=[];
   Object.entries(allTickets).forEach(([key,t])=>{
-    if(!t||t.date!==currentDate) return;
-    if((t.name&&t.name.toLowerCase().includes(norm))||(isNum&&t.number===targetNum))
-      matches.push({id:key,...t});
+    if(!t||t.date!==currentDate)return;
+    if((t.name&&t.name.toLowerCase().includes(norm))||(isNum&&t.number===targetNum))matches.push({id:key,...t});
   });
   if(!matches.length){resultsDiv.innerHTML='<div class="search-empty">❌ No numbers found for "<strong>'+esc(query)+'</strong>" on <strong>'+currentDate+'</strong></div>';return;}
   matches.sort((a,b)=>b.date.localeCompare(a.date)||a.number-b.number);
@@ -1062,17 +979,16 @@ function doSearch(){
     const sk=t.time==='AM'?'amStart':'pmStart',ek=t.time==='AM'?'amEnd':'pmEnd';
     const windowLbl=fmt(scheduleSettings[sk])+' – '+fmt(scheduleSettings[ek]);
     const statusBadge=isDisabled?'<span class="badge badge-disabled-b">⊘ Disabled</span>':isExpired?'<span class="badge badge-expired">✕ Expired</span>':'<span class="badge badge-valid">✓ Valid</span>';
-    return '<div class="search-result-card found">'+
+    return'<div class="search-result-card found">'+
       '<div class="src-top"><div class="sr-num">#'+pad3(t.number)+'</div>'+
       '<div class="sr-info"><div class="sr-name">'+esc(t.name||'—')+'</div>'+
       '<div class="sr-meta">📅 '+dateLabel+' &nbsp;|&nbsp; Issued: '+issuedLbl+'</div>'+
       '<div class="sr-meta" style="color:var(--blue);font-weight:700;margin-top:2px;">⏰ '+windowLbl+'</div>'+
-      // ── CHANGE 3: Guard against undefined t.time in search results badge ────
       '<div class="sr-badges">'+(t.time?'<span class="badge '+(t.time==='AM'?'badge-am':'badge-pm')+'">'+t.time+'</span>':'')+statusBadge+'</div>'+
-      // ── END CHANGE 3 ────────────────────────────────────────────────────────
       '</div></div>'+personCardsHTML(t,'sr')+'</div>';
   }).join('');
 }
+
 function clearSearch(){
   document.getElementById('search-input').value='';
   const r=document.getElementById('search-results');r.style.display='none';r.innerHTML='';
@@ -1088,16 +1004,17 @@ function personCardsHTML(t,style='sr'){
   html+='<div class="'+pc+'"><div class="'+pl+'">👤 Claimant</div><div class="'+pn+'">'+esc(t.name||'—')+'</div></div>';
   if(t.ben1Name){
     html+='<div class="'+pc+' ben"><div class="'+pl+'">🧑‍🤝‍🧑 Beneficiary 1</div><div class="'+pn+'">'+esc(t.ben1Name)+'</div>';
-    if(t.idType||t.idNumber) html+='<div class="'+pi+'">🪪 '+(t.idType?esc(t.idType):'ID')+(t.idNumber?' &nbsp;·&nbsp; #'+esc(t.idNumber):'')+'</div>';
+    if(t.idType||t.idNumber)html+='<div class="'+pi+'">🪪 '+(t.idType?esc(t.idType):'ID')+(t.idNumber?' &nbsp;·&nbsp; #'+esc(t.idNumber):'')+'</div>';
     html+='</div>';
   }
   if(t.ben2Name){
     html+='<div class="'+pc+' ben"><div class="'+pl+'">🧑‍🤝‍🧑 Beneficiary 2</div><div class="'+pn+'">'+esc(t.ben2Name)+'</div>';
-    if(t.idType2||t.idNumber2) html+='<div class="'+pi+'">🪪 '+(t.idType2?esc(t.idType2):'ID')+(t.idNumber2?' &nbsp;·&nbsp; #'+esc(t.idNumber2):'')+'</div>';
+    if(t.idType2||t.idNumber2)html+='<div class="'+pi+'">🪪 '+(t.idType2?esc(t.idType2):'ID')+(t.idNumber2?' &nbsp;·&nbsp; #'+esc(t.idNumber2):'')+'</div>';
     html+='</div>';
   }
   html+='</div>';return html;
 }
+
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 function switchTab(tab){
@@ -1105,222 +1022,154 @@ function switchTab(tab){
     document.getElementById('view-'+t).style.display=t===tab?'block':'none';
     document.getElementById('tab-'+t).className='tab-btn'+(t===tab?' active':'')+(t==='dbmanage'?' tab-danger':'');
   });
-  if(tab==='dbmanage') calcStorage();
+  if(tab==='dbmanage')calcStorage();
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
-// STORAGE CALCULATOR
-// ──────────────────────────────────────────────────────────────────────────────
 function roughSizeOf(obj){
-  if(obj===null||obj===undefined) return 0;
-  if(typeof obj==='boolean') return 4;
-  if(typeof obj==='number') return 8;
-  if(typeof obj==='string') return obj.length*2;
+  if(obj===null||obj===undefined)return 0;
+  if(typeof obj==='boolean')return 4;
+  if(typeof obj==='number')return 8;
+  if(typeof obj==='string')return obj.length*2;
   if(typeof obj==='object'){
     let bytes=0;
-    for(const key in obj){
-      if(Object.prototype.hasOwnProperty.call(obj,key)){
-        bytes+=roughSizeOf(key)+roughSizeOf(obj[key]);
-      }
-    }
+    for(const key in obj){if(Object.prototype.hasOwnProperty.call(obj,key)){bytes+=roughSizeOf(key)+roughSizeOf(obj[key]);}}
     return bytes;
   }
   return 0;
 }
 function fmtBytes(b){
-  if(b<1024) return b+' B';
-  if(b<1024*1024) return (b/1024).toFixed(1)+' KB';
-  if(b<1024*1024*1024) return (b/(1024*1024)).toFixed(2)+' MB';
-  return (b/(1024*1024*1024)).toFixed(3)+' GB';
+  if(b<1024)return b+' B';
+  if(b<1024*1024)return(b/1024).toFixed(1)+' KB';
+  if(b<1024*1024*1024)return(b/(1024*1024)).toFixed(2)+' MB';
+  return(b/(1024*1024*1024)).toFixed(3)+' GB';
 }
 async function calcStorage(){
   document.getElementById('db-used-label').textContent='Calculating…';
   document.getElementById('db-free-label').textContent='';
   document.getElementById('db-storage-sub').textContent='Scanning database nodes…';
   document.getElementById('db-storage-fill').style.width='0%';
-  ['tickets','slots','disabled','schedule'].forEach(k=>{
-    document.getElementById('dbn-'+k+'-val').textContent='…';
-  });
-
-  try {
-    const [tickSnap,slotSnap,disSnap,schedSnap]=await Promise.all([
-      db.ref('tickets').once('value'),
-      db.ref('slots').once('value'),
-      db.ref('disabledNumbers').once('value'),
-      db.ref('scheduleSettings').once('value')
+  ['tickets','slots','disabled','schedule'].forEach(k=>{document.getElementById('dbn-'+k+'-val').textContent='…';});
+  try{
+    const[tickSnap,slotSnap,disSnap,schedSnap]=await Promise.all([
+      db.ref('tickets').once('value'),db.ref('slots').once('value'),
+      db.ref('disabledNumbers').once('value'),db.ref('scheduleSettings').once('value')
     ]);
-
-    const tData=tickSnap.val()||{};
-    const sData=slotSnap.val()||{};
-    const dData=disSnap.val()||{};
-    const scData=schedSnap.val()||{};
-
-    const tBytes=roughSizeOf(tData);
-    const sBytes=roughSizeOf(sData);
-    const dBytes=roughSizeOf(dData);
-    const scBytes=roughSizeOf(scData);
+    const tData=tickSnap.val()||{},sData=slotSnap.val()||{},dData=disSnap.val()||{},scData=schedSnap.val()||{};
+    const tBytes=roughSizeOf(tData),sBytes=roughSizeOf(sData),dBytes=roughSizeOf(dData),scBytes=roughSizeOf(scData);
     const totalBytes=tBytes+sBytes+dBytes+scBytes;
-
     const pct=Math.min((totalBytes/FB_FREE_STORAGE_BYTES)*100,100);
     const freeBytes=Math.max(FB_FREE_STORAGE_BYTES-totalBytes,0);
-
     document.getElementById('db-storage-fill').style.width=pct.toFixed(2)+'%';
     document.getElementById('db-storage-fill').className='db-storage-fill'+(pct>80?' warn':'');
     document.getElementById('db-used-label').textContent='Used: '+fmtBytes(totalBytes)+' ('+pct.toFixed(4)+'%)';
     document.getElementById('db-free-label').textContent='Free: '+fmtBytes(freeBytes);
     document.getElementById('db-storage-sub').textContent=
-      'Firebase Realtime DB free tier limit: 1 GB storage · '+
-      Object.keys(tData).length+' ticket records · '+
-      Object.keys(sData).length+' slot date entries · '+
-      Object.keys(dData).length+' disabled-date entries';
-
+      'Firebase Realtime DB free tier limit: 1 GB storage · '+Object.keys(tData).length+' ticket records · '+
+      Object.keys(sData).length+' slot date entries · '+Object.keys(dData).length+' disabled-date entries';
     document.getElementById('dbn-tickets-val').textContent=fmtBytes(tBytes)+'\n('+Object.keys(tData).length+' records)';
     document.getElementById('dbn-slots-val').textContent=fmtBytes(sBytes)+'\n('+Object.keys(sData).length+' dates)';
     document.getElementById('dbn-disabled-val').textContent=fmtBytes(dBytes)+'\n('+Object.keys(dData).length+' dates)';
     document.getElementById('dbn-schedule-val').textContent=fmtBytes(scBytes);
-
     ['tickets','slots','disabled','schedule'].forEach(k=>{
-      const el=document.getElementById('dbn-'+k+'-val');
-      el.style.whiteSpace='pre-line';
-      el.style.lineHeight='1.4';
+      const el=document.getElementById('dbn-'+k+'-val');el.style.whiteSpace='pre-line';el.style.lineHeight='1.4';
     });
-
-  } catch(e) {
-    document.getElementById('db-storage-sub').textContent='❌ Error: '+e.message;
-  }
+  }catch(e){document.getElementById('db-storage-sub').textContent='❌ Error: '+e.message;}
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
-// DELETE BY MONTH
-// ──────────────────────────────────────────────────────────────────────────────
 let _pendingDeleteMonth=null;
 
 async function previewMonthDelete(){
   const month=document.getElementById('del-month').value;
   const year=document.getElementById('del-year').value;
   const prefix=year+'-'+month;
-
   document.getElementById('delete-preview').style.display='none';
   document.getElementById('delete-done').style.display='none';
   document.getElementById('delete-progress').style.display='none';
-
-  const [tickSnap,slotSnap,disSnap]=await Promise.all([
-    db.ref('tickets').once('value'),
-    db.ref('slots').once('value'),
-    db.ref('disabledNumbers').once('value')
+  const[tickSnap,slotSnap,disSnap,takenSnap]=await Promise.all([
+    db.ref('tickets').once('value'),db.ref('slots').once('value'),
+    db.ref('disabledNumbers').once('value'),db.ref('takenNumbers').once('value')
   ]);
-
-  const tickets=tickSnap.val()||{};
-  const slots=slotSnap.val()||{};
-  const disabled=disSnap.val()||{};
-
+  const tickets=tickSnap.val()||{},slots=slotSnap.val()||{},disabled=disSnap.val()||{},taken=takenSnap.val()||{};
   const matchTickets=Object.entries(tickets).filter(([k,t])=>t&&t.date&&t.date.startsWith(prefix));
   const matchSlots=Object.keys(slots).filter(d=>d.startsWith(prefix));
   const matchDisabled=Object.keys(disabled).filter(d=>d.startsWith(prefix));
-
+  const matchTaken=Object.keys(taken).filter(d=>d.startsWith(prefix));
   const monthName=MONTHS[parseInt(month,10)-1];
-  _pendingDeleteMonth={prefix,matchTickets,matchSlots,matchDisabled,monthName,year};
-
-  document.getElementById('dp-header').textContent=
-    '📋 Preview: Deleting data for '+monthName+' '+year;
+  _pendingDeleteMonth={prefix,matchTickets,matchSlots,matchDisabled,matchTaken,monthName,year};
+  document.getElementById('dp-header').textContent='📋 Preview: Deleting data for '+monthName+' '+year;
   document.getElementById('dp-breakdown').innerHTML=
     '<div class="dp-item">🎫 Tickets<span>'+matchTickets.length+'</span></div>'+
     '<div class="dp-item">📅 Slot Entries<span>'+matchSlots.length+'</span></div>'+
-    '<div class="dp-item">🚫 Disabled Num Entries<span>'+matchDisabled.length+'</span></div>';
-
-  if(matchTickets.length===0&&matchSlots.length===0&&matchDisabled.length===0){
+    '<div class="dp-item">🚫 Disabled Num Entries<span>'+matchDisabled.length+'</span></div>'+
+    '<div class="dp-item">🔢 Taken Number Entries<span>'+matchTaken.length+'</span></div>';
+  if(matchTickets.length===0&&matchSlots.length===0&&matchDisabled.length===0&&matchTaken.length===0){
     document.getElementById('dp-breakdown').innerHTML='<div class="dp-item" style="color:#059669">✅ No records found for this month.</div>';
-    document.getElementById('dp-warn') && (document.getElementById('dp-warn').style.display='none');
+    document.querySelector('.dp-warn')&&(document.querySelector('.dp-warn').style.display='none');
     document.getElementById('btn-confirm-delete').style.display='none';
-  } else {
-    const dpWarn=document.querySelector('.dp-warn');
-    if(dpWarn) dpWarn.style.display='';
+  }else{
+    const dpWarn=document.querySelector('.dp-warn');if(dpWarn)dpWarn.style.display='';
     document.getElementById('btn-confirm-delete').style.display='';
   }
-
   document.getElementById('delete-preview').style.display='block';
 }
 
-function cancelDeletePreview(){
-  document.getElementById('delete-preview').style.display='none';
-  _pendingDeleteMonth=null;
-}
+function cancelDeletePreview(){document.getElementById('delete-preview').style.display='none';_pendingDeleteMonth=null;}
 
 async function confirmMonthDelete(){
-  if(!_pendingDeleteMonth) return;
-  const {prefix,matchTickets,matchSlots,matchDisabled,monthName,year}=_pendingDeleteMonth;
-  const total=matchTickets.length+matchSlots.length+matchDisabled.length;
-  if(!confirm('DELETE '+total+' records for '+monthName+' '+year+'?\n\nThis cannot be undone.')) return;
-
+  if(!_pendingDeleteMonth)return;
+  const{prefix,matchTickets,matchSlots,matchDisabled,matchTaken,monthName,year}=_pendingDeleteMonth;
+  const total=matchTickets.length+matchSlots.length+matchDisabled.length+matchTaken.length;
+  if(!confirm('DELETE '+total+' records for '+monthName+' '+year+'?\n\nThis cannot be undone.'))return;
   document.getElementById('delete-preview').style.display='none';
   document.getElementById('delete-done').style.display='none';
-  const prog=document.getElementById('delete-progress');
-  prog.style.display='flex';
+  const prog=document.getElementById('delete-progress');prog.style.display='flex';
   const progText=document.getElementById('delete-progress-text');
-
-  let done=0;
+  
   try{
-    for(const [key] of matchTickets){
-      progText.textContent='Deleting tickets… ('+done+'/'+matchTickets.length+')';
-      await db.ref('tickets/'+key).remove();
-      done++;
-    }
-    for(const date of matchSlots){
-      progText.textContent='Deleting slot entries… ('+matchSlots.indexOf(date)+'/'+matchSlots.length+')';
-      await db.ref('slots/'+date).remove();
-    }
-    for(const date of matchDisabled){
-      progText.textContent='Deleting disabled number entries…';
-      await db.ref('disabledNumbers/'+date).remove();
-    }
+    // Efficiently batch delete using a single update call
+    const updates={};
+    for(const[key]of matchTickets) updates['tickets/'+key]=null;
+    for(const date of matchSlots) updates['slots/'+date]=null;
+    for(const date of matchDisabled) updates['disabledNumbers/'+date]=null;
+    for(const date of matchTaken) updates['takenNumbers/'+date]=null;
+    
+    progText.textContent='Applying deletions...';
+    await db.ref().update(updates);
+    
     prog.style.display='none';
     document.getElementById('delete-done').style.display='block';
     document.getElementById('delete-done-text').textContent=
-      '✅ Done! Deleted '+matchTickets.length+' tickets, '+matchSlots.length+' slot entries, '+matchDisabled.length+' disabled-number entries for '+monthName+' '+year+'.';
-    _pendingDeleteMonth=null;
-    toast('🗑 Deleted all '+monthName+' '+year+' records');
-    calcStorage();
-  } catch(e){
-    prog.style.display='none';
-    toast('❌ Error: '+e.message);
-  }
+      '✅ Done! Deleted '+matchTickets.length+' tickets, '+matchSlots.length+' slots, '+matchDisabled.length+' disabled-numbers, and '+matchTaken.length+' taken-number entries for '+monthName+' '+year+'.';
+    _pendingDeleteMonth=null;toast('🗑 Deleted all '+monthName+' '+year+' records');calcStorage();
+  }catch(e){prog.style.display='none';toast('❌ Error: '+e.message);}
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
-// DELETE ALL RECORDS
-// ──────────────────────────────────────────────────────────────────────────────
 async function deleteAllRecords(){
-  const first=confirm('⚠️ DELETE ALL TICKETS, SLOTS & DISABLED NUMBERS?\n\nThis will wipe everything. Are you absolutely sure?');
-  if(!first) return;
+  const first=confirm('⚠️ DELETE ALL TICKETS, SLOTS, TAKEN NUMBERS & DISABLED NUMBERS?\n\nThis will wipe everything. Are you absolutely sure?');
+  if(!first)return;
   const second=confirm('🔴 FINAL WARNING: This is permanent and cannot be undone.\n\nType OK below to proceed.');
-  if(!second) return;
-
-  const prog=document.getElementById('delete-progress');
-  prog.style.display='flex';
+  if(!second)return;
+  const prog=document.getElementById('delete-progress');prog.style.display='flex';
   document.getElementById('delete-done').style.display='none';
   document.getElementById('delete-progress-text').textContent='Deleting all records…';
-
   try{
     await Promise.all([
       db.ref('tickets').remove(),
       db.ref('slots').remove(),
-      db.ref('disabledNumbers').remove()
+      db.ref('disabledNumbers').remove(),
+      db.ref('takenNumbers').remove()
     ]);
     prog.style.display='none';
     document.getElementById('delete-done').style.display='block';
-    document.getElementById('delete-done-text').textContent='✅ All tickets, slots, and disabled numbers have been deleted.';
-    toast('☢️ All records deleted');
-    calcStorage();
-  } catch(e){
-    prog.style.display='none';
-    toast('❌ Error: '+e.message);
-  }
+    document.getElementById('delete-done-text').textContent='✅ All tickets, slots, taken numbers, and disabled numbers have been deleted.';
+    toast('☢️ All records deleted');calcStorage();
+  }catch(e){prog.style.display='none';toast('❌ Error: '+e.message);}
 }
+
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 function pad(n){return String(n).padStart(2,'0');}
 function pad3(n){return String(n).padStart(3,'0');}
 function toast(msg){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2800);}
-
 </script>
 </body>
 </html>

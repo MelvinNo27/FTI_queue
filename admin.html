@@ -60,6 +60,7 @@
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('grid')" id="tab-grid">Number Grid</button>
     <button class="tab-btn" onclick="switchTab('list')" id="tab-list">Number List</button>
+    <button class="tab-btn" onclick="switchTab('analytics')" id="tab-analytics">📊 Analytics</button>
     <button class="tab-btn" onclick="switchTab('settings')" id="tab-settings">⚙ Schedule Settings</button>
     <button class="tab-btn tab-danger" onclick="switchTab('dbmanage')" id="tab-dbmanage">🗄️ Database</button>
   </div>
@@ -503,19 +504,30 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script>
 const ALLOWED_ADMIN_EMAILS=['tagumfti.admin@gmail.com'];
-const firebaseConfig = {
-  apiKey: "AIzaSyAiRK64ZYzF8lBKnxmubCZEO9qrCN42B1g",
-  authDomain: "fti-queue.firebaseapp.com",
-  databaseURL: "https://fti-queue-default-rtdb.firebaseio.com",
-  projectId: "fti-queue",
-  storageBucket: "fti-queue.firebasestorage.app",
-  messagingSenderId: "794859488896",
-  appId: "1:794859488896:web:4e7dcb7e830fc4bf334865",
-  measurementId: "G-HSTB5FR8G9"
+const firebaseConfig={
+  apiKey:"AIzaSyAiRK64ZYzF8lBKnxmubCZEO9qrCN42B1g",authDomain:"fti-queue.firebaseapp.com",
+  databaseURL:"https://fti-queue-default-rtdb.firebaseio.com",projectId:"fti-queue",
+  storageBucket:"fti-queue.firebasestorage.app",messagingSenderId:"794859488896",
+  appId:"1:794859488896:web:4e7dcb7e830fc4bf334865"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
+
+// Synchronize with Firebase Server Time to prevent device time bypass
+let serverTimeOffset = 0;
+let serverTimeSynced = false;
+
+db.ref(".info/serverTimeOffset").on("value", (snap) => {
+  serverTimeOffset = snap.val() || 0;
+  if (!serverTimeSynced) {
+    serverTimeSynced = true;
+    // Hide initial loading if needed, or trigger dependent logic
+  }
+});
+
+function getServerTime() {
+  return new Date(Date.now() + serverTimeOffset);
+}
 
 // ── Dynamic Slot Config ──────────────────────────────────────────────────────
 const DEFAULT_SLOT_CONFIG={amCount:75,amStart:1,amType:'odd',pmCount:75,pmStart:151,pmType:'odd'};
@@ -597,6 +609,7 @@ function resetSlotDefaults(){
   _scAmType='odd';_scPmType='odd';setType('am','odd',true);setType('pm','odd',true);updateSlotPreview();
 }
 async function saveSlotConfig(){
+  if (!serverTimeSynced) return toast('Waiting for server time synchronization...');
   const amCount=parseInt(document.getElementById('sc-am-count').value);
   const amStart=parseInt(document.getElementById('sc-am-start').value);
   const pmCount=parseInt(document.getElementById('sc-pm-count').value);
@@ -637,12 +650,12 @@ const FB_FREE_STORAGE_BYTES=1*1024*1024*1024;
 // ── Populate year dropdown ──
 (function(){
   const sel=document.getElementById('del-year');
-  const thisYear=new Date().getFullYear();
+  const thisYear=getServerTime().getFullYear();
   for(let y=thisYear+1;y>=thisYear-5;y--){
     const o=document.createElement('option');
     o.value=y;o.textContent=y;if(y===thisYear)o.selected=true;sel.appendChild(o);
   }
-  const cm=String(new Date().getMonth()+1).padStart(2,'0');
+  const cm=String(getServerTime().getMonth()+1).padStart(2,'0');
   document.getElementById('del-month').value=cm;
 })();
 
@@ -712,7 +725,7 @@ function initAdmin(){
     if(currentDate){refreshStats();renderGrid();}
   });
 
-  const today=new Date();
+  const today=getServerTime();
   const ts=today.getFullYear()+'-'+pad(today.getMonth()+1)+'-'+pad(today.getDate());
   document.getElementById('date-input').value=ts;
   setTimeout(loadDate,400);
@@ -780,6 +793,7 @@ function setDeviceLimitMode(mode){
 }
 
 async function saveSettings(){
+  if (!serverTimeSynced) return toast('Waiting for server time synchronization...');
   const isOn=document.getElementById('claiming-toggle').checked;
   const isUnlimited=document.getElementById('dlimit-btn-unlimited').classList.contains('active');
   const deviceLimit=isUnlimited?0:(parseInt(document.getElementById('device-limit').value)||1);
@@ -919,7 +933,7 @@ function renderTicketList(){
     return;
   }
 
-  const nowMs=Date.now();
+  const nowMs=getServerTime().getTime();
   const ticketNumSet=new Set(ticketsForDate.map(t=>t.number));
   const ghostNums=[...new Set(Object.keys(takenNumbersData[currentDate]||{}).map(Number))].filter(n=>!ticketNumSet.has(n));
   const shouldShowGhosts=listFilter==='all';
@@ -968,7 +982,7 @@ function doSearch(){
   });
   if(!matches.length){resultsDiv.innerHTML='<div class="search-empty">❌ No numbers found for "<strong>'+esc(query)+'</strong>" on <strong>'+currentDate+'</strong></div>';return;}
   matches.sort((a,b)=>b.date.localeCompare(a.date)||a.number-b.number);
-  const nowMs=Date.now();
+  const nowMs=getServerTime().getTime();
   resultsDiv.innerHTML=matches.map(t=>{
     const d=new Date(t.date+'T00:00:00');
     const dateLabel=MONTHS[d.getMonth()].slice(0,3)+' '+d.getDate()+', '+d.getFullYear();
@@ -1018,9 +1032,15 @@ function personCardsHTML(t,style='sr'){
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 function switchTab(tab){
-  ['grid','list','settings','dbmanage'].forEach(t=>{
-    document.getElementById('view-'+t).style.display=t===tab?'block':'none';
-    document.getElementById('tab-'+t).className='tab-btn'+(t===tab?' active':'')+(t==='dbmanage'?' tab-danger':'');
+  if(tab==='analytics'){
+    window.location.href='analytic.html';
+    return;
+  }
+  ['grid','list','settings','dbmanage','analytics'].forEach(t=>{
+    const view=document.getElementById('view-'+t);
+    if(view) view.style.display=t===tab?'block':'none';
+    const btn=document.getElementById('tab-'+t);
+    if(btn) btn.className='tab-btn'+(t===tab?' active':'')+(t==='dbmanage'?' tab-danger':'');
   });
   if(tab==='dbmanage')calcStorage();
 }

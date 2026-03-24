@@ -54,7 +54,7 @@
           <h1
             id="header-title"
             onclick="handleTitleTap()"
-            style="cursor: default; user-select: none"
+            style="cursor: pointer; user-select: none; pointer-events: auto;"
             data-i18n="appTitle"
           >
             P20 DDN CONTROL NUMBER
@@ -942,6 +942,25 @@
       };
       firebase.initializeApp(firebaseConfig);
       const db = firebase.database();
+
+      // ─── ADMIN REDIRECT LOGIC ────────────────────────────────────────────────────
+      let tapCount = 0, tapTimer = null;
+      function handleTitleTap() {
+        tapCount++;
+        if (tapTimer) clearTimeout(tapTimer);
+        if (tapCount >= 5) {
+          tapCount = 0;
+          toast("Redirecting to Admin Panel...");
+          window.location.href = "admin.html";
+          return;
+        }
+        const remaining = 5 - tapCount;
+        toast("Tap " + remaining + " more time" + (remaining > 1 ? "s" : "") + " to open admin panel.");
+        const titleEl = document.getElementById("header-title");
+        titleEl.style.opacity = ".6";
+        setTimeout(() => (titleEl.style.opacity = "1"), 120);
+        tapTimer = setTimeout(() => { tapCount = 0; }, 3000);
+      }
 
       // Synchronize with Firebase Server Time to prevent device time bypass
       let serverTimeOffset = 0;
@@ -2646,25 +2665,7 @@
       }
       applyTranslations();
 
-      let tapCount = 0,
-        tapTimer = null;
-      function handleTitleTap() {
-        tapCount++;
-        if (tapTimer) clearTimeout(tapTimer);
-        if (tapCount >= 5) {
-          tapCount = 0;
-          window.location.href = "admin.html";
-          return;
-        }
-        const titleEl = document.getElementById("header-title");
-        titleEl.style.opacity = ".6";
-        setTimeout(() => (titleEl.style.opacity = "1"), 120);
-        tapTimer = setTimeout(() => {
-          tapCount = 0;
-        }, 2000);
-      }
-
-  function dismissWelcome() {
+      function dismissWelcome() {
     const today = getServerTime().toISOString().slice(0, 10);
     localStorage.setItem('pq_welcome_seen', today);
     document.getElementById('welcome-overlay').style.display = 'none';

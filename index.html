@@ -12,8 +12,12 @@
   </head>
   <body>
 
+    <div class="loading-overlay" id="time-sync-overlay">
+      <div class="spinner"></div>
+      <div class="loading-text">Synchronizing Server Time...</div>
+    </div>
 
-<!-- Welcome / Beta Notice Popup -->
+    <!-- Welcome / Beta Notice Popup -->
 <div id="welcome-overlay" style="display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(3px);">
   <div style="background:#fff; border-radius:20px; width:100%; max-width:400px; box-shadow:0 24px 60px rgba(0,0,0,0.25); overflow:hidden; animation:slideUp 0.25s cubic-bezier(0.4,0,0.2,1);">
     <div style="background:linear-gradient(135deg,#1e3a5f,#2563eb); padding:20px 20px 16px; display:flex; align-items:center; gap:12px;">
@@ -908,6 +912,19 @@
       .about-ok-btn:hover {
         opacity: 0.9;
       }
+      .loading-overlay {
+        position: fixed; inset: 0; background: #fff; z-index: 9999;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        transition: opacity .3s, visibility .3s;
+      }
+      .loading-overlay.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+      .spinner {
+        width: 40px; height: 40px; border: 4px solid #f3f4f6;
+        border-top: 4px solid #2563eb; border-radius: 50%;
+        animation: spin 1s linear infinite; margin-bottom: 16px;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .loading-text { font-size: 15px; font-weight: 700; color: #1e3a5f; }
     </style>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -925,6 +942,46 @@
       };
       firebase.initializeApp(firebaseConfig);
       const db = firebase.database();
+
+      // Synchronize with Firebase Server Time to prevent device time bypass
+      let serverTimeOffset = 0;
+      let serverTimeSynced = false;
+
+      db.ref(".info/serverTimeOffset").on("value", (snap) => {
+        serverTimeOffset = snap.val() || 0;
+        if (!serverTimeSynced) {
+          serverTimeSynced = true;
+          initializeAfterSync();
+        }
+      });
+
+      function getServerTime() {
+        return new Date(Date.now() + serverTimeOffset);
+      }
+
+      function initializeAfterSync() {
+        // Only initialize these once we have accurate server time
+        now = getServerTime();
+        todayStr = toDateStr(now);
+        targetStr = toDateStr(getTargetDate(now));
+
+        // Hide loading overlay
+        document.getElementById("time-sync-overlay").classList.add("hide");
+
+        // Welcome popup check (wait for server time)
+        const welcomeKey = 'pq_welcome_seen';
+        const welcomeToday = now.toISOString().slice(0, 10);
+        if (localStorage.getItem(welcomeKey) === welcomeToday) {
+          document.getElementById('welcome-overlay').style.display = 'none';
+        }
+
+        // Initial renders
+        renderCard();
+        renderTickets();
+        purgeExpiredTickets();
+        dailyReset();
+        scheduleNextReset();
+      }
 
       const MONTHS = [
         "January",
@@ -995,8 +1052,7 @@
         return slotConfig.amCount + slotConfig.pmCount;
       }
 
-      let now = new Date();
-      let todayStr = toDateStr(now);
+      let now, todayStr, targetStr;
 
       // FIX 1: getTargetDate skips weekends properly (Friday & Saturday).
       // Thursday (4) → skip Fri+Sat → Sunday (+3)
@@ -1004,7 +1060,7 @@
       // Saturday (6) → skip Sun → Monday (+2)
       // All other days → tomorrow (+1)
       function getTargetDate(from) {
-        const d = from || new Date();
+        const d = from || getServerTime();
         const day = d.getDay();
         let offset = 1;
         if (day === 4) offset = 3; // Thursday → Sunday
@@ -1013,7 +1069,6 @@
         return addDays(d, offset);
       }
 
-      let targetStr = toDateStr(getTargetDate(now));
       let selectedTime = null;
       let editingTicketId = null;
       // takenNumbersData: live snapshot of takenNumbers node (source of truth for slot counts)
@@ -1066,7 +1121,7 @@
       }
 
       function isWeekend(d) {
-        const day = (d || new Date()).getDay();
+        const day = (d || getServerTime()).getDay();
         return day === 5 || day === 6;
       }
       function toast(msg) {
@@ -1296,8 +1351,8 @@
       // ─── CLAIMING STATUS ──────────────────────────────────────────────────────────
       function getClaimingStatus() {
         if (!scheduleSettings.claimingEnabled) return "blocked";
-        if (isWeekend(new Date())) return "weekend";
-        const n = new Date();
+        if (isWeekend(getServerTime())) return "weekend";
+        const n = getServerTime();
         const c = n.getHours() * 60 + n.getMinutes();
         if (
           c < toMin(scheduleSettings.claimStart) ||
@@ -1912,6 +1967,7 @@
       }
 
       async function generateNumber() {
+        if (!serverTimeSynced) return toast("Waiting for server time synchronization...");
         if (!isClaimingOpen()) {
           const s = getClaimingStatus();
           if (s === "blocked")
@@ -2145,7 +2201,7 @@
             idNumber2: idNumber2 || "",
             time: selectedTime,
             date: targetStr,
-            issuedAt: new Date().toISOString(),
+            issuedAt: getServerTime().toISOString(),
             expiresAt: expiry.toISOString(),
             createdAt: firebase.database.ServerValue.TIMESTAMP,
             disabled: false,
@@ -2214,7 +2270,7 @@
       }
 
       function isTicketValid(t) {
-        const n = new Date();
+        const n = getServerTime();
         const cur = n.getHours() * 60 + n.getMinutes();
         const ts = toDateStr(n);
         const td = new Date(t.date + "T00:00:00"),
@@ -2343,7 +2399,7 @@
       }
 
       async function purgeExpiredTickets() {
-        const nowMs = Date.now();
+        const nowMs = getServerTime().getTime();
         const del = myTickets.filter(
           (t) => nowMs > new Date(t.date + "T23:59:59").getTime() + 86400000,
         );
@@ -2357,16 +2413,17 @@
 
       const RESET_HOUR = 18;
       async function dailyReset() {
-        const n = new Date();
+        const n = getServerTime();
         if (n.getHours() < RESET_HOUR) return;
         const resetKey = toDateStr(n) + "_reset";
         if (localStorage.getItem("pq_last_reset") === resetKey) return;
         try {
+          const ds = toDateStr(n);
           // FIX 10: Also clean up takenNumbers for today on daily reset to prevent ghost-blocking
           await Promise.all([
-            db.ref("slots/" + todayStr).remove(),
-            db.ref("disabledNumbers/" + todayStr).remove(),
-            db.ref("takenNumbers/" + todayStr).remove(),
+            db.ref("slots/" + ds).remove(),
+            db.ref("disabledNumbers/" + ds).remove(),
+            db.ref("takenNumbers/" + ds).remove(),
           ]);
           localStorage.setItem("pq_last_reset", resetKey);
         } catch (e) {
@@ -2375,7 +2432,7 @@
       }
 
       function scheduleNextReset() {
-        const n = new Date();
+        const n = getServerTime();
         const resetToday = new Date(
           n.getFullYear(),
           n.getMonth(),
@@ -2388,7 +2445,7 @@
         let ms = resetToday.getTime() - n.getTime();
         if (ms <= 0) ms += 86400000;
         setTimeout(async () => {
-          now = new Date();
+          now = getServerTime();
           todayStr = toDateStr(now);
           targetStr = toDateStr(getTargetDate(now));
           await dailyReset();
@@ -2400,13 +2457,8 @@
         }, ms);
       }
 
-      renderCard();
-      renderTickets();
-      purgeExpiredTickets();
-      dailyReset();
-      scheduleNextReset();
       setInterval(() => {
-        now = new Date();
+        now = getServerTime();
         todayStr = toDateStr(now);
         targetStr = toDateStr(getTargetDate(now));
         updateStatusBanner();
@@ -2612,17 +2664,8 @@
         }, 2000);
       }
 
-      (function() {
-    const KEY = 'pq_welcome_seen';
-    const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
-    const overlay = document.getElementById('welcome-overlay');
-    if (localStorage.getItem(KEY) === today) {
-      overlay.style.display = 'none'; // already seen today — hide immediately
-    }
-  })();
-
   function dismissWelcome() {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = getServerTime().toISOString().slice(0, 10);
     localStorage.setItem('pq_welcome_seen', today);
     document.getElementById('welcome-overlay').style.display = 'none';
   }

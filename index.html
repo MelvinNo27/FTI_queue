@@ -950,12 +950,12 @@
         if (tapTimer) clearTimeout(tapTimer);
         if (tapCount >= 5) {
           tapCount = 0;
-          // toast("Redirecting to Admin Panel...");
+          toast("Redirecting to Admin Panel...");
           window.location.href = "admin.html";
           return;
         }
         const remaining = 5 - tapCount;
-        // toast("Tap " + remaining + " more time" + (remaining > 1 ? "s" : "") + " to open admin panel.");
+        toast("Tap " + remaining + " more time" + (remaining > 1 ? "s" : "") + " to open admin panel.");
         const titleEl = document.getElementById("header-title");
         titleEl.style.opacity = ".6";
         setTimeout(() => (titleEl.style.opacity = "1"), 120);
@@ -978,11 +978,42 @@
         return new Date(Date.now() + serverTimeOffset);
       }
 
+      function trackPresence() {
+        const presenceRef = db.ref("presence/" + (localStorage.getItem("pq_device_id") || (Math.random().toString(36).substring(2) + Date.now())));
+        if (!localStorage.getItem("pq_device_id")) localStorage.setItem("pq_device_id", presenceRef.key);
+        
+        db.ref(".info/connected").on("value", (snap) => {
+          if (snap.val() === true) {
+            presenceRef.onDisconnect().remove();
+            presenceRef.set({
+              lastActive: firebase.database.ServerValue.TIMESTAMP,
+              ua: navigator.userAgent
+            });
+          }
+        });
+      }
+
+      async function trackVisitor() {
+        const vid = localStorage.getItem("pq_visitor_id") || (Math.random().toString(36).substring(2) + Date.now());
+        if (!localStorage.getItem("pq_visitor_id")) {
+          localStorage.setItem("pq_visitor_id", vid);
+          const visitorRef = db.ref("visitors/" + vid);
+          await visitorRef.set({
+            firstVisit: firebase.database.ServerValue.TIMESTAMP,
+            ua: navigator.userAgent
+          });
+        }
+      }
+
       function initializeAfterSync() {
         // Only initialize these once we have accurate server time
         now = getServerTime();
         todayStr = toDateStr(now);
         targetStr = toDateStr(getTargetDate(now));
+
+        // Start Tracking
+        trackPresence();
+        trackVisitor();
 
         // Hide loading overlay
         document.getElementById("time-sync-overlay").classList.add("hide");

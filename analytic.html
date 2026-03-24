@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics Dashboard - P20 DDN</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1e3a5f;
+      --secondary: #2563eb;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --text-light: #64748b;
+      --green: #10b981;
+      --blue: #3b82f6;
+      --red: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); padding: 20px; line-height: 1.5; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    .btn-back { padding: 8px 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: var(--text); font-weight: 600; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+    .btn-back:hover { background: #f1f5f9; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+    .stat-card { background: var(--card); padding: 24px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+    .stat-label { font-size: 14px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+    .stat-value { font-size: 32px; font-weight: 800; color: var(--primary); }
+    .stat-value.online { color: var(--green); }
+    .stat-value.online::before { content: ''; display: inline-block; width: 12px; height: 12px; background: var(--green); border-radius: 50%; margin-right: 10px; animation: pulse 2s infinite; }
+    
+    @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } 100% { opacity: 1; transform: scale(1); } }
+
+    .section-title { font-size: 18px; font-weight: 800; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+    .dashboard-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 768px) { .dashboard-row { grid-template-columns: 1fr; } }
+
+    .data-card { background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .list-item { padding: 12px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+    .list-item:last-child { border-bottom: none; }
+    .item-main { font-weight: 600; font-size: 14px; }
+    .item-sub { font-size: 12px; color: var(--text-light); }
+    .badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+    .badge-blue { background: #eff6ff; color: #1d4ed8; }
+    .badge-green { background: #ecfdf5; color: #059669; }
+
+    .chart-placeholder { height: 200px; display: flex; align-items: center; justify-content: center; background: #f8fafc; border-radius: 12px; border: 2px dashed #e2e8f0; color: var(--text-light); font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1 style="font-weight: 800; font-size: 24px;">Analytics Dashboard</h1>
+        <p style="color: var(--text-light); font-size: 14px;">Real-time visitor and usage statistics</p>
+      </div>
+      <a href="admin.html" class="btn-back">← Back to Admin</a>
+    </header>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Currently Online</div>
+        <div class="stat-value online" id="online-count">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Visitors</div>
+        <div class="stat-value" id="total-visitors">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Tickets Today</div>
+        <div class="stat-value" id="tickets-today">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Session Split</div>
+        <div class="stat-value" style="font-size: 18px; display: flex; align-items: center; gap: 8px;">
+          <span style="color: var(--blue);" id="am-pct">AM: 0</span> | 
+          <span style="color: var(--secondary);" id="pm-pct">PM: 0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-row">
+      <div class="data-card">
+        <div class="section-title">👥 Active Sessions</div>
+        <div id="active-list">
+          <div style="padding: 20px; text-align: center; color: var(--text-light);">Loading active users...</div>
+        </div>
+      </div>
+      <div class="data-card">
+        <div class="section-title">📈 Weekly Activity</div>
+        <div class="chart-placeholder">
+          Activity chart will appear here as data grows
+        </div>
+        <div style="margin-top: 20px;">
+          <div class="section-title" style="font-size: 15px;">Device Distribution</div>
+          <div id="device-stats">
+            <div class="list-item">
+              <span class="item-main">Mobile Devices</span>
+              <span class="badge badge-blue" id="mobile-pct">0%</span>
+            </div>
+            <div class="list-item">
+              <span class="item-main">Desktop/PC</span>
+              <span class="badge badge-green" id="desktop-pct">0%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAiRK64ZYzF8lBKnxmubCZEO9qrCN42B1g",
+      authDomain: "fti-queue.firebaseapp.com",
+      databaseURL: "https://fti-queue-default-rtdb.firebaseio.com",
+      projectId: "fti-queue",
+      storageBucket: "fti-queue.firebasestorage.app",
+      messagingSenderId: "794859488896",
+      appId: "1:794859488896:web:4e7dcb7e830fc4bf334865"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function updateDashboard() {
+      // 1. Online Count & Active List
+      db.ref("presence").on("value", (snap) => {
+        const users = snap.val() || {};
+        const count = Object.keys(users).length;
+        document.getElementById("online-count").textContent = count;
+        
+        const list = document.getElementById("active-list");
+        list.innerHTML = "";
+        
+        let mobile = 0;
+        Object.values(users).forEach(u => {
+          const isMobile = /iPhone|iPad|iPod|Android/i.test(u.ua);
+          if (isMobile) mobile++;
+          
+          const div = document.createElement("div");
+          div.className = "list-item";
+          div.innerHTML = `
+            <div>
+              <div class="item-main">${isMobile ? '📱 Mobile User' : '💻 Desktop User'}</div>
+              <div class="item-sub">Last active: ${new Date(u.lastActive).toLocaleTimeString()}</div>
+            </div>
+            <span class="badge ${isMobile ? 'badge-blue' : 'badge-green'}">${isMobile ? 'Mobile' : 'Desktop'}</span>
+          `;
+          list.appendChild(div);
+        });
+        
+        if (count > 0) {
+          const mPct = Math.round((mobile / count) * 100);
+          document.getElementById("mobile-pct").textContent = mPct + "%";
+          document.getElementById("desktop-pct").textContent = (100 - mPct) + "%";
+        }
+      });
+
+      // 2. Total Visitors
+      db.ref("visitors").on("value", (snap) => {
+        document.getElementById("total-visitors").textContent = snap.numChildren();
+      });
+
+      // 3. Tickets & Session Statistics
+      const today = new Date().toISOString().slice(0, 10);
+      db.ref("tickets").on("value", (snap) => {
+        let count = 0;
+        let am = 0;
+        let pm = 0;
+        snap.forEach(t => {
+          const val = t.val();
+          if (val.date === today) {
+            count++;
+            if (val.time === "AM") am++; else pm++;
+          }
+        });
+        document.getElementById("tickets-today").textContent = count;
+        document.getElementById("am-pct").textContent = "AM: " + am;
+        document.getElementById("pm-pct").textContent = "PM: " + pm;
+      });
+    }
+
+    updateDashboard();
+  </script>
+</body>
+</html>

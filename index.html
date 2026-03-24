@@ -548,7 +548,7 @@
       </div>
     </div>
 
-    <!-- <div class="toast" id="toast"></div> -->
+    <div class="toast" id="toast"></div>
 
     <style>
       .header-inner {
@@ -955,7 +955,7 @@
           return;
         }
         const remaining = 5 - tapCount;
-        toast("Tap " + remaining + " more time" + (remaining > 1 ? "s" : "") + " to open admin panel.");
+        // toast("Tap " + remaining + " more time" + (remaining > 1 ? "s" : "") + " to open admin panel.");
         const titleEl = document.getElementById("header-title");
         titleEl.style.opacity = ".6";
         setTimeout(() => (titleEl.style.opacity = "1"), 120);

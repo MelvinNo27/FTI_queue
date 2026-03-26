@@ -1104,16 +1104,15 @@
 
       let now, todayStr, targetStr;
 
-      // FIX 1: getTargetDate skips weekends properly (Friday & Saturday).
-      // Thursday (4) → skip Fri+Sat → Sunday (+3)
-      // Friday (5) → skip Sat+Sun → Monday (+3)
-      // Saturday (6) → skip Sun → Monday (+2)
+      // FIX 1: getTargetDate skips weekends properly (Friday & Saturday are closed).
+      // Thursday (4) → target Friday (+1)
+      // Friday (5) → skip Sat+Sun → target Monday (+3)
+      // Saturday (6) → skip Sun → target Monday (+2)
       // All other days → tomorrow (+1)
       function getTargetDate(from) {
         const d = from || getServerTime();
         const day = d.getDay();
         let offset = 1;
-        if (day === 4) offset = 3; // Thursday → Sunday
         if (day === 5) offset = 3; // Friday → Monday
         if (day === 6) offset = 2; // Saturday → Monday
         return addDays(d, offset);
@@ -1170,9 +1169,13 @@
         return h * 60 + m;
       }
 
-      function isWeekend(d) {
+      function isDistributionClosed(d) {
         const day = (d || getServerTime()).getDay();
-        return day === 5 || day === 6;
+        return day === 6 || day === 0; // Saturday & Sunday have no distribution
+      }
+      function isGenerationClosed(d) {
+        const day = (d || getServerTime()).getDay();
+        return day === 5 || day === 6; // Friday & Saturday are closed for generation
       }
       function toast(msg) {
         const e = document.getElementById("toast");
@@ -1401,7 +1404,7 @@
       // ─── CLAIMING STATUS ──────────────────────────────────────────────────────────
       function getClaimingStatus() {
         if (!scheduleSettings.claimingEnabled) return "blocked";
-        if (isWeekend(getServerTime())) return "weekend";
+        if (isGenerationClosed(getServerTime())) return "weekend";
         const n = getServerTime();
         const c = n.getHours() * 60 + n.getMinutes();
         if (
@@ -1516,7 +1519,7 @@
         } else if (status === "weekend") {
           b.classList.add("show", "weekend");
           b.innerHTML =
-            "No distribution of Numbers on <strong>Friday & Saturday</strong>. Claiming resumes on <strong>Sunday</strong>.";
+            "No distribution on <strong>Saturday & Sunday</strong>. Claiming closes on <strong>Friday & Saturday</strong>, resumes on <strong>Sunday</strong> for Monday service.";
         } else if (status === "closed") {
           b.classList.add("show", "closed");
           b.innerHTML =
@@ -1590,7 +1593,7 @@
       }
 
       function renderCalendar() {
-        const tmr = addDays(now, 1);
+        const tmr = getTargetDate(now);
         const yr = tmr.getFullYear(),
           mo = tmr.getMonth();
         document.getElementById("cal-month-name").textContent = MONTHS[mo];
@@ -1634,7 +1637,7 @@
           const isPast = new Date(yr, mo, d) < new Date(todayY, todayM, todayD);
           const isTmr = d === tmrD;
           let cls = "cal-day";
-          if (isTmr && !isWeekend(tmr)) cls += " tomorrow-cell";
+          if (isTmr && !isDistributionClosed(tmr)) cls += " tomorrow-cell";
           else if (isThisToday || isPast) cls += " past";
           else {
             cls += " future-cell";
@@ -1657,7 +1660,7 @@
 
       function renderCard() {
         renderCalendar();
-        const tmr = addDays(now, 1);
+        const tmr = getTargetDate(now);
         document.getElementById("tmr-date-str").textContent =
           MONTHS[tmr.getMonth()].slice(0, 3) +
           " " +
@@ -1697,7 +1700,7 @@
           btn.style.display = "none";
           msg.style.display = "block";
           msg.innerHTML =
-            "No distribution on <strong>Friday & Saturday</strong>.<br>Come back on <strong>Sunday</strong>";
+            "No distribution on <strong>Saturday & Sunday</strong>.<br>Claiming resumes on <strong>Sunday</strong>";
         } else if (status === "closed") {
           btn.style.display = "none";
           msg.style.display = "block";
@@ -1765,7 +1768,7 @@
         editingTicketId = null;
         document.getElementById("btn-generate").textContent =
           "Generate Control Number";
-        const tmr = addDays(now, 1);
+        const tmr = getTargetDate(now);
         document.getElementById("form-date-label").textContent =
           "For: " +
           DAYS[tmr.getDay()] +
@@ -2236,7 +2239,7 @@
           const num = assignedNum;
 
           // Write the ticket record
-          const tmr = addDays(now, 1);
+          const tmr = getTargetDate(now);
           const expiry = new Date(
             targetStr + "T" + (scheduleSettings.pmEnd || "17:00") + ":00",
           );

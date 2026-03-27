@@ -121,7 +121,7 @@
           <div class="about-desc" data-i18n="aboutDesc"></div>
           <div class="about-divider"></div>
           <div class="about-team-block">
-            <div class="about-team-role" data-i18n="aboutDevRole">
+            <!-- <div class="about-team-role" data-i18n="aboutDevRole">
               Developers (Interns)
             </div>
             <div class="about-team-list">
@@ -149,7 +149,7 @@
               <div class="about-team-member">
                 <span class="atm-dot"></span>Delayht Lupoyon
               </div>
-            </div>
+            </div> -->
           </div>
           <div class="about-divider"></div>
           <div class="about-note" data-i18n="aboutNote">
@@ -1701,6 +1701,8 @@
           msg.style.display = "block";
           msg.innerHTML =
             "No distribution on <strong>Saturday & Sunday</strong>.<br>Claiming resumes on <strong>Sunday</strong>";
+          document.querySelector(".today-status-row").style.display = "none";
+          document.querySelector(".tmr-notice").style.display = "none";
         } else if (status === "closed") {
           btn.style.display = "none";
           msg.style.display = "block";

@@ -931,14 +931,14 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script>
       const firebaseConfig = {
-        apiKey: "AIzaSyAiRK64ZYzF8lBKnxmubCZEO9qrCN42B1g",
-        authDomain: "fti-queue.firebaseapp.com",
-        databaseURL: "https://fti-queue-default-rtdb.firebaseio.com",
-        projectId: "fti-queue",
-        storageBucket: "fti-queue.firebasestorage.app",
-        messagingSenderId: "794859488896",
-        appId: "1:794859488896:web:4e7dcb7e830fc4bf334865",
-        measurementId: "G-HSTB5FR8G9"
+        apiKey: "AIzaSyB_4xTbGfLZq0TYKl1JzeE3LjZLEXUkJhQ",
+        authDomain: "queue-testing-86afa.firebaseapp.com",
+        databaseURL: "https://queue-testing-86afa-default-rtdb.firebaseio.com",
+        projectId: "queue-testing-86afa",
+        storageBucket: "queue-testing-86afa.firebasestorage.app",
+        messagingSenderId: "55638527914",
+        appId: "1:55638527914:web:4dd9d2679d2419e5f265d3",
+        measurementId: "G-8HECLBGH1M"
       };
       firebase.initializeApp(firebaseConfig);
       const db = firebase.database();
@@ -1545,8 +1545,10 @@
         const pmTaken = getTakenCountFromAtomic(dateStr, "PM");
         const limAm = getLimitAm(),
           limPm = getLimitPm();
-        const aF = amTaken >= limAm,
-          pF = pmTaken >= limPm;
+        const amDisabled = slotConfig.amEnabled === false;
+        const pmDisabled = slotConfig.pmEnabled === false;
+        const aF = amTaken >= limAm || amDisabled;
+        const pF = pmTaken >= limPm || pmDisabled;
         const ba = document.getElementById("btn-am"),
           bp = document.getElementById("btn-pm");
         ba.classList.remove("active", "full");
@@ -1559,12 +1561,10 @@
         bp.style.opacity = "";
         ba.style.cursor = "pointer";
         bp.style.cursor = "pointer";
-        document.getElementById("tag-am").textContent = aF
-          ? "FULL (" + limAm + "/" + limAm + ")"
-          : amTaken + "/" + limAm + " slots";
-        document.getElementById("tag-pm").textContent = pF
-          ? "FULL (" + limPm + "/" + limPm + ")"
-          : pmTaken + "/" + limPm + " slots";
+        document.getElementById('tag-am').textContent = amDisabled ? 'DISABLED'
+          : aF ? 'FULL (' + limAm + '/' + limAm + ')' : amTaken + '/' + limAm + ' slots';
+        document.getElementById('tag-pm').textContent = pmDisabled ? 'DISABLED'
+          : pF ? 'FULL (' + limPm + '/' + limPm + ')' : pmTaken + '/' + limPm + ' slots';
         if (aF) {
           ba.classList.add("full");
           ba.disabled = true;
@@ -1670,26 +1670,21 @@
         // FIX 6: Use takenNumbers atomic counts for slot pill display
         const amTaken = getTakenCountFromAtomic(targetStr, "AM");
         const pmTaken = getTakenCountFromAtomic(targetStr, "PM");
+        const amDisabled = slotConfig.amEnabled === false;
+        const pmDisabled = slotConfig.pmEnabled === false;
         const limAm = getLimitAm(),
           limPm = getLimitPm(),
           limTotal = getLimitTotal();
         const amLeft = limAm - amTaken,
           pmLeft = limPm - pmTaken;
         const allFull = amTaken + pmTaken >= limTotal;
-        document.getElementById("pill-am-count").textContent =
-          amLeft > 0 ? amLeft + " left" : "FULL";
-        document.getElementById("pill-am-sub").textContent =
-          amTaken + "/" + limAm + " taken";
-        document
-          .getElementById("pill-am")
-          .classList.toggle("full-slot", amLeft <= 0);
-        document.getElementById("pill-pm-count").textContent =
-          pmLeft > 0 ? pmLeft + " left" : "FULL";
-        document.getElementById("pill-pm-sub").textContent =
-          pmTaken + "/" + limPm + " taken";
-        document
-          .getElementById("pill-pm")
-          .classList.toggle("full-slot", pmLeft <= 0);
+        document.getElementById('pill-am-count').textContent = amDisabled ? 'OFF' : amLeft > 0 ? amLeft + ' left' : 'FULL';
+        document.getElementById('pill-am-sub').textContent   = amDisabled ? 'Session disabled' : amTaken + '/' + limAm + ' taken';
+        document.getElementById('pill-am').classList.toggle('full-slot', amLeft <= 0 || amDisabled);
+
+        document.getElementById('pill-pm-count').textContent = pmDisabled ? 'OFF' : pmLeft > 0 ? pmLeft + ' left' : 'FULL';
+        document.getElementById('pill-pm-sub').textContent   = pmDisabled ? 'Session disabled' : pmTaken + '/' + limPm + ' taken';
+        document.getElementById('pill-pm').classList.toggle('full-slot', pmLeft <= 0 || pmDisabled);
         const btn = document.getElementById("btn-get-number");
         const msg = document.getElementById("today-closed-msg");
         const status = getClaimingStatus();
@@ -1810,6 +1805,8 @@
 
       function selectTime(t) {
         if (!isClaimingOpen()) return;
+          if (t === 'AM' && slotConfig.amEnabled === false) return;
+          if (t === 'PM' && slotConfig.pmEnabled === false) return;
         const amTaken = getTakenCountFromAtomic(targetStr, "AM");
         const pmTaken = getTakenCountFromAtomic(targetStr, "PM");
         const aF = amTaken >= getLimitAm(),

@@ -106,6 +106,16 @@
         <p class="sc-desc">Set how many slots each session has, which numbers to use, and where to start. Changes save to Firebase and apply immediately.</p>
         <div class="sc-section">
           <div class="sc-section-label">🌅 AM Session</div>
+          <div class="sc-toggle-row" id="sc-am-toggle-row">
+            <div class="sc-toggle-label-group">
+              <div class="sc-toggle-main" id="sc-am-toggle-label">✅ AM Session: ON</div>
+              <div class="sc-toggle-sub" id="sc-am-toggle-sub">AM slots are visible and available to users</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="sc-am-enabled" checked onchange="onScAmToggle()"/>
+              <span class="slider"></span>
+            </label>
+          </div>
           <div class="sc-row">
             <div class="sc-field">
               <label>Number of Slots</label>
@@ -130,6 +140,16 @@
         </div>
         <div class="sc-section">
           <div class="sc-section-label">🌇 PM Session</div>
+          <div class="sc-toggle-row" id="sc-pm-toggle-row">
+            <div class="sc-toggle-label-group">
+              <div class="sc-toggle-main" id="sc-pm-toggle-label">✅ PM Session: ON</div>
+              <div class="sc-toggle-sub" id="sc-pm-toggle-sub">PM slots are visible and available to users</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="sc-pm-enabled" checked onchange="onScPmToggle()"/>
+              <span class="slider"></span>
+            </label>
+          </div>
           <div class="sc-row">
             <div class="sc-field">
               <label>Number of Slots</label>
@@ -352,11 +372,15 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script>
 const ALLOWED_ADMIN_EMAILS=['tagumfti.admin@gmail.com'];
-const firebaseConfig={
-  apiKey:"AIzaSyAiRK64ZYzF8lBKnxmubCZEO9qrCN42B1g",authDomain:"fti-queue.firebaseapp.com",
-  databaseURL:"https://fti-queue-default-rtdb.firebaseio.com",projectId:"fti-queue",
-  storageBucket:"fti-queue.firebasestorage.app",messagingSenderId:"794859488896",
-  appId:"1:794859488896:web:4e7dcb7e830fc4bf334865"
+const firebaseConfig = {
+  apiKey: "AIzaSyB_4xTbGfLZq0TYKl1JzeE3LjZLEXUkJhQ",
+  authDomain: "queue-testing-86afa.firebaseapp.com",
+  databaseURL: "https://queue-testing-86afa-default-rtdb.firebaseio.com",
+  projectId: "queue-testing-86afa",
+  storageBucket: "queue-testing-86afa.firebasestorage.app",
+  messagingSenderId: "55638527914",
+  appId: "1:55638527914:web:4dd9d2679d2419e5f265d3",
+  measurementId: "G-8HECLBGH1M"
 };
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
@@ -444,6 +468,11 @@ function setType(session,val,silent){
   if(!silent)updateSlotPreview();
 }
 function updateSlotPreview(){
+  const amOn = slotConfig.amEnabled !== false;
+const pmOn = slotConfig.pmEnabled !== false;
+document.getElementById('sc-am-enabled').checked = amOn;
+document.getElementById('sc-pm-enabled').checked = pmOn;
+onScAmToggle(); onScPmToggle();
   const amCount=parseInt(document.getElementById('sc-am-count').value)||1;
   const amStart=parseInt(document.getElementById('sc-am-start').value)||1;
   const pmCount=parseInt(document.getElementById('sc-pm-count').value)||1;
@@ -455,6 +484,9 @@ function resetSlotDefaults(){
   document.getElementById('sc-am-count').value=75;document.getElementById('sc-am-start').value=1;
   document.getElementById('sc-pm-count').value=75;document.getElementById('sc-pm-start').value=151;
   _scAmType='odd';_scPmType='odd';setType('am','odd',true);setType('pm','odd',true);updateSlotPreview();
+  document.getElementById('sc-am-enabled').checked = true;
+document.getElementById('sc-pm-enabled').checked = true;
+onScAmToggle(); onScPmToggle();
 }
 async function saveSlotConfig(){
   if (!serverTimeSynced) return toast('Waiting for server time synchronization...');
@@ -464,7 +496,9 @@ async function saveSlotConfig(){
   const pmStart=parseInt(document.getElementById('sc-pm-start').value);
   if(!amCount||amCount<1||!amStart||amStart<1||!pmCount||pmCount<1||!pmStart||pmStart<1){showScStatus('❌ All fields must be positive numbers',false);return;}
   if(amCount>500||pmCount>500){showScStatus('❌ Max 500 slots per session',false);return;}
-  const ns={amCount,amStart,amType:_scAmType,pmCount,pmStart,pmType:_scPmType};
+  const ns={amCount,amStart,amType:_scAmType,pmCount,pmStart,pmType:_scPmType,
+  amEnabled: document.getElementById('sc-am-enabled').checked,
+  pmEnabled: document.getElementById('sc-pm-enabled').checked   };
   try{
     await db.ref('slotConfig').set(ns);
     slotConfig=ns;updateScbSummary();updateGridTitles();refreshStats();renderGrid();
@@ -1032,6 +1066,25 @@ async function deleteAllRecords(){
     document.getElementById('delete-done-text').textContent='✅ All tickets, slots, taken numbers, and disabled numbers have been deleted.';
     toast('☢️ All records deleted');calcStorage();
   }catch(e){prog.style.display='none';toast('❌ Error: '+e.message);}
+}
+
+function onScAmToggle() {
+  const isOn = document.getElementById('sc-am-enabled').checked;
+  const row = document.getElementById('sc-am-toggle-row');
+  document.getElementById('sc-am-toggle-label').textContent = isOn ? '✅ AM Session: ON' : '⛔ AM Session: OFF';
+  document.getElementById('sc-am-toggle-sub').textContent = isOn
+    ? 'AM slots are visible and available to users'
+    : 'AM slots will be hidden and disabled for users';
+  row.classList.toggle('session-off', !isOn);
+}
+function onScPmToggle() {
+  const isOn = document.getElementById('sc-pm-enabled').checked;
+  const row = document.getElementById('sc-pm-toggle-row');
+  document.getElementById('sc-pm-toggle-label').textContent = isOn ? '✅ PM Session: ON' : '⛔ PM Session: OFF';
+  document.getElementById('sc-pm-toggle-sub').textContent = isOn
+    ? 'PM slots are visible and available to users'
+    : 'PM slots will be hidden and disabled for users';
+  row.classList.toggle('session-off', !isOn);
 }
 
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];

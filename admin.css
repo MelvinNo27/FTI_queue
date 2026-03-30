@@ -609,3 +609,29 @@ input:checked     + .slider:before { transform: translateX(26px); }
   .sc-row { grid-template-columns: 1fr; }
   .db-node-grid { grid-template-columns: 1fr 1fr; }
 }
+
+.sc-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  transition: background 0.2s, border-color 0.2s;
+}
+.sc-toggle-row.session-off {
+  background: #fff7f7;
+  border-color: #fca5a5;
+}
+.sc-toggle-main {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 2px;
+}
+.sc-toggle-sub {
+  font-size: 11px;
+  color: #64748b;
+}

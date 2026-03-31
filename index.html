@@ -1701,6 +1701,9 @@
         if (status === "blocked") {
           btn.style.display = "none";
           msg.style.display = "none";
+          document.querySelector(".today-status-row").style.display = "none";
+          document.querySelector(".tmr-notice").style.display = "none";
+          document.querySelector(".cal-notice").style.display = "none";
         } else if (status === "weekend") {
           btn.style.display = "none";
           msg.style.display = "block";
@@ -1727,6 +1730,9 @@
           btn.textContent = "Get My Control Number";
           btn.classList.remove("full-btn");
           msg.style.display = "none";
+          document.querySelector(".today-status-row").style.display = "";
+          document.querySelector(".tmr-notice").style.display = "";
+          document.querySelector(".cal-notice").style.display = "";
         }
       }
 

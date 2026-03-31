@@ -1677,7 +1677,9 @@
           limTotal = getLimitTotal();
         const amLeft = limAm - amTaken,
           pmLeft = limPm - pmTaken;
-        const allFull = amTaken + pmTaken >= limTotal;
+        const amUnavailable = amTaken >= limAm || amDisabled;
+        const pmUnavailable = pmTaken >= limPm || pmDisabled;
+        const allUnavailable = amUnavailable && pmUnavailable;
         document.getElementById('pill-am-count').textContent = amDisabled ? 'OFF' : amLeft > 0 ? amLeft + ' left' : 'FULL';
         document.getElementById('pill-am-sub').textContent   = amDisabled ? 'Session disabled' : amTaken + '/' + limAm + ' taken';
         document.getElementById('pill-am').classList.toggle('full-slot', amLeft <= 0 || amDisabled);
@@ -1688,6 +1690,14 @@
         const btn = document.getElementById("btn-get-number");
         const msg = document.getElementById("today-closed-msg");
         const status = getClaimingStatus();
+        let unavailMsg = "All Slots Full for Tomorrow";
+        if (amDisabled && pmDisabled) {
+          unavailMsg = "All Sessions Disabled";
+        } else if (amUnavailable && pmUnavailable) {
+          unavailMsg = amDisabled || pmDisabled
+            ? "No Available Slots for Tomorrow"
+            : "All Slots Full for Tomorrow";
+        }
         if (status === "blocked") {
           btn.style.display = "none";
           msg.style.display = "none";
@@ -1704,11 +1714,11 @@
           msg.innerHTML =
             "Claiming closed. Opens <strong>" +
             fmt(scheduleSettings.claimStart) +
-            "</strong>";
-        } else if (allFull) {
+            " Tomorrow</strong>";
+        } else if (allUnavailable) {
           btn.style.display = "block";
           btn.disabled = true;
-          btn.textContent = "All Slots Full for Tomorrow";
+          btn.textContent = unavailMsg;
           btn.classList.add("full-btn");
           msg.style.display = "none";
         } else {

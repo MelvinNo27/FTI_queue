@@ -45,9 +45,6 @@
   </div>
 </div>
 
-
-
-
     <div class="header">
       <div class="header-inner">
         <div class="header-text">
@@ -60,12 +57,6 @@
             P20 DDN CONTROL NUMBER
           </h1>
           <p data-i18n="appSubtitle">Get your Control number</p>
-        </div>
-
-        <div id="pht-clock" style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;margin:0 10px;">
-          <div id="clock-time" style="font-size:17px;font-weight:800;color:#fff;letter-spacing:0.5px;font-family:'Courier Prime',monospace;line-height:1;">--:--:-- --</div>
-          <div id="clock-date" style="font-size:10px;color:rgba(255,255,255,0.65);font-weight:600;text-align:right;"></div>
-          <div style="font-size:9px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);border-radius:6px;padding:2px 6px;color:rgba(255,255,255,0.85);font-weight:700;letter-spacing:0.5px;">🇵🇭 PHT</div>
         </div>
         <button
           class="burger-btn"
@@ -106,7 +97,14 @@
         <span data-i18n="menuAbout">About Us</span>
       </button>
       <div class="drawer-footer" data-i18n="drawerFooter">
-        P20 DDN Queue System
+        <!-- Live clock in drawer -->
+        <div style="margin: 12px 14px 0; background: linear-gradient(135deg, #1e3a5f, #2563eb); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+          <div>
+            <div id="drawer-clock-time" style="font-size: 20px; font-weight: 800; color: #fff; font-family: 'Courier Prime', monospace; letter-spacing: 0.5px; line-height: 1;">--:--:-- --</div>
+            <div id="drawer-clock-date" style="font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600; margin-top: 3px;"></div>
+          </div>
+          <div style="font-size: 9px; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; padding: 4px 8px; color: rgba(255,255,255,0.9); font-weight: 700; letter-spacing: 0.5px; align-self: flex-start;">🇵🇭 PHT</div>
+        </div>
       </div>
     </div>
 
@@ -2938,10 +2936,16 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
               let h = d.getHours(), m = d.getMinutes(), s = d.getSeconds();
               const ap = h >= 12 ? 'PM' : 'AM';
               h = h % 12 || 12;
+              const timeStr = pad(h) + ':' + pad(m) + ':' + pad(s) + ' ' + ap;
+              const dateStr = DAYS_C[d.getDay()] + ', ' + MONTHS_C[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
               const timeEl = document.getElementById('clock-time');
               const dateEl = document.getElementById('clock-date');
-              if (timeEl) timeEl.textContent = pad(h) + ':' + pad(m) + ':' + pad(s) + ' ' + ap;
-              if (dateEl) dateEl.textContent = DAYS_C[d.getDay()] + ', ' + MONTHS_C[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+              if (timeEl) timeEl.textContent = timeStr;
+              if (dateEl) dateEl.textContent = dateStr;
+              const dTimeEl = document.getElementById('drawer-clock-time');
+              const dDateEl = document.getElementById('drawer-clock-date');
+              if (dTimeEl) dTimeEl.textContent = timeStr;
+              if (dDateEl) dDateEl.textContent = dateStr;
             }
 
             tickClock();

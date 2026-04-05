@@ -11,39 +11,142 @@
     <link rel="stylesheet" href="home.css" />
   </head>
   <body>
-
     <div class="loading-overlay" id="time-sync-overlay">
       <div class="spinner"></div>
       <div class="loading-text">Synchronizing Server Time...</div>
     </div>
 
     <!-- Welcome / Beta Notice Popup -->
-<div id="welcome-overlay" style="display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(3px);">
-  <div style="background:#fff; border-radius:20px; width:100%; max-width:400px; box-shadow:0 24px 60px rgba(0,0,0,0.25); overflow:hidden; animation:slideUp 0.25s cubic-bezier(0.4,0,0.2,1);">
-    <div style="background:linear-gradient(135deg,#1e3a5f,#2563eb); padding:20px 20px 16px; display:flex; align-items:center; gap:12px;">
-      <div style="font-size:28px; line-height:1;">🎫</div>
-      <div>
-        <div style="color:#fff; font-weight:800; font-size:15px; font-family:Nunito,sans-serif;">P20 DDN Control Number System</div>
-        <div style="color:rgba(255,255,255,0.65); font-size:12px; margin-top:2px;">Version 2.0 — Beta Phase</div>
+    <div
+      id="welcome-overlay"
+      style="
+        display: flex;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        backdrop-filter: blur(3px);
+      "
+    >
+      <div
+        style="
+          background: #fff;
+          border-radius: 20px;
+          width: 100%;
+          max-width: 400px;
+          box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+          overflow: hidden;
+          animation: slideUp 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        "
+      >
+        <div
+          style="
+            background: linear-gradient(135deg, #1e3a5f, #2563eb);
+            padding: 20px 20px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+          "
+        >
+          <div style="font-size: 28px; line-height: 1">🎫</div>
+          <div>
+            <div
+              style="
+                color: #fff;
+                font-weight: 800;
+                font-size: 15px;
+                font-family: Nunito, sans-serif;
+              "
+            >
+              P20 DDN Control Number System
+            </div>
+            <div
+              style="
+                color: rgba(255, 255, 255, 0.65);
+                font-size: 12px;
+                margin-top: 2px;
+              "
+            >
+              Version 2.0 — Beta Phase
+            </div>
+          </div>
+        </div>
+        <div style="padding: 20px">
+          <div
+            style="
+              background: #fffbeb;
+              border: 1px solid #fde68a;
+              border-radius: 10px;
+              padding: 10px 14px;
+              margin-bottom: 14px;
+              display: flex;
+              gap: 10px;
+              align-items: center;
+            "
+          >
+            <span style="font-size: 16px">⚠️</span>
+            <span
+              style="
+                font-size: 13px;
+                color: #92400e;
+                font-weight: 700;
+                font-family: Nunito, sans-serif;
+              "
+              >PLEASE READ</span
+            >
+          </div>
+          <p
+            style="
+              font-size: 14px;
+              color: #1e293b;
+              line-height: 1.7;
+              margin: 0 0 10px;
+              font-family: Nunito, sans-serif;
+            "
+          >
+            Welcome! This system is currently in its
+            <strong>first phase of deployment</strong>. As with any new system,
+            you may encounter occasional bugs, errors, or unexpected behavior.
+          </p>
+          <p
+            style="
+              font-size: 14px;
+              color: #4b5563;
+              line-height: 1.7;
+              margin: 0 0 18px;
+              font-family: Nunito, sans-serif;
+            "
+          >
+            We kindly ask for your patience and understanding as we continue to
+            improve the system. If you experience any issues, please inform the
+            staff on-site so we can address them promptly. Thank you! 🙏
+          </p>
+          <button
+            onclick="dismissWelcome()"
+            style="
+              width: 100%;
+              padding: 13px;
+              background: linear-gradient(135deg, #1e3a5f, #2563eb);
+              color: #fff;
+              border: none;
+              border-radius: 12px;
+              font-size: 15px;
+              font-weight: 800;
+              cursor: pointer;
+              font-family: Nunito, sans-serif;
+              transition: opacity 0.15s;
+            "
+            onmouseover="this.style.opacity = '0.88'"
+            onmouseout="this.style.opacity = '1'"
+          >
+            I Understand — Continue
+          </button>
+        </div>
       </div>
     </div>
-    <div style="padding:20px;">
-      <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:10px 14px; margin-bottom:14px; display:flex; gap:10px; align-items:center;">
-        <span style="font-size:16px;">⚠️</span>
-        <span style="font-size:13px; color:#92400e; font-weight:700; font-family:Nunito,sans-serif;">PLEASE READ</span>
-      </div>
-      <p style="font-size:14px; color:#1e293b; line-height:1.7; margin:0 0 10px; font-family:Nunito,sans-serif;">
-        Welcome! This system is currently in its <strong>first phase of deployment</strong>. As with any new system, you may encounter occasional bugs, errors, or unexpected behavior.
-      </p>
-      <p style="font-size:14px; color:#4b5563; line-height:1.7; margin:0 0 18px; font-family:Nunito,sans-serif;">
-        We kindly ask for your patience and understanding as we continue to improve the system. If you experience any issues, please inform the staff on-site so we can address them promptly. Thank you! 🙏
-      </p>
-      <button onclick="dismissWelcome()" style="width:100%; padding:13px; background:linear-gradient(135deg,#1e3a5f,#2563eb); color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:800; cursor:pointer; font-family:Nunito,sans-serif; transition:opacity 0.15s;" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
-        I Understand — Continue
-      </button>
-    </div>
-  </div>
-</div>
 
     <div class="header">
       <div class="header-inner">
@@ -51,7 +154,7 @@
           <h1
             id="header-title"
             onclick="handleTitleTap()"
-            style="cursor: pointer; user-select: none; pointer-events: auto;"
+            style="cursor: pointer; user-select: none; pointer-events: auto"
             data-i18n="appTitle"
           >
             P20 DDN CONTROL NUMBER
@@ -98,12 +201,57 @@
       </button>
       <div class="drawer-footer" data-i18n="drawerFooter">
         <!-- Live clock in drawer -->
-        <div style="margin: 12px 14px 0; background: linear-gradient(135deg, #1e3a5f, #2563eb); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+        <div
+          style="
+            margin: 12px 14px 0;
+            background: linear-gradient(135deg, #1e3a5f, #2563eb);
+            border-radius: 12px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+          "
+        >
           <div>
-            <div id="drawer-clock-time" style="font-size: 20px; font-weight: 800; color: #fff; font-family: 'Courier Prime', monospace; letter-spacing: 0.5px; line-height: 1;">--:--:-- --</div>
-            <div id="drawer-clock-date" style="font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600; margin-top: 3px;"></div>
+            <div
+              id="drawer-clock-time"
+              style="
+                font-size: 20px;
+                font-weight: 800;
+                color: #fff;
+                font-family: &quot;Courier Prime&quot;, monospace;
+                letter-spacing: 0.5px;
+                line-height: 1;
+              "
+            >
+              --:--:-- --
+            </div>
+            <div
+              id="drawer-clock-date"
+              style="
+                font-size: 11px;
+                color: rgba(255, 255, 255, 0.7);
+                font-weight: 600;
+                margin-top: 3px;
+              "
+            ></div>
           </div>
-          <div style="font-size: 9px; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; padding: 4px 8px; color: rgba(255,255,255,0.9); font-weight: 700; letter-spacing: 0.5px; align-self: flex-start;">🇵🇭 PHT</div>
+          <div
+            style="
+              font-size: 9px;
+              background: rgba(255, 255, 255, 0.18);
+              border: 1px solid rgba(255, 255, 255, 0.3);
+              border-radius: 6px;
+              padding: 4px 8px;
+              color: rgba(255, 255, 255, 0.9);
+              font-weight: 700;
+              letter-spacing: 0.5px;
+              align-self: flex-start;
+            "
+          >
+            🇵🇭 PHT
+          </div>
         </div>
       </div>
     </div>
@@ -222,11 +370,29 @@
           <div class="cal-days" id="cal-days"></div>
         </div>
         <div class="cal-legend">
-        <span><span class="leg-dot tmr"></span>Tomorrow (Control Number date)</span>
-        <span><span class="leg-dot past"></span>Today &amp; past (unavailable)</span>
-        <span><span class="leg-dot" style="background:#fee2e2;border:1.5px solid #fca5a5;"></span>Holiday / Closed</span>
-        <span><span class="leg-dot" style="background:#fef9c3;border:1.5px solid #fde047;"></span>Half-day (tap for details)</span>
-      </div>
+          <span
+            ><span class="leg-dot tmr"></span>Tomorrow (Control Number
+            date)</span
+          >
+          <span
+            ><span class="leg-dot past"></span>Today &amp; past
+            (unavailable)</span
+          >
+          <span
+            ><span
+              class="leg-dot"
+              style="background: #fee2e2; border: 1.5px solid #fca5a5"
+            ></span
+            >Holiday / Closed</span
+          >
+          <span
+            ><span
+              class="leg-dot"
+              style="background: #fef9c3; border: 1.5px solid #fde047"
+            ></span
+            >Half-day (tap for details)</span
+          >
+        </div>
         <div class="cal-notice">
           📋
           <span data-i18n="calNotice"
@@ -550,401 +716,26 @@
 
     <div class="toast" id="toast"></div>
 
-    <style>
-      .header-inner {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-      }
-      .header-text {
-        flex: 1;
-      }
-      .burger-btn {
-        width: 44px;
-        height: 44px;
-        background: rgba(255, 255, 255, 0.18);
-        border: 1.5px solid rgba(255, 255, 255, 0.35);
-        border-radius: 12px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 5px;
-        cursor: pointer;
-        padding: 0;
-        flex-shrink: 0;
-        transition: background 0.15s;
-      }
-      .burger-btn:hover {
-        background: rgba(255, 255, 255, 0.28);
-      }
-      .burger-btn span {
-        display: block;
-        width: 20px;
-        height: 2.5px;
-        background: #fff;
-        border-radius: 99px;
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      .burger-btn.open span:nth-child(1) {
-        transform: translateY(7.5px) rotate(45deg);
-      }
-      .burger-btn.open span:nth-child(2) {
-        opacity: 0;
-        transform: scaleX(0);
-      }
-      .burger-btn.open span:nth-child(3) {
-        transform: translateY(-7.5px) rotate(-45deg);
-      }
-      .drawer-overlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.45);
-        z-index: 1100;
-        backdrop-filter: blur(2px);
-      }
-      .drawer-overlay.open {
-        display: block;
-        animation: fadeIn 0.2s;
-      }
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-        }
-        to {
-          opacity: 1;
-        }
-      }
-      .drawer {
-        position: fixed;
-        top: 0;
-        right: -300px;
-        width: 280px;
-        height: 100%;
-        background: #fff;
-        z-index: 1200;
-        box-shadow: -6px 0 32px rgba(0, 0, 0, 0.18);
-        display: flex;
-        flex-direction: column;
-        transition: right 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-        overflow-y: auto;
-      }
-      .drawer.open {
-        right: 0;
-      }
-      .drawer-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 20px 18px 16px;
-        background: linear-gradient(135deg, #1e3a5f, #2563eb);
-        color: #fff;
-      }
-      .drawer-logo {
-        font-size: 24px;
-      }
-      .drawer-title {
-        font-size: 16px;
-        font-weight: 800;
-        flex: 1;
-      }
-      .drawer-close {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        border: none;
-        background: rgba(255, 255, 255, 0.2);
-        color: #fff;
-        font-size: 15px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background 0.15s;
-      }
-      .drawer-close:hover {
-        background: rgba(255, 255, 255, 0.35);
-      }
-      .drawer-section-label {
-        font-size: 11px;
-        font-weight: 800;
-        color: #6b7280;
-        text-transform: uppercase;
-        letter-spacing: 0.7px;
-        padding: 16px 18px 8px;
-      }
-      .lang-options {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        padding: 0 14px 4px;
-      }
-      .lang-btn {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 10px 12px;
-        border: 1.5px solid #e5e7eb;
-        border-radius: 10px;
-        background: #f9fafb;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 600;
-        color: #374151;
-        transition: all 0.15s;
-        text-align: left;
-      }
-      .lang-btn:hover {
-        border-color: #3b82f6;
-        background: #eff6ff;
-        color: #1d4ed8;
-      }
-      .lang-btn.active {
-        border-color: #2563eb;
-        background: #dbeafe;
-        color: #1d4ed8;
-      }
-      .lang-flag {
-        font-size: 18px;
-      }
-      .lang-name {
-        flex: 1;
-      }
-      .lang-check {
-        font-size: 14px;
-        color: #2563eb;
-        font-weight: 800;
-        width: 16px;
-        text-align: center;
-      }
-      .drawer-divider {
-        height: 1px;
-        background: #f3f4f6;
-        margin: 10px 0;
-      }
-      .drawer-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 13px 18px;
-        background: none;
-        border: none;
-        width: 100%;
-        text-align: left;
-        font-size: 14px;
-        font-weight: 600;
-        color: #374151;
-        cursor: pointer;
-        transition: background 0.15s;
-      }
-      .drawer-item:hover {
-        background: #f3f4f6;
-      }
-      .di-icon {
-        font-size: 18px;
-        width: 24px;
-        text-align: center;
-      }
-      .drawer-footer {
-        margin-top: auto;
-        padding: 18px;
-        font-size: 11px;
-        color: #9ca3af;
-        text-align: center;
-        border-top: 1px solid #f3f4f6;
-      }
-      .about-overlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.55);
-        z-index: 1300;
-        align-items: center;
-        justify-content: center;
-        backdrop-filter: blur(3px);
-        padding: 16px;
-      }
-      .about-overlay.open {
-        display: flex;
-        animation: fadeIn 0.2s;
-      }
-      .about-modal {
-        background: #fff;
-        border-radius: 20px;
-        width: 100%;
-        max-width: 420px;
-        max-height: 92vh;
-        overflow-y: auto;
-        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
-        animation: slideUp 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      @keyframes slideUp {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: none;
-        }
-      }
-      .about-header {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        padding: 20px 20px 0;
-      }
-      .about-logo {
-        font-size: 40px;
-      }
-      .about-close {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        border: none;
-        background: #f3f4f6;
-        color: #374151;
-        font-size: 15px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background 0.15s;
-      }
-      .about-close:hover {
-        background: #e5e7eb;
-      }
-      .about-body {
-        padding: 12px 20px 16px;
-      }
-      .about-app-name {
-        font-size: 18px;
-        font-weight: 800;
-        color: #1e293b;
-        margin-bottom: 3px;
-        line-height: 1.3;
-      }
-      .about-version {
-        font-size: 12px;
-        color: #9ca3af;
-        font-weight: 600;
-        margin-bottom: 14px;
-      }
-      .about-desc {
-        font-size: 13px;
-        color: #4b5563;
-        line-height: 1.6;
-        margin-bottom: 16px;
-      }
-      .about-divider {
-        height: 1px;
-        background: #f3f4f6;
-        margin: 14px 0;
-      }
-      .about-note {
-        font-size: 12px;
-        color: #92400e;
-        background: #fffbeb;
-        border: 1px solid #fde68a;
-        border-radius: 8px;
-        padding: 10px 12px;
-        line-height: 1.5;
-      }
-      .about-footer {
-        padding: 0 20px 20px;
-      }
-      .about-ok-btn {
-        width: 100%;
-        padding: 12px;
-        background: linear-gradient(135deg, #2563eb, #1d4ed8);
-        color: #fff;
-        border: none;
-        border-radius: 12px;
-        font-size: 15px;
-        font-weight: 800;
-        cursor: pointer;
-        transition: opacity 0.15s;
-      }
-      .about-section-label {
-        font-size: 11px;
-        font-weight: 800;
-        color: #6b7280;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-        margin-bottom: 8px;
-        margin-top: 4px;
-      }
-      .about-team-block {
-        margin-bottom: 14px;
-      }
-      .about-team-role {
-        font-size: 13px;
-        font-weight: 800;
-        color: #1e293b;
-        margin-bottom: 8px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-      .about-team-list {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        padding-left: 4px;
-      }
-      .about-team-member {
-        display: flex;
-        align-items: center;
-        gap: 9px;
-        font-size: 13px;
-        font-weight: 600;
-        color: #374151;
-      }
-      .atm-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: #3b82f6;
-        flex-shrink: 0;
-      }
-      .about-ok-btn:hover {
-        opacity: 0.9;
-      }
-      .loading-overlay {
-        position: fixed; inset: 0; background: #fff; z-index: 9999;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        transition: opacity .3s, visibility .3s;
-      }
-      .loading-overlay.hide { opacity: 0; visibility: hidden; pointer-events: none; }
-      .spinner {
-        width: 40px; height: 40px; border: 4px solid #f3f4f6;
-        border-top: 4px solid #2563eb; border-radius: 50%;
-        animation: spin 1s linear infinite; margin-bottom: 16px;
-      }
-      @keyframes spin { to { transform: rotate(360deg); } }
-      .loading-text { font-size: 15px; font-weight: 700; color: #1e3a5f; }
-    </style>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script>
-          const firebaseConfig = {
-            apiKey: "AIzaSyAiRK64ZYzF8lBKnxmubCZEO9qrCN42B1g",
-            authDomain: "fti-queue.firebaseapp.com",
-            databaseURL: "https://fti-queue-default-rtdb.firebaseio.com",
-            projectId: "fti-queue",
-            storageBucket: "fti-queue.firebasestorage.app",
-            messagingSenderId: "794859488896",
-            appId: "1:794859488896:web:4e7dcb7e830fc4bf334865",
-            measurementId: "G-HSTB5FR8G9"
-          };
+      const firebaseConfig = {
+        apiKey: "AIzaSyAiRK64ZYzF8lBKnxmubCZEO9qrCN42B1g",
+        authDomain: "fti-queue.firebaseapp.com",
+        databaseURL: "https://fti-queue-default-rtdb.firebaseio.com",
+        projectId: "fti-queue",
+        storageBucket: "fti-queue.firebasestorage.app",
+        messagingSenderId: "794859488896",
+        appId: "1:794859488896:web:4e7dcb7e830fc4bf334865",
+        measurementId: "G-HSTB5FR8G9",
+      };
       firebase.initializeApp(firebaseConfig);
       const db = firebase.database();
 
       // ─── ADMIN REDIRECT LOGIC ────────────────────────────────────────────────────
-      let tapCount = 0, tapTimer = null;
+      let tapCount = 0,
+        tapTimer = null;
       function handleTitleTap() {
         tapCount++;
         if (tapTimer) clearTimeout(tapTimer);
@@ -959,7 +750,9 @@
         const titleEl = document.getElementById("header-title");
         titleEl.style.opacity = ".6";
         setTimeout(() => (titleEl.style.opacity = "1"), 120);
-        tapTimer = setTimeout(() => { tapCount = 0; }, 3000);
+        tapTimer = setTimeout(() => {
+          tapCount = 0;
+        }, 3000);
       }
 
       // Synchronize with Firebase Server Time to prevent device time bypass
@@ -979,98 +772,134 @@
       }
 
       function trackPresence() {
-        const presenceRef = db.ref("presence/" + (localStorage.getItem("pq_device_id") || (Math.random().toString(36).substring(2) + Date.now())));
-        if (!localStorage.getItem("pq_device_id")) localStorage.setItem("pq_device_id", presenceRef.key);
-        
+        const presenceRef = db.ref(
+          "presence/" +
+            (localStorage.getItem("pq_device_id") ||
+              Math.random().toString(36).substring(2) + Date.now()),
+        );
+        if (!localStorage.getItem("pq_device_id"))
+          localStorage.setItem("pq_device_id", presenceRef.key);
+
         db.ref(".info/connected").on("value", (snap) => {
           if (snap.val() === true) {
             presenceRef.onDisconnect().remove();
             presenceRef.set({
               lastActive: firebase.database.ServerValue.TIMESTAMP,
-              ua: navigator.userAgent
+              ua: navigator.userAgent,
             });
           }
         });
       }
 
       async function trackVisitor() {
-        const vid = localStorage.getItem("pq_visitor_id") || (Math.random().toString(36).substring(2) + Date.now());
+        const vid =
+          localStorage.getItem("pq_visitor_id") ||
+          Math.random().toString(36).substring(2) + Date.now();
         if (!localStorage.getItem("pq_visitor_id")) {
           localStorage.setItem("pq_visitor_id", vid);
           const visitorRef = db.ref("visitors/" + vid);
           await visitorRef.set({
             firstVisit: firebase.database.ServerValue.TIMESTAMP,
-            ua: navigator.userAgent
+            ua: navigator.userAgent,
           });
         }
       }
 
       async function checkMonthlyLimitByName(field, value, limitCount) {
-  if (!value || value.trim().length < 2 || !limitCount || limitCount === 0) return null;
-  const normVal = value.trim().toLowerCase();
-  const snap = await db.ref('tickets').once('value');
-  if (!snap.exists()) return null;
- 
-  const targetDate = new Date(targetStr + 'T00:00:00');
-  const windowStart = new Date(targetDate);
-  windowStart.setDate(windowStart.getDate() - 29);
-  const windowStartStr = toDateStr(windowStart);
- 
-  let count = 0;
-  let lastFound = null;
-  snap.forEach(c => {
-    const t = c.val();
-    if (!t || !t.date) return;
-    if (t.date < windowStartStr || t.date > targetStr) return;
-    if (editingTicketId && c.key === editingTicketId) return;
-    
-    // Check if the name matches either beneficiary slot if we are checking a beneficiary
-    const isBenCheck = field === 'ben1Name' || field === 'ben2Name';
-    const match = isBenCheck 
-      ? (t.ben1Name && t.ben1Name.trim().toLowerCase() === normVal) || (t.ben2Name && t.ben2Name.trim().toLowerCase() === normVal)
-      : (t[field] && t[field].trim().toLowerCase() === normVal);
+        if (
+          !value ||
+          value.trim().length < 2 ||
+          !limitCount ||
+          limitCount === 0
+        )
+          return null;
+        const normVal = value.trim().toLowerCase();
 
-    if (match) {
-      count++;
-      lastFound = { id: c.key, ...t };
-    }
-  });
- 
-  return count >= limitCount ? { count, lastFound, limitCount } : null;
-}
- 
-async function checkMonthlyLimitByID(idType, idNum, limitCount) {
-  if (!idType || !idNum || !limitCount || limitCount === 0) return null;
-  const normType = idType.trim().toLowerCase();
-  const normNum  = idNum.trim().toLowerCase();
-  const snap = await db.ref('tickets').once('value');
-  if (!snap.exists()) return null;
- 
-  const targetDate = new Date(targetStr + 'T00:00:00');
-  const windowStart = new Date(targetDate);
-  windowStart.setDate(windowStart.getDate() - 29);
-  const windowStartStr = toDateStr(windowStart);
- 
-  let count = 0;
-  let lastFound = null;
-  snap.forEach(c => {
-    const t = c.val();
-    if (!t || !t.date) return;
-    if (t.date < windowStartStr || t.date > targetStr) return;
-    if (editingTicketId && c.key === editingTicketId) return;
+        const targetDate = new Date(targetStr + "T00:00:00");
+        const windowStart = new Date(targetDate);
+        windowStart.setDate(windowStart.getDate() - 29);
+        const windowStartStr = toDateStr(windowStart);
 
-    // Check both ID slots
-    const match1 = t.idType && t.idNumber && t.idType.trim().toLowerCase() === normType && t.idNumber.trim().toLowerCase() === normNum;
-    const match2 = t.idType2 && t.idNumber2 && t.idType2.trim().toLowerCase() === normType && t.idNumber2.trim().toLowerCase() === normNum;
+        // Optimized: Only fetch tickets within the 30-day window
+        const snap = await db
+          .ref("tickets")
+          .orderByChild("date")
+          .startAt(windowStartStr)
+          .endAt(targetStr)
+          .once("value");
 
-    if (match1 || match2) {
-      count++;
-      lastFound = { id: c.key, ...t };
-    }
-  });
- 
-  return count >= limitCount ? { count, lastFound, limitCount } : null;
-}
+        if (!snap.exists()) return null;
+
+        let count = 0;
+        let lastFound = null;
+        snap.forEach((c) => {
+          const t = c.val();
+          if (!t || !t.date) return;
+          if (editingTicketId && c.key === editingTicketId) return;
+
+          // Check if the name matches either beneficiary slot if we are checking a beneficiary
+          const isBenCheck = field === "ben1Name" || field === "ben2Name";
+          const match = isBenCheck
+            ? (t.ben1Name && t.ben1Name.trim().toLowerCase() === normVal) ||
+              (t.ben2Name && t.ben2Name.trim().toLowerCase() === normVal)
+            : t[field] && t[field].trim().toLowerCase() === normVal;
+
+          if (match) {
+            count++;
+            lastFound = { id: c.key, ...t };
+          }
+        });
+
+        return count >= limitCount ? { count, lastFound, limitCount } : null;
+      }
+
+      async function checkMonthlyLimitByID(idType, idNum, limitCount) {
+        if (!idType || !idNum || !limitCount || limitCount === 0) return null;
+        const normType = idType.trim().toLowerCase();
+        const normNum = idNum.trim().toLowerCase();
+
+        const targetDate = new Date(targetStr + "T00:00:00");
+        const windowStart = new Date(targetDate);
+        windowStart.setDate(windowStart.getDate() - 29);
+        const windowStartStr = toDateStr(windowStart);
+
+        // Optimized: Only fetch tickets within the 30-day window
+        const snap = await db
+          .ref("tickets")
+          .orderByChild("date")
+          .startAt(windowStartStr)
+          .endAt(targetStr)
+          .once("value");
+
+        if (!snap.exists()) return null;
+
+        let count = 0;
+        let lastFound = null;
+        snap.forEach((c) => {
+          const t = c.val();
+          if (!t || !t.date) return;
+          if (editingTicketId && c.key === editingTicketId) return;
+
+          // Check both ID slots
+          const match1 =
+            t.idType &&
+            t.idNumber &&
+            t.idType.trim().toLowerCase() === normType &&
+            t.idNumber.trim().toLowerCase() === normNum;
+          const match2 =
+            t.idType2 &&
+            t.idNumber2 &&
+            t.idType2.trim().toLowerCase() === normType &&
+            t.idNumber2.trim().toLowerCase() === normNum;
+
+          if (match1 || match2) {
+            count++;
+            lastFound = { id: c.key, ...t };
+          }
+        });
+
+        return count >= limitCount ? { count, lastFound, limitCount } : null;
+      }
 
       function initializeAfterSync() {
         // Only initialize these once we have accurate server time
@@ -1086,10 +915,10 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
         document.getElementById("time-sync-overlay").classList.add("hide");
 
         // Welcome popup check (wait for server time)
-        const welcomeKey = 'pq_welcome_seen';
+        const welcomeKey = "pq_welcome_seen";
         const welcomeToday = now.toISOString().slice(0, 10);
         if (localStorage.getItem(welcomeKey) === welcomeToday) {
-          document.getElementById('welcome-overlay').style.display = 'none';
+          document.getElementById("welcome-overlay").style.display = "none";
         }
 
         // Initial renders
@@ -1194,7 +1023,7 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
         myTicketIds = JSON.parse(
           localStorage.getItem("pq_my_ticket_ids") || "[]",
         );
-        let ticketsLoading = true;
+      let ticketsLoading = true;
 
       let scheduleSettings = {
         claimStart: "06:00",
@@ -1237,8 +1066,8 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
         return Promise.race([
           promise,
           new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("timeout")), ms)
-          )
+            setTimeout(() => reject(new Error("timeout")), ms),
+          ),
         ]);
       }
 
@@ -1530,9 +1359,11 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
         applySlotButtonStates(targetStr, selectedTime);
         updateFormWindowTags();
 
-          // Clear selectedTime if its session just got disabled by admin
-        if (selectedTime === 'AM' && slotConfig.amEnabled === false) selectedTime = null;
-        if (selectedTime === 'PM' && slotConfig.pmEnabled === false) selectedTime = null;
+        // Clear selectedTime if its session just got disabled by admin
+        if (selectedTime === "AM" && slotConfig.amEnabled === false)
+          selectedTime = null;
+        if (selectedTime === "PM" && slotConfig.pmEnabled === false)
+          selectedTime = null;
       });
 
       db.ref("scheduleSettings").on("value", (s) => {
@@ -1550,37 +1381,39 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
         disabledNumbers = s.val() || {};
         renderTickets();
       });
-      
 
       // FIX 4: takenNumbers is now the single source of truth for slot counts.
       // The tickets listener no longer writes back to slots/ (removed that sync).
 
-        let isFirstDateSettingsLoad = true;
-        db.ref("dateSettings").on("value", (s) => {
-          calDateSettings = s.val() || {};
+      let isFirstDateSettingsLoad = true;
+      db.ref("dateSettings").on("value", (s) => {
+        calDateSettings = s.val() || {};
 
-          if (!isFirstDateSettingsLoad) {
-            toast("📅 Schedule updated — refreshing...");
-          }
-          isFirstDateSettingsLoad = false;
+        if (!isFirstDateSettingsLoad) {
+          toast("📅 Schedule updated — refreshing...");
+        }
+        isFirstDateSettingsLoad = false;
 
-          renderCalendar();
-          renderCard();
-          updateStatusBanner();
-          updateSlotBanner();
+        renderCalendar();
+        renderCard();
+        updateStatusBanner();
+        updateSlotBanner();
 
-          if (document.getElementById("form-card").classList.contains("show")) {
-            const editDate = editingTicketId
-              ? (myTickets.find(x => x.id === editingTicketId) || {}).date || targetStr
-              : targetStr;
-            applySlotButtonStates(editDate, selectedTime);
+        if (document.getElementById("form-card").classList.contains("show")) {
+          const editDate = editingTicketId
+            ? (myTickets.find((x) => x.id === editingTicketId) || {}).date ||
+              targetStr
+            : targetStr;
+          applySlotButtonStates(editDate, selectedTime);
 
-            // Clear selectedTime if the session got disabled for the target date
-            const _ds = calDateSettings[targetStr] || {};
-            if (selectedTime === 'AM' && _ds.amEnabled === false) selectedTime = null;
-            if (selectedTime === 'PM' && _ds.pmEnabled === false) selectedTime = null;
-          }
-        });
+          // Clear selectedTime if the session got disabled for the target date
+          const _ds = calDateSettings[targetStr] || {};
+          if (selectedTime === "AM" && _ds.amEnabled === false)
+            selectedTime = null;
+          if (selectedTime === "PM" && _ds.pmEnabled === false)
+            selectedTime = null;
+        }
+      });
 
       db.ref("takenNumbers").on("value", (s) => {
         takenNumbersData = s.val() || {};
@@ -1597,10 +1430,14 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
           applySlotButtonStates(editDate, selectedTime);
 
           // Clear selectedTime if its session just became unavailable
-        const amNowFull = getTakenCountFromAtomic(editDate, 'AM') >= getLimitAm() || slotConfig.amEnabled === false;
-        const pmNowFull = getTakenCountFromAtomic(editDate, 'PM') >= getLimitPm() || slotConfig.pmEnabled === false;
-        if (selectedTime === 'AM' && amNowFull) selectedTime = null;
-        if (selectedTime === 'PM' && pmNowFull) selectedTime = null;
+          const amNowFull =
+            getTakenCountFromAtomic(editDate, "AM") >= getLimitAm() ||
+            slotConfig.amEnabled === false;
+          const pmNowFull =
+            getTakenCountFromAtomic(editDate, "PM") >= getLimitPm() ||
+            slotConfig.pmEnabled === false;
+          if (selectedTime === "AM" && amNowFull) selectedTime = null;
+          if (selectedTime === "PM" && pmNowFull) selectedTime = null;
         }
       });
 
@@ -1614,12 +1451,14 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
         `;
 
         try {
-          const promises = myTicketIds.map(id => db.ref("tickets/" + id).once("value"));
+          const promises = myTicketIds.map((id) =>
+            db.ref("tickets/" + id).once("value"),
+          );
           const snapshots = await Promise.all(promises);
-          
+
           myTickets = snapshots
-            .filter(s => s.exists())
-            .map(s => ({ id: s.key, ...s.val() }));
+            .filter((s) => s.exists())
+            .map((s) => ({ id: s.key, ...s.val() }));
         } catch (error) {
           console.error("Error loading tickets:", error);
         }
@@ -1688,8 +1527,10 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
         const limAm = getLimitAm(),
           limPm = getLimitPm();
         const _ds = calDateSettings[targetStr] || {};
-        const amDisabled = slotConfig.amEnabled === false || _ds.amEnabled === false;
-        const pmDisabled = slotConfig.pmEnabled === false || _ds.pmEnabled === false;
+        const amDisabled =
+          slotConfig.amEnabled === false || _ds.amEnabled === false;
+        const pmDisabled =
+          slotConfig.pmEnabled === false || _ds.pmEnabled === false;
         const aF = amTaken >= limAm || amDisabled;
         const pF = pmTaken >= limPm || pmDisabled;
         const ba = document.getElementById("btn-am"),
@@ -1704,10 +1545,16 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
         bp.style.opacity = "";
         ba.style.cursor = "pointer";
         bp.style.cursor = "pointer";
-        document.getElementById('tag-am').textContent = amDisabled ? 'DISABLED'
-          : aF ? 'FULL (' + limAm + '/' + limAm + ')' : amTaken + '/' + limAm + ' slots';
-        document.getElementById('tag-pm').textContent = pmDisabled ? 'DISABLED'
-          : pF ? 'FULL (' + limPm + '/' + limPm + ')' : pmTaken + '/' + limPm + ' slots';
+        document.getElementById("tag-am").textContent = amDisabled
+          ? "DISABLED"
+          : aF
+            ? "FULL (" + limAm + "/" + limAm + ")"
+            : amTaken + "/" + limAm + " slots";
+        document.getElementById("tag-pm").textContent = pmDisabled
+          ? "DISABLED"
+          : pF
+            ? "FULL (" + limPm + "/" + limPm + ")"
+            : pmTaken + "/" + limPm + " slots";
         if (aF) {
           ba.classList.add("full");
           ba.disabled = true;
@@ -1732,27 +1579,33 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
           bp.classList.add("active");
         } else {
           selectedTime = null;
-          document.getElementById('btn-am').classList.remove('active');
-          document.getElementById('btn-pm').classList.remove('active');
+          document.getElementById("btn-am").classList.remove("active");
+          document.getElementById("btn-pm").classList.remove("active");
         }
       }
 
       function showCalDayPopup(ds, yr, mo, d) {
-      const existing = document.getElementById("cal-day-popup");
-      if (existing) existing.remove();
+        const existing = document.getElementById("cal-day-popup");
+        if (existing) existing.remove();
 
-      const dateKey = yr + "-" + String(mo + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0");
-      const dateObj = new Date(yr, mo, d);
-      const dateLabel = DAYS[dateObj.getDay()] + ", " + MONTHS[mo] + " " + d + ", " + yr;
+        const dateKey =
+          yr +
+          "-" +
+          String(mo + 1).padStart(2, "0") +
+          "-" +
+          String(d).padStart(2, "0");
+        const dateObj = new Date(yr, mo, d);
+        const dateLabel =
+          DAYS[dateObj.getDay()] + ", " + MONTHS[mo] + " " + d + ", " + yr;
 
-      const isHoliday = !!(ds.holiday);
-      const amOff = ds.amEnabled === false;
-      const pmOff = ds.pmEnabled === false;
-      const isFullyClosed = amOff && pmOff;
+        const isHoliday = !!ds.holiday;
+        const amOff = ds.amEnabled === false;
+        const pmOff = ds.pmEnabled === false;
+        const isFullyClosed = amOff && pmOff;
 
-      let bodyHtml = "";
-      if (isHoliday) {
-        bodyHtml = `
+        let bodyHtml = "";
+        if (isHoliday) {
+          bodyHtml = `
           <div style="display:flex;align-items:center;gap:10px;background:#fee2e2;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
             
             <div>
@@ -1762,46 +1615,47 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
           </div>
           <div style="font-size:12px;color:#6b7280;line-height:1.6;">No distribution on this day due to the holiday.</div>
         `;
-      } else if (isFullyClosed) {
-        bodyHtml = `
+        } else if (isFullyClosed) {
+          bodyHtml = `
           <div style="display:flex;align-items:center;gap:10px;background:#fee2e2;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
             <span style="font-size:22px;">🚫</span>
             <div style="font-size:13px;font-weight:800;color:#991b1b;">All Sessions Closed</div>
           </div>
           <div style="font-size:12px;color:#6b7280;">Both AM and PM sessions are disabled for this date.</div>
         `;
-      } else {
-        const amStatus = amOff
-          ? `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:#fee2e2;border-radius:8px;border:1px solid #fca5a5;">
+        } else {
+          const amStatus = amOff
+            ? `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:#fee2e2;border-radius:8px;border:1px solid #fca5a5;">
               <span style="font-size:14px;">🌅</span>
               <div><div style="font-size:12px;font-weight:800;color:#991b1b;">AM Session</div><div style="font-size:11px;color:#b91c1c;margin-top:1px;">⛔ Closed</div></div>
             </div>`
-          : `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:#f0fdf4;border-radius:8px;border:1px solid #86efac;">
+            : `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:#f0fdf4;border-radius:8px;border:1px solid #86efac;">
               <span style="font-size:14px;">🌅</span>
               <div><div style="font-size:12px;font-weight:800;color:#166534;">AM Session</div><div style="font-size:11px;color:#15803d;margin-top:1px;">✅ ${fmt(scheduleSettings.amStart)} – ${fmt(scheduleSettings.amEnd)}</div></div>
             </div>`;
-        const pmStatus = pmOff
-          ? `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:#fee2e2;border-radius:8px;border:1px solid #fca5a5;">
+          const pmStatus = pmOff
+            ? `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:#fee2e2;border-radius:8px;border:1px solid #fca5a5;">
               <span style="font-size:14px;">🌇</span>
               <div><div style="font-size:12px;font-weight:800;color:#991b1b;">PM Session</div><div style="font-size:11px;color:#b91c1c;margin-top:1px;">⛔ Closed</div></div>
             </div>`
-          : `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:#f0fdf4;border-radius:8px;border:1px solid #86efac;">
+            : `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:#f0fdf4;border-radius:8px;border:1px solid #86efac;">
               <span style="font-size:14px;">🌇</span>
               <div><div style="font-size:12px;font-weight:800;color:#166534;">PM Session</div><div style="font-size:11px;color:#15803d;margin-top:1px;">✅ ${fmt(scheduleSettings.pmStart)} – ${fmt(scheduleSettings.pmEnd)}</div></div>
             </div>`;
-        bodyHtml = `
+          bodyHtml = `
           <div style="background:#fef9c3;border-radius:10px;padding:10px 12px;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
             <span style="font-size:16px;">⚠️</span>
             <span style="font-size:12px;font-weight:800;color:#854d0e;">Half-Day — Limited Sessions</span>
           </div>
           <div style="display:flex;flex-direction:column;gap:8px;">${amStatus}${pmStatus}</div>
         `;
-      }
+        }
 
-      const popup = document.createElement("div");
-      popup.id = "cal-day-popup";
-      popup.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:3000;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(3px);animation:fadeIn 0.15s;";
-      popup.innerHTML = `
+        const popup = document.createElement("div");
+        popup.id = "cal-day-popup";
+        popup.style.cssText =
+          "position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:3000;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(3px);animation:fadeIn 0.15s;";
+        popup.innerHTML = `
         <div style="background:#fff;border-radius:18px;width:100%;max-width:340px;box-shadow:0 20px 50px rgba(0,0,0,0.2);overflow:hidden;">
           <div style="background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:16px 18px;display:flex;align-items:center;justify-content:space-between;">
             <div>
@@ -1815,101 +1669,128 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
           </div>
         </div>
       `;
-      popup.onclick = (e) => { if (e.target === popup) popup.remove(); };
-      document.body.appendChild(popup);
-    }
+        popup.onclick = (e) => {
+          if (e.target === popup) popup.remove();
+        };
+        document.body.appendChild(popup);
+      }
 
       function renderCalendar() {
-      const tmr = getTargetDate(now);
-      const yr = tmr.getFullYear(), mo = tmr.getMonth();
-      document.getElementById("cal-month-name").textContent = MONTHS[mo];
-      document.getElementById("cal-year").textContent = yr;
-      document.getElementById("cal-badge-today-day").textContent = String(now.getDate()).padStart(2, "0");
-      document.getElementById("cal-badge-today-name").textContent = DAYS[now.getDay()];
-      document.getElementById("cal-badge-day").textContent = String(tmr.getDate()).padStart(2, "0");
-      document.getElementById("cal-badge-dayname").textContent = DAYS[tmr.getDay()];
-      document.getElementById("notice-tmr-date").textContent = MONTHS[tmr.getMonth()].slice(0, 3) + " " + tmr.getDate();
-      const todayDay = now.getDay();
-      const isNoClaimDay = todayDay === 5 || todayDay === 6;
-      const calNoticeEl = document.querySelector(".cal-notice");
-      if (calNoticeEl) calNoticeEl.style.display = isNoClaimDay ? "none" : "";
-      document.getElementById("notice-weekend-warn").textContent = "";
-      const firstDow = new Date(yr, mo, 1).getDay();
-      const daysInMo = new Date(yr, mo + 1, 0).getDate();
-      const prevDays = new Date(yr, mo, 0).getDate();
-      const todayY = now.getFullYear(), todayM = now.getMonth(), todayD = now.getDate();
-      const tmrD = tmr.getDate();
-      const grid = document.getElementById("cal-days");
-      grid.innerHTML = "";
+        const tmr = getTargetDate(now);
+        const yr = tmr.getFullYear(),
+          mo = tmr.getMonth();
+        document.getElementById("cal-month-name").textContent = MONTHS[mo];
+        document.getElementById("cal-year").textContent = yr;
+        document.getElementById("cal-badge-today-day").textContent = String(
+          now.getDate(),
+        ).padStart(2, "0");
+        document.getElementById("cal-badge-today-name").textContent =
+          DAYS[now.getDay()];
+        document.getElementById("cal-badge-day").textContent = String(
+          tmr.getDate(),
+        ).padStart(2, "0");
+        document.getElementById("cal-badge-dayname").textContent =
+          DAYS[tmr.getDay()];
+        document.getElementById("notice-tmr-date").textContent =
+          MONTHS[tmr.getMonth()].slice(0, 3) + " " + tmr.getDate();
+        const todayDay = now.getDay();
+        const isNoClaimDay = todayDay === 5 || todayDay === 6;
+        const calNoticeEl = document.querySelector(".cal-notice");
+        if (calNoticeEl) calNoticeEl.style.display = isNoClaimDay ? "none" : "";
+        document.getElementById("notice-weekend-warn").textContent = "";
+        const firstDow = new Date(yr, mo, 1).getDay();
+        const daysInMo = new Date(yr, mo + 1, 0).getDate();
+        const prevDays = new Date(yr, mo, 0).getDate();
+        const todayY = now.getFullYear(),
+          todayM = now.getMonth(),
+          todayD = now.getDate();
+        const tmrD = tmr.getDate();
+        const grid = document.getElementById("cal-days");
+        grid.innerHTML = "";
 
-      for (let i = firstDow - 1; i >= 0; i--) {
-        const c = document.createElement("div");
-        c.className = "cal-day other-month";
-        c.textContent = prevDays - i;
-        grid.appendChild(c);
-      }
-
-      for (let d = 1; d <= daysInMo; d++) {
-        const dow = new Date(yr, mo, d).getDay();
-        const isThisToday = yr === todayY && mo === todayM && d === todayD;
-        const isPast = new Date(yr, mo, d) < new Date(todayY, todayM, todayD);
-        const isTmr = d === tmrD;
-        const dateKey = yr + "-" + String(mo + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0");
-        const ds = calDateSettings[dateKey] || {};
-        const isHoliday = !!(ds.holiday);
-        const amOff = ds.amEnabled === false;
-        const pmOff = ds.pmEnabled === false;
-        const isHalfDay = !isHoliday && (amOff || pmOff) && !(amOff && pmOff);
-        const isFullyClosed = !isHoliday && amOff && pmOff;
-
-        const c = document.createElement("div");
-        let cls = "cal-day";
-
-        if (isTmr && !isDistributionClosed(tmr)) cls += " tomorrow-cell";
-        else if (isThisToday || isPast) cls += " past";
-        else {
-          cls += " future-cell";
-          if (dow === 0) cls += " sunday";
-          else if (dow === 6) cls += " saturday";
+        for (let i = firstDow - 1; i >= 0; i--) {
+          const c = document.createElement("div");
+          c.className = "cal-day other-month";
+          c.textContent = prevDays - i;
+          grid.appendChild(c);
         }
 
-        // Holiday/half-day overlays (skip past/today)
-        if (!isThisToday && !isPast) {
-          if (isHoliday || isFullyClosed) {
-            cls += " cal-holiday";
-            c.style.cssText += "background:#fee2e2!important;color:#991b1b!important;border:1.5px solid #fca5a5!important;cursor:pointer;";
-            c.title = isHoliday ? "Holiday: " + ds.holiday : "Closed (all sessions disabled)";
-            c.onclick = ((_ds, _d) => () => showCalDayPopup(_ds, yr, mo, _d))(ds, d);
-          } else if (isHalfDay) {
-            cls += " cal-halfday";
-            c.style.cssText += "background:#fef9c3!important;color:#854d0e!important;border:1.5px solid #fde047!important;cursor:pointer;";
-            const halfLabel = amOff ? "PM only" : "AM only";
-            c.title = "Half-day: " + halfLabel;
-            c.onclick = ((_ds, _d) => () => showCalDayPopup(_ds, yr, mo, _d))(ds, d);
+        for (let d = 1; d <= daysInMo; d++) {
+          const dow = new Date(yr, mo, d).getDay();
+          const isThisToday = yr === todayY && mo === todayM && d === todayD;
+          const isPast = new Date(yr, mo, d) < new Date(todayY, todayM, todayD);
+          const isTmr = d === tmrD;
+          const dateKey =
+            yr +
+            "-" +
+            String(mo + 1).padStart(2, "0") +
+            "-" +
+            String(d).padStart(2, "0");
+          const ds = calDateSettings[dateKey] || {};
+          const isHoliday = !!ds.holiday;
+          const amOff = ds.amEnabled === false;
+          const pmOff = ds.pmEnabled === false;
+          const isHalfDay = !isHoliday && (amOff || pmOff) && !(amOff && pmOff);
+          const isFullyClosed = !isHoliday && amOff && pmOff;
+
+          const c = document.createElement("div");
+          let cls = "cal-day";
+
+          if (isTmr && !isDistributionClosed(tmr)) cls += " tomorrow-cell";
+          else if (isThisToday || isPast) cls += " past";
+          else {
+            cls += " future-cell";
+            if (dow === 0) cls += " sunday";
+            else if (dow === 6) cls += " saturday";
           }
+
+          // Holiday/half-day overlays (skip past/today)
+          if (!isThisToday && !isPast) {
+            if (isHoliday || isFullyClosed) {
+              cls += " cal-holiday";
+              c.style.cssText +=
+                "background:#fee2e2!important;color:#991b1b!important;border:1.5px solid #fca5a5!important;cursor:pointer;";
+              c.title = isHoliday
+                ? "Holiday: " + ds.holiday
+                : "Closed (all sessions disabled)";
+              c.onclick = (
+                (_ds, _d) => () =>
+                  showCalDayPopup(_ds, yr, mo, _d)
+              )(ds, d);
+            } else if (isHalfDay) {
+              cls += " cal-halfday";
+              c.style.cssText +=
+                "background:#fef9c3!important;color:#854d0e!important;border:1.5px solid #fde047!important;cursor:pointer;";
+              const halfLabel = amOff ? "PM only" : "AM only";
+              c.title = "Half-day: " + halfLabel;
+              c.onclick = (
+                (_ds, _d) => () =>
+                  showCalDayPopup(_ds, yr, mo, _d)
+              )(ds, d);
+            }
+          }
+
+          c.className = cls;
+          c.textContent = d;
+
+          // Holiday dot indicator
+          // if (isHoliday && !isThisToday && !isPast) {
+          //   const dot = document.createElement("span");
+          //   dot.style.cssText = "display:block;width:5px;height:5px;border-radius:50%;background:#dc2626;margin:1px auto 0;";
+          // }
+
+          grid.appendChild(c);
         }
 
-        c.className = cls;
-        c.textContent = d;
-
-        // Holiday dot indicator
-        // if (isHoliday && !isThisToday && !isPast) {
-        //   const dot = document.createElement("span");
-        //   dot.style.cssText = "display:block;width:5px;height:5px;border-radius:50%;background:#dc2626;margin:1px auto 0;";
-        // }
-
-        grid.appendChild(c);
+        const total = firstDow + daysInMo;
+        const trail = (7 - (total % 7)) % 7;
+        for (let d = 1; d <= trail; d++) {
+          const c = document.createElement("div");
+          c.className = "cal-day other-month";
+          c.textContent = d;
+          grid.appendChild(c);
+        }
       }
-
-      const total = firstDow + daysInMo;
-      const trail = (7 - (total % 7)) % 7;
-      for (let d = 1; d <= trail; d++) {
-        const c = document.createElement("div");
-        c.className = "cal-day other-month";
-        c.textContent = d;
-        grid.appendChild(c);
-      }
-    }
 
       function renderCard() {
         renderCalendar();
@@ -1924,11 +1805,16 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
         const amTaken = getTakenCountFromAtomic(targetStr, "AM");
         const pmTaken = getTakenCountFromAtomic(targetStr, "PM");
         const _dsTarget = calDateSettings[targetStr] || {};
-        const targetIsHoliday = !!(_dsTarget.holiday);
-        const amDisabled = slotConfig.amEnabled === false || _dsTarget.amEnabled === false;
-        const pmDisabled = slotConfig.pmEnabled === false || _dsTarget.pmEnabled === false;
-        const limAm = getLimitAm(), limPm = getLimitPm(), limTotal = getLimitTotal();
-        const amLeft = limAm - amTaken, pmLeft = limPm - pmTaken;
+        const targetIsHoliday = !!_dsTarget.holiday;
+        const amDisabled =
+          slotConfig.amEnabled === false || _dsTarget.amEnabled === false;
+        const pmDisabled =
+          slotConfig.pmEnabled === false || _dsTarget.pmEnabled === false;
+        const limAm = getLimitAm(),
+          limPm = getLimitPm(),
+          limTotal = getLimitTotal();
+        const amLeft = limAm - amTaken,
+          pmLeft = limPm - pmTaken;
         const amUnavailable = amTaken >= limAm || amDisabled;
         const pmUnavailable = pmTaken >= limPm || pmDisabled;
         const allUnavailable = amUnavailable && pmUnavailable;
@@ -1936,11 +1822,13 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
         const statusRow = document.querySelector(".today-status-row");
         const tmrNotice = document.querySelector(".tmr-notice");
         document.getElementById("today-card").style.display = "";
-        const calNoticeRestore = document.querySelector(".cal-notice");    // ← ADD
-        if (calNoticeRestore) calNoticeRestore.style.display = "";  // ← restore if was hidden
+        const calNoticeRestore = document.querySelector(".cal-notice"); // ← ADD
+        if (calNoticeRestore) calNoticeRestore.style.display = ""; // ← restore if was hidden
 
         // If holiday or fully closed by date settings — hide slots, show holiday message
-        const targetFullyClosed = targetIsHoliday || (_dsTarget.amEnabled === false && _dsTarget.pmEnabled === false);
+        const targetFullyClosed =
+          targetIsHoliday ||
+          (_dsTarget.amEnabled === false && _dsTarget.pmEnabled === false);
 
         if (targetFullyClosed) {
           if (statusRow) statusRow.style.display = "none";
@@ -1950,11 +1838,17 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
           if (!holMsg) {
             holMsg = document.createElement("div");
             holMsg.id = "holiday-slot-msg";
-            holMsg.style.cssText = "margin:12px 0 4px;padding:14px 16px;background:#fee2e2;border:1.5px solid #fca5a5;border-radius:12px;display:flex;align-items:center;gap:12px;";
+            holMsg.style.cssText =
+              "margin:12px 0 4px;padding:14px 16px;background:#fee2e2;border:1.5px solid #fca5a5;border-radius:12px;display:flex;align-items:center;gap:12px;";
             const todayCard = document.getElementById("today-card");
             if (todayCard) todayCard.insertBefore(holMsg, todayCard.firstChild);
           }
-          const _tmrDateLabel = MONTHS[tmr.getMonth()] + " " + tmr.getDate() + ", " + tmr.getFullYear();
+          const _tmrDateLabel =
+            MONTHS[tmr.getMonth()] +
+            " " +
+            tmr.getDate() +
+            ", " +
+            tmr.getFullYear();
           holMsg.innerHTML = targetIsHoliday
             ? `
               <div>
@@ -1976,13 +1870,29 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
           if (calNotice) calNotice.style.display = "";
 
           // Normal slot pill display
-          document.getElementById('pill-am-count').textContent = amDisabled ? 'Closed' : amLeft > 0 ? amLeft + ' left' : 'FULL';
-          document.getElementById('pill-am-sub').textContent   = amDisabled ? 'Session disabled' : amTaken + '/' + limAm + ' taken';
-          document.getElementById('pill-am').classList.toggle('full-slot', amLeft <= 0 || amDisabled);
+          document.getElementById("pill-am-count").textContent = amDisabled
+            ? "Closed"
+            : amLeft > 0
+              ? amLeft + " left"
+              : "FULL";
+          document.getElementById("pill-am-sub").textContent = amDisabled
+            ? "Session disabled"
+            : amTaken + "/" + limAm + " taken";
+          document
+            .getElementById("pill-am")
+            .classList.toggle("full-slot", amLeft <= 0 || amDisabled);
 
-          document.getElementById('pill-pm-count').textContent = pmDisabled ? 'Closed' : pmLeft > 0 ? pmLeft + ' left' : 'FULL';
-          document.getElementById('pill-pm-sub').textContent   = pmDisabled ? 'Session disabled' : pmTaken + '/' + limPm + ' taken';
-          document.getElementById('pill-pm').classList.toggle('full-slot', pmLeft <= 0 || pmDisabled);
+          document.getElementById("pill-pm-count").textContent = pmDisabled
+            ? "Closed"
+            : pmLeft > 0
+              ? pmLeft + " left"
+              : "FULL";
+          document.getElementById("pill-pm-sub").textContent = pmDisabled
+            ? "Session disabled"
+            : pmTaken + "/" + limPm + " taken";
+          document
+            .getElementById("pill-pm")
+            .classList.toggle("full-slot", pmLeft <= 0 || pmDisabled);
         }
         const btn = document.getElementById("btn-get-number");
         const msg = document.getElementById("today-closed-msg");
@@ -1991,18 +1901,19 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
         if (amDisabled && pmDisabled) {
           unavailMsg = "All Sessions Disabled";
         } else if (amUnavailable && pmUnavailable) {
-          unavailMsg = amDisabled || pmDisabled
-            ? "No Available Slots for Tomorrow"
-            : "All Slots Full for Tomorrow";
+          unavailMsg =
+            amDisabled || pmDisabled
+              ? "No Available Slots for Tomorrow"
+              : "All Slots Full for Tomorrow";
         }
-          if (status === "blocked") {
+        if (status === "blocked") {
           btn.style.display = "none";
           msg.style.display = "none";
           if (statusRow) statusRow.style.display = "none";
           if (tmrNotice) tmrNotice.style.display = "none";
           document.getElementById("today-card").style.display = "none";
-          const calNoticeBlocked = document.querySelector(".cal-notice");  // ← ADD
-          if (calNoticeBlocked) calNoticeBlocked.style.display = "none";   // ← ADD
+          const calNoticeBlocked = document.querySelector(".cal-notice"); // ← ADD
+          if (calNoticeBlocked) calNoticeBlocked.style.display = "none"; // ← ADD
           return; // ← stop here, don't let the rest of renderCard() re-show anything
         } else if (status === "weekend") {
           btn.style.display = "none";
@@ -2017,22 +1928,23 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
           if (calNoticeWeekend) calNoticeWeekend.style.display = "none";
           return;
         } else if (status === "closed") {
-            document.getElementById("today-card").style.display = "none";
-            document.getElementById("slot-banner").classList.remove("show");
-            document.getElementById("form-card").classList.remove("show");
-            return;
-        }if (targetFullyClosed) {
-            btn.style.display = "block";
-            btn.disabled = true;
-            btn.textContent = targetIsHoliday
-              ? "No Distribution (" + _dsTarget.holiday + ")"
-              : "🚫 No Distribution Tomorrow";
-            btn.classList.add("full-btn");
-            msg.style.display = "none";
-            if (statusRow) statusRow.style.display = "none";
-            if (tmrNotice) tmrNotice.style.display = "none";
-            const calNotice = document.querySelector(".cal-notice");
-            if (calNotice) calNotice.style.display = "none";
+          document.getElementById("today-card").style.display = "none";
+          document.getElementById("slot-banner").classList.remove("show");
+          document.getElementById("form-card").classList.remove("show");
+          return;
+        }
+        if (targetFullyClosed) {
+          btn.style.display = "block";
+          btn.disabled = true;
+          btn.textContent = targetIsHoliday
+            ? "No Distribution (" + _dsTarget.holiday + ")"
+            : "🚫 No Distribution Tomorrow";
+          btn.classList.add("full-btn");
+          msg.style.display = "none";
+          if (statusRow) statusRow.style.display = "none";
+          if (tmrNotice) tmrNotice.style.display = "none";
+          const calNotice = document.querySelector(".cal-notice");
+          if (calNotice) calNotice.style.display = "none";
         } else if (allUnavailable) {
           btn.style.display = "block";
           btn.disabled = true;
@@ -2135,11 +2047,11 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
       }
 
       function selectTime(t) {
-          document.getElementById('btn-am').style.outline = ''; // ← add
-          document.getElementById('btn-pm').style.outline = ''; // ← add
+        document.getElementById("btn-am").style.outline = ""; // ← add
+        document.getElementById("btn-pm").style.outline = ""; // ← add
         if (!isClaimingOpen()) return;
-          if (t === 'AM' && slotConfig.amEnabled === false) return;
-          if (t === 'PM' && slotConfig.pmEnabled === false) return;
+        if (t === "AM" && slotConfig.amEnabled === false) return;
+        if (t === "PM" && slotConfig.pmEnabled === false) return;
         const amTaken = getTakenCountFromAtomic(targetStr, "AM");
         const pmTaken = getTakenCountFromAtomic(targetStr, "PM");
         const aF = amTaken >= getLimitAm(),
@@ -2226,15 +2138,25 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
         if (!idType || !idNumber) return null;
         const normType = idType.trim().toLowerCase();
         const normNum = idNumber.trim().toLowerCase();
-        const snap = await db.ref("tickets").once("value");
+        
+        // Cooldown: 7 days including the target date
+        const windowStart = new Date(targetStr + "T00:00:00");
+        windowStart.setDate(windowStart.getDate() - 6);
+        const start = toDateStr(windowStart);
+
+        // Optimized: Only fetch tickets within the cooldown window
+        const snap = await db.ref("tickets")
+          .orderByChild("date")
+          .startAt(start)
+          .endAt(targetStr)
+          .once("value");
+
         if (!snap.exists()) return null;
         let found = null;
         snap.forEach((c) => {
           if (found) return;
           const t = c.val();
           if (!t.date) return;
-          const { start, end } = get7DayBounds(t.date);
-          if (targetStr < start || targetStr > end) return;
           if (
             t.idType &&
             t.idNumber &&
@@ -2256,15 +2178,25 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
       async function checkBeneficiaryNameCooldown(benName) {
         if (!benName || benName.trim().length < 2) return null;
         const normName = benName.trim().toLowerCase();
-        const snap = await db.ref("tickets").once("value");
+
+        // Cooldown: 7 days including the target date
+        const windowStart = new Date(targetStr + "T00:00:00");
+        windowStart.setDate(windowStart.getDate() - 6);
+        const start = toDateStr(windowStart);
+
+        // Optimized: Only fetch tickets within the cooldown window
+        const snap = await db.ref("tickets")
+          .orderByChild("date")
+          .startAt(start)
+          .endAt(targetStr)
+          .once("value");
+
         if (!snap.exists()) return null;
         let found = null;
         snap.forEach((c) => {
           if (found) return;
           const t = c.val();
           if (!t.date) return;
-          const { start, end } = get7DayBounds(t.date);
-          if (targetStr < start || targetStr > end) return;
           if (t.ben1Name && t.ben1Name.trim().toLowerCase() === normName)
             found = { id: c.key, matchedSlot: 1, ...t };
           if (
@@ -2277,75 +2209,136 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
         return found;
       }
 
-      function showErrorCard(dupTicket, idNumber, benName, idType, beneficiaryLabel, matchType, extraInfo) {
-      const ticketDate = new Date(dupTicket.date + 'T00:00:00');
-      const nextAvail  = new Date(ticketDate);
-      nextAvail.setDate(ticketDate.getDate() + 7);
-      const nextMonStr = MONTHS[nextAvail.getMonth()] + ' ' + nextAvail.getDate() + ', ' + nextAvail.getFullYear();
-      const claimedDate    = new Date(dupTicket.date + 'T00:00:00');
-      const claimedDateStr = DAYS[claimedDate.getDay()] + ', ' +
-        MONTHS[claimedDate.getMonth()] + ' ' + claimedDate.getDate() + ', ' + claimedDate.getFullYear();
+      function showErrorCard(
+        dupTicket,
+        idNumber,
+        benName,
+        idType,
+        beneficiaryLabel,
+        matchType,
+        extraInfo,
+      ) {
+        const ticketDate = new Date(dupTicket.date + "T00:00:00");
+        const nextAvail = new Date(ticketDate);
+        nextAvail.setDate(ticketDate.getDate() + 7);
+        const nextMonStr =
+          MONTHS[nextAvail.getMonth()] +
+          " " +
+          nextAvail.getDate() +
+          ", " +
+          nextAvail.getFullYear();
+        const claimedDate = new Date(dupTicket.date + "T00:00:00");
+        const claimedDateStr =
+          DAYS[claimedDate.getDay()] +
+          ", " +
+          MONTHS[claimedDate.getMonth()] +
+          " " +
+          claimedDate.getDate() +
+          ", " +
+          claimedDate.getFullYear();
 
-      const isMonthly   = matchType === 'monthly';
-      const isNameMatch = matchType === 'name';
-      const norm = idNumber ? idNumber.trim().toLowerCase() : '';
-      const isSlot2 = !isNameMatch && !isMonthly &&
-        dupTicket.idNumber2 && dupTicket.idNumber2.trim().toLowerCase() === norm;
+        const isMonthly = matchType === "monthly";
+        const isNameMatch = matchType === "name";
+        const norm = idNumber ? idNumber.trim().toLowerCase() : "";
+        const isSlot2 =
+          !isNameMatch &&
+          !isMonthly &&
+          dupTicket.idNumber2 &&
+          dupTicket.idNumber2.trim().toLowerCase() === norm;
 
-      // ── Resolve which slot the match came from ──────────────────────────────────
-      // For monthly hits triggered by name: idType/idNumber args are '' — pull from dupTicket instead
-      let resolvedIdType, resolvedIdNumber, resolvedBenName;
+        // ── Resolve which slot the match came from ──────────────────────────────────
+        // For monthly hits triggered by name: idType/idNumber args are '' — pull from dupTicket instead
+        let resolvedIdType, resolvedIdNumber, resolvedBenName;
 
-      if (isMonthly) {
-        // Was the monthly match on ben2 or ben1?
-        const matchedOnBen2 = benName && dupTicket.ben2Name &&
-          dupTicket.ben2Name.trim().toLowerCase() === benName.trim().toLowerCase();
-        resolvedBenName   = benName || dupTicket.ben1Name || '—';
-        resolvedIdType    = idType || (matchedOnBen2 ? dupTicket.idType2 : dupTicket.idType) || '—';
-        resolvedIdNumber  = idNumber || (matchedOnBen2 ? dupTicket.idNumber2 : dupTicket.idNumber) || '—';
-      } else if (isNameMatch) {
-        resolvedBenName   = benName;
-        resolvedIdType    = (dupTicket.matchedSlot === 2 ? dupTicket.idType2 : dupTicket.idType) || '—';
-        resolvedIdNumber  = (dupTicket.matchedSlot === 2 ? dupTicket.idNumber2 : dupTicket.idNumber) || '—';
-      } else {
-        resolvedBenName   = isSlot2 ? dupTicket.ben2Name || '—' : dupTicket.ben1Name || '—';
-        resolvedIdType    = idType || '—';
-        resolvedIdNumber  = idNumber || '—';
+        if (isMonthly) {
+          // Was the monthly match on ben2 or ben1?
+          const matchedOnBen2 =
+            benName &&
+            dupTicket.ben2Name &&
+            dupTicket.ben2Name.trim().toLowerCase() ===
+              benName.trim().toLowerCase();
+          resolvedBenName = benName || dupTicket.ben1Name || "—";
+          resolvedIdType =
+            idType ||
+            (matchedOnBen2 ? dupTicket.idType2 : dupTicket.idType) ||
+            "—";
+          resolvedIdNumber =
+            idNumber ||
+            (matchedOnBen2 ? dupTicket.idNumber2 : dupTicket.idNumber) ||
+            "—";
+        } else if (isNameMatch) {
+          resolvedBenName = benName;
+          resolvedIdType =
+            (dupTicket.matchedSlot === 2
+              ? dupTicket.idType2
+              : dupTicket.idType) || "—";
+          resolvedIdNumber =
+            (dupTicket.matchedSlot === 2
+              ? dupTicket.idNumber2
+              : dupTicket.idNumber) || "—";
+        } else {
+          resolvedBenName = isSlot2
+            ? dupTicket.ben2Name || "—"
+            : dupTicket.ben1Name || "—";
+          resolvedIdType = idType || "—";
+          resolvedIdNumber = idNumber || "—";
+        }
+
+        document.getElementById("error-card-icon").textContent = isMonthly
+          ? "📅"
+          : isNameMatch
+            ? "⚠️"
+            : "🚫";
+        document.getElementById("error-card-title").textContent = isMonthly
+          ? "Monthly Claim Limit Reached"
+          : isNameMatch
+            ? "Already Claimed This Week"
+            : "7-Day Cooldown Active";
+        document.getElementById("error-card-subtitle").textContent = isMonthly
+          ? beneficiaryLabel +
+            " has already been claimed " +
+            (extraInfo ? extraInfo.count : "") +
+            " time(s) this month (limit: " +
+            (extraInfo ? extraInfo.limitCount : "") +
+            " per 30 days)."
+          : isNameMatch
+            ? beneficiaryLabel +
+              " name already has a registered control number this week."
+            : beneficiaryLabel +
+              " ID was used within the last 7 days. Please wait before claiming again.";
+
+        document.getElementById("error-card-ben-name").textContent =
+          resolvedBenName;
+        document.getElementById("error-card-id-type").textContent =
+          resolvedIdType;
+        document.getElementById("error-card-id").textContent = resolvedIdNumber;
+        document.getElementById("error-card-name").textContent =
+          dupTicket.name || dupTicket.ben1Name || "—";
+        document.getElementById("error-card-date").textContent =
+          claimedDateStr + " (" + dupTicket.time + " slot)";
+
+        if (isMonthly) {
+          const nextAvailMonthly = new Date(dupTicket.date + "T00:00:00");
+          nextAvailMonthly.setDate(nextAvailMonthly.getDate() + 30);
+          document.getElementById("error-card-next").textContent =
+            "Next available (30-day reset): " +
+            MONTHS[nextAvailMonthly.getMonth()] +
+            " " +
+            nextAvailMonthly.getDate() +
+            ", " +
+            nextAvailMonthly.getFullYear();
+        } else {
+          document.getElementById("error-card-next").textContent =
+            "Next available claim: " + nextMonStr;
+        }
+
+        document.getElementById("error-card").classList.add("show");
+        document.getElementById("form-card").classList.remove("show");
+        document.getElementById("slot-banner").classList.remove("show");
+        document
+          .getElementById("error-card")
+          .scrollIntoView({ behavior: "smooth", block: "nearest" });
       }
-
-      document.getElementById('error-card-icon').textContent     = isMonthly ? '📅' : isNameMatch ? '⚠️' : '🚫';
-      document.getElementById('error-card-title').textContent    = isMonthly
-        ? 'Monthly Claim Limit Reached'
-        : isNameMatch ? 'Already Claimed This Week' : '7-Day Cooldown Active';
-      document.getElementById('error-card-subtitle').textContent = isMonthly
-        ? beneficiaryLabel + ' has already been claimed ' +
-          (extraInfo ? extraInfo.count : '') + ' time(s) this month (limit: ' +
-          (extraInfo ? extraInfo.limitCount : '') + ' per 30 days).'
-        : isNameMatch
-          ? beneficiaryLabel + ' name already has a registered control number this week.'
-          : beneficiaryLabel + ' ID was used within the last 7 days. Please wait before claiming again.';
-
-      document.getElementById('error-card-ben-name').textContent = resolvedBenName;
-      document.getElementById('error-card-id-type').textContent  = resolvedIdType;
-      document.getElementById('error-card-id').textContent       = resolvedIdNumber;
-      document.getElementById('error-card-name').textContent     = dupTicket.name || dupTicket.ben1Name || '—';
-      document.getElementById('error-card-date').textContent     = claimedDateStr + ' (' + dupTicket.time + ' slot)';
-
-      if (isMonthly) {
-        const nextAvailMonthly = new Date(dupTicket.date + 'T00:00:00');
-        nextAvailMonthly.setDate(nextAvailMonthly.getDate() + 30);
-        document.getElementById('error-card-next').textContent =
-          'Next available (30-day reset): ' +
-          MONTHS[nextAvailMonthly.getMonth()] + ' ' + nextAvailMonthly.getDate() + ', ' + nextAvailMonthly.getFullYear();
-      } else {
-        document.getElementById('error-card-next').textContent = 'Next available claim: ' + nextMonStr;
-      }
-
-      document.getElementById('error-card').classList.add('show');
-      document.getElementById('form-card').classList.remove('show');
-      document.getElementById('slot-banner').classList.remove('show');
-      document.getElementById('error-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
       function dismissErrorCard() {
         document.getElementById("error-card").classList.remove("show");
         document.getElementById("form-card").classList.add("show");
@@ -2356,7 +2349,8 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
       }
 
       async function generateNumber() {
-        if (!serverTimeSynced) return toast("Waiting for server time synchronization...");
+        if (!serverTimeSynced)
+          return toast("Waiting for server time synchronization...");
         if (!isClaimingOpen()) {
           const s = getClaimingStatus();
           if (s === "blocked")
@@ -2367,16 +2361,16 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
 
         // Block generation if tomorrow is a holiday or fully closed
         const _targetDs = calDateSettings[targetStr] || {};
-        const _targetIsHoliday = !!(_targetDs.holiday);
+        const _targetIsHoliday = !!_targetDs.holiday;
         const _targetAmOff = _targetDs.amEnabled === false;
         const _targetPmOff = _targetDs.pmEnabled === false;
         if (_targetIsHoliday || (_targetAmOff && _targetPmOff)) {
-          return toast(_targetIsHoliday
-            ? "No distribution on " + _targetDs.holiday + " — holiday"
-            : "🚫 No distribution tomorrow — all sessions are closed"
+          return toast(
+            _targetIsHoliday
+              ? "No distribution on " + _targetDs.holiday + " — holiday"
+              : "🚫 No distribution tomorrow — all sessions are closed",
           );
         }
-        
 
         // Device limit keyed to targetStr (the ticket's date), not todayStr.
         // This prevents a new day's counter from allowing a second ticket for the same target date.
@@ -2443,11 +2437,11 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
           );
         }
         if (!selectedTime) {
-          document.getElementById('btn-am').style.outline = '2px solid #ef4444';
-          document.getElementById('btn-pm').style.outline = '2px solid #ef4444';
+          document.getElementById("btn-am").style.outline = "2px solid #ef4444";
+          document.getElementById("btn-pm").style.outline = "2px solid #ef4444";
           setTimeout(() => {
-            document.getElementById('btn-am').style.outline = '';
-            document.getElementById('btn-pm').style.outline = '';
+            document.getElementById("btn-am").style.outline = "";
+            document.getElementById("btn-pm").style.outline = "";
           }, 2000);
           return toast("⚠️ Please select AM or PM before generating");
         }
@@ -2457,21 +2451,21 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
 
         // ── GUARD: Re-validate selected session is still enabled and has slots ───────
         const _dateDs = calDateSettings[targetStr] || {};
-          if (!isEditing) {
-            if (selectedTime === 'AM' && slotConfig.amEnabled === false) {
-              return toast('⛔ AM session has been disabled. Please refresh.');
-            }
-            if (selectedTime === 'PM' && slotConfig.pmEnabled === false) {
-              return toast('⛔ PM session has been disabled. Please refresh.');
-            }
-          }
-        const _amTakenGuard = getTakenCountFromAtomic(targetStr, 'AM');
-        const _pmTakenGuard = getTakenCountFromAtomic(targetStr, 'PM');
         if (!isEditing) {
-          if (selectedTime === 'AM' && _amTakenGuard >= getLimitAm())
-            return toast('⛔ AM slots just filled up. Please try PM.');
-          if (selectedTime === 'PM' && _pmTakenGuard >= getLimitPm())
-            return toast('⛔ PM slots just filled up. Please try AM.');
+          if (selectedTime === "AM" && slotConfig.amEnabled === false) {
+            return toast("⛔ AM session has been disabled. Please refresh.");
+          }
+          if (selectedTime === "PM" && slotConfig.pmEnabled === false) {
+            return toast("⛔ PM session has been disabled. Please refresh.");
+          }
+        }
+        const _amTakenGuard = getTakenCountFromAtomic(targetStr, "AM");
+        const _pmTakenGuard = getTakenCountFromAtomic(targetStr, "PM");
+        if (!isEditing) {
+          if (selectedTime === "AM" && _amTakenGuard >= getLimitAm())
+            return toast("⛔ AM slots just filled up. Please try PM.");
+          if (selectedTime === "PM" && _pmTakenGuard >= getLimitPm())
+            return toast("⛔ PM slots just filled up. Please try AM.");
         }
 
         btn.disabled = true;
@@ -2484,56 +2478,146 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
             idNumber.trim().toLowerCase() === idNumber2.trim().toLowerCase()
           ) {
             btn.disabled = false;
-            btn.textContent = isEditing ? 'Save Changes' : 'Generate Control Number';
-            return toast('⚠️ Beneficiary 1 and Beneficiary 2 cannot have the same ID type and number.');
+            btn.textContent = isEditing
+              ? "Save Changes"
+              : "Generate Control Number";
+            return toast(
+              "⚠️ Beneficiary 1 and Beneficiary 2 cannot have the same ID type and number.",
+            );
           }
         }
-        if (ben2Name && ben1Name.trim().toLowerCase() === ben2Name.trim().toLowerCase()) {
+        if (
+          ben2Name &&
+          ben1Name.trim().toLowerCase() === ben2Name.trim().toLowerCase()
+        ) {
           btn.disabled = false;
-          btn.textContent = isEditing ? 'Save Changes' : 'Generate Control Number';
-          return toast('⚠️ Beneficiary 1 and Beneficiary 2 cannot have the same name.');
+          btn.textContent = isEditing
+            ? "Save Changes"
+            : "Generate Control Number";
+          return toast(
+            "⚠️ Beneficiary 1 and Beneficiary 2 cannot have the same name.",
+          );
         }
 
         // Duplicate checks (run for both new and editing)
         try {
-
           const ml = scheduleSettings.monthlyLimits || {};
           const claimantMonthlyLimit = ml.claimant ?? 0;
-          const ben1MonthlyLimit     = ml.ben1     ?? 0;
-          const ben2MonthlyLimit     = ml.ben2     ?? 0;
+          const ben1MonthlyLimit = ml.ben1 ?? 0;
+          const ben2MonthlyLimit = ml.ben2 ?? 0;
 
           if (claimantMonthlyLimit > 0) {
-            const hit = await checkMonthlyLimitByName('name', name, claimantMonthlyLimit);
+            const hit = await checkMonthlyLimitByName(
+              "name",
+              name,
+              claimantMonthlyLimit,
+            );
             if (hit) {
-              showErrorCard(hit.lastFound, '', name, '', 'Claimant', 'monthly', hit);
-              btn.disabled = false; btn.textContent = isEditing ? 'Save Changes' : 'Generate Control Number'; return;
+              showErrorCard(
+                hit.lastFound,
+                "",
+                name,
+                "",
+                "Claimant",
+                "monthly",
+                hit,
+              );
+              btn.disabled = false;
+              btn.textContent = isEditing
+                ? "Save Changes"
+                : "Generate Control Number";
+              return;
             }
           }
           if (ben1MonthlyLimit > 0) {
-            const hit = await checkMonthlyLimitByName('ben1Name', ben1Name, ben1MonthlyLimit);
+            const hit = await checkMonthlyLimitByName(
+              "ben1Name",
+              ben1Name,
+              ben1MonthlyLimit,
+            );
             if (hit) {
-              showErrorCard(hit.lastFound, '', ben1Name, '', 'Beneficiary 1', 'monthly', hit);
-              btn.disabled = false; btn.textContent = isEditing ? 'Save Changes' : 'Generate Control Number'; return;
+              showErrorCard(
+                hit.lastFound,
+                "",
+                ben1Name,
+                "",
+                "Beneficiary 1",
+                "monthly",
+                hit,
+              );
+              btn.disabled = false;
+              btn.textContent = isEditing
+                ? "Save Changes"
+                : "Generate Control Number";
+              return;
             }
             if (idType && idNumber) {
-              const hitID = await checkMonthlyLimitByID(idType, idNumber, ben1MonthlyLimit);
+              const hitID = await checkMonthlyLimitByID(
+                idType,
+                idNumber,
+                ben1MonthlyLimit,
+              );
               if (hitID) {
-                showErrorCard(hitID.lastFound, idNumber, ben1Name, idType, 'Beneficiary 1', 'monthly', hitID);
-                btn.disabled = false; btn.textContent = isEditing ? 'Save Changes' : 'Generate Control Number'; return;
+                showErrorCard(
+                  hitID.lastFound,
+                  idNumber,
+                  ben1Name,
+                  idType,
+                  "Beneficiary 1",
+                  "monthly",
+                  hitID,
+                );
+                btn.disabled = false;
+                btn.textContent = isEditing
+                  ? "Save Changes"
+                  : "Generate Control Number";
+                return;
               }
             }
           }
           if (ben2Name && ben2MonthlyLimit > 0) {
-            const hit = await checkMonthlyLimitByName('ben2Name', ben2Name, ben2MonthlyLimit);
+            const hit = await checkMonthlyLimitByName(
+              "ben2Name",
+              ben2Name,
+              ben2MonthlyLimit,
+            );
             if (hit) {
-              showErrorCard(hit.lastFound, '', ben2Name, '', 'Beneficiary 2', 'monthly', hit);
-              btn.disabled = false; btn.textContent = isEditing ? 'Save Changes' : 'Generate Control Number'; return;
+              showErrorCard(
+                hit.lastFound,
+                "",
+                ben2Name,
+                "",
+                "Beneficiary 2",
+                "monthly",
+                hit,
+              );
+              btn.disabled = false;
+              btn.textContent = isEditing
+                ? "Save Changes"
+                : "Generate Control Number";
+              return;
             }
             if (idType2 && idNumber2) {
-              const hitID = await checkMonthlyLimitByID(idType2, idNumber2, ben2MonthlyLimit);
+              const hitID = await checkMonthlyLimitByID(
+                idType2,
+                idNumber2,
+                ben2MonthlyLimit,
+              );
               if (hitID) {
-                showErrorCard(hitID.lastFound, idNumber2, ben2Name, idType2, 'Beneficiary 2', 'monthly', hitID);
-                btn.disabled = false; btn.textContent = isEditing ? 'Save Changes' : 'Generate Control Number'; return;
+                showErrorCard(
+                  hitID.lastFound,
+                  idNumber2,
+                  ben2Name,
+                  idType2,
+                  "Beneficiary 2",
+                  "monthly",
+                  hitID,
+                );
+                btn.disabled = false;
+                btn.textContent = isEditing
+                  ? "Save Changes"
+                  : "Generate Control Number";
+                return;
               }
             }
           }
@@ -2921,38 +3005,61 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
         }
       }
 
+      (function () {
+        const DAYS_C = [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+        ];
+        const MONTHS_C = [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
+        ];
+        const pad = (n) => String(n).padStart(2, "0");
 
-        (function() {
-            const DAYS_C = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-            const MONTHS_C = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-            const pad = n => String(n).padStart(2, '0');
+        function tickClock() {
+          const d = getServerTime();
+          let h = d.getHours(),
+            m = d.getMinutes(),
+            s = d.getSeconds();
+          const ap = h >= 12 ? "PM" : "AM";
+          h = h % 12 || 12;
+          const timeStr = pad(h) + ":" + pad(m) + ":" + pad(s) + " " + ap;
+          const dateStr =
+            DAYS_C[d.getDay()] +
+            ", " +
+            MONTHS_C[d.getMonth()] +
+            " " +
+            d.getDate() +
+            ", " +
+            d.getFullYear();
+          const timeEl = document.getElementById("clock-time");
+          const dateEl = document.getElementById("clock-date");
+          if (timeEl) timeEl.textContent = timeStr;
+          if (dateEl) dateEl.textContent = dateStr;
+          const dTimeEl = document.getElementById("drawer-clock-time");
+          const dDateEl = document.getElementById("drawer-clock-date");
+          if (dTimeEl) dTimeEl.textContent = timeStr;
+          if (dDateEl) dDateEl.textContent = dateStr;
+        }
 
-            function getPHT() {
-              return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' }));
-            }
-
-            function tickClock() {
-              const d = getPHT();
-              let h = d.getHours(), m = d.getMinutes(), s = d.getSeconds();
-              const ap = h >= 12 ? 'PM' : 'AM';
-              h = h % 12 || 12;
-              const timeStr = pad(h) + ':' + pad(m) + ':' + pad(s) + ' ' + ap;
-              const dateStr = DAYS_C[d.getDay()] + ', ' + MONTHS_C[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
-              const timeEl = document.getElementById('clock-time');
-              const dateEl = document.getElementById('clock-date');
-              if (timeEl) timeEl.textContent = timeStr;
-              if (dateEl) dateEl.textContent = dateStr;
-              const dTimeEl = document.getElementById('drawer-clock-time');
-              const dDateEl = document.getElementById('drawer-clock-date');
-              if (dTimeEl) dTimeEl.textContent = timeStr;
-              if (dDateEl) dDateEl.textContent = dateStr;
-            }
-
-            tickClock();
-            setInterval(tickClock, 1000);
-          })();
-
-
+        tickClock();
+        setInterval(tickClock, 1000);
+      })();
 
       function scheduleNextReset() {
         const n = getServerTime();
@@ -3169,25 +3276,25 @@ async function checkMonthlyLimitByID(idType, idNum, limitCount) {
       }
       applyTranslations();
 
-    function dismissWelcome() {
-    const today = getServerTime().toISOString().slice(0, 10);
-    localStorage.setItem('pq_welcome_seen', today);
-    document.getElementById('welcome-overlay').style.display = 'none';
-  }
+      function dismissWelcome() {
+        const today = getServerTime().toISOString().slice(0, 10);
+        localStorage.setItem("pq_welcome_seen", today);
+        document.getElementById("welcome-overlay").style.display = "none";
+      }
 
-  function applyBen2Visibility(show) {
-  // Find the Beneficiary 2 person-section by looking for its unique input
-  const ben2Input = document.getElementById('inp-ben2-name');
-  if (ben2Input) {
-    const section = ben2Input.closest('.person-section');
-    if (section) section.style.display = show ? '' : 'none';
-  }
-  if (!show) {
-    document.getElementById('inp-ben2-name').value  = '';
-    document.getElementById('inp-id-type2').value   = '';
-    document.getElementById('inp-id-number2').value = '';
-  }
-}
+      function applyBen2Visibility(show) {
+        // Find the Beneficiary 2 person-section by looking for its unique input
+        const ben2Input = document.getElementById("inp-ben2-name");
+        if (ben2Input) {
+          const section = ben2Input.closest(".person-section");
+          if (section) section.style.display = show ? "" : "none";
+        }
+        if (!show) {
+          document.getElementById("inp-ben2-name").value = "";
+          document.getElementById("inp-id-type2").value = "";
+          document.getElementById("inp-id-number2").value = "";
+        }
+      }
     </script>
   </body>
 </html>

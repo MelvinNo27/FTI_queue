@@ -399,24 +399,28 @@
     setStorage('visitors', snap.val(), 'sfill-visitors', 'sz-visitors', 200 * 1024);
   });
 
-  // tickets
-  db.ref("tickets").on("value", snap => {
-    const todayStr = today();
+  // Total tickets (one-time on load to avoid repeated large downloads)
+  db.ref("tickets").once("value", allSnap => {
+    const count = allSnap.numChildren();
+    document.getElementById('cnt-tickets').textContent = count;
+    setStorage('tickets', allSnap.val(), 'sfill-tickets', 'sz-tickets', 500 * 1024);
+  });
+
+  // tickets (Live for today only)
+  db.ref("tickets").orderByChild("date").equalTo(today()).on("value", snap => {
     let am = 0, pm = 0;
     snap.forEach(c => {
       const t = c.val();
-      if (t.date === todayStr) { t.time === 'AM' ? am++ : pm++; }
+      t.time === 'AM' ? am++ : pm++;
     });
     const total = am + pm;
     document.getElementById('kpi-tickets').textContent = total;
     document.getElementById('kpi-tickets-sub').textContent = 'AM: ' + am + ' · PM: ' + pm;
-    document.getElementById('cnt-tickets').textContent = snap.numChildren();
     document.getElementById('am-val').textContent = am;
     document.getElementById('pm-val').textContent = pm;
     const d = total || 1;
     document.getElementById('split-am').style.width = ((am / d) * 100) + '%';
     document.getElementById('split-pm').style.width = ((pm / d) * 100) + '%';
-    setStorage('tickets', snap.val(), 'sfill-tickets', 'sz-tickets', 500 * 1024);
   });
 
   // takenNumbers

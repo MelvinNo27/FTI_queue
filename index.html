@@ -61,6 +61,12 @@
           </h1>
           <p data-i18n="appSubtitle">Get your Control number</p>
         </div>
+
+        <div id="pht-clock" style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;margin:0 10px;">
+          <div id="clock-time" style="font-size:17px;font-weight:800;color:#fff;letter-spacing:0.5px;font-family:'Courier Prime',monospace;line-height:1;">--:--:-- --</div>
+          <div id="clock-date" style="font-size:10px;color:rgba(255,255,255,0.65);font-weight:600;text-align:right;"></div>
+          <div style="font-size:9px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);border-radius:6px;padding:2px 6px;color:rgba(255,255,255,0.85);font-weight:700;letter-spacing:0.5px;">🇵🇭 PHT</div>
+        </div>
         <button
           class="burger-btn"
           id="burger-btn"
@@ -218,15 +224,11 @@
           <div class="cal-days" id="cal-days"></div>
         </div>
         <div class="cal-legend">
-          <span
-            ><span class="leg-dot tmr"></span>Tomorrow (Control Number
-            date)</span
-          >
-          <span
-            ><span class="leg-dot past"></span>Today &amp; past
-            (unavailable)</span
-          >
-        </div>
+        <span><span class="leg-dot tmr"></span>Tomorrow (Control Number date)</span>
+        <span><span class="leg-dot past"></span>Today &amp; past (unavailable)</span>
+        <span><span class="leg-dot" style="background:#fee2e2;border:1.5px solid #fca5a5;"></span>Holiday / Closed</span>
+        <span><span class="leg-dot" style="background:#fef9c3;border:1.5px solid #fde047;"></span>Half-day (tap for details)</span>
+      </div>
         <div class="cal-notice">
           📋
           <span data-i18n="calNotice"
@@ -930,16 +932,16 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyAiRK64ZYzF8lBKnxmubCZEO9qrCN42B1g",
-      authDomain: "fti-queue.firebaseapp.com",
-      databaseURL: "https://fti-queue-default-rtdb.firebaseio.com",
-      projectId: "fti-queue",
-      storageBucket: "fti-queue.firebasestorage.app",
-      messagingSenderId: "794859488896",
-      appId: "1:794859488896:web:4e7dcb7e830fc4bf334865",
-      measurementId: "G-HSTB5FR8G9"
-    };
+          const firebaseConfig = {
+            apiKey: "AIzaSyAiRK64ZYzF8lBKnxmubCZEO9qrCN42B1g",
+            authDomain: "fti-queue.firebaseapp.com",
+            databaseURL: "https://fti-queue-default-rtdb.firebaseio.com",
+            projectId: "fti-queue",
+            storageBucket: "fti-queue.firebasestorage.app",
+            messagingSenderId: "794859488896",
+            appId: "1:794859488896:web:4e7dcb7e830fc4bf334865",
+            measurementId: "G-HSTB5FR8G9"
+          };
       firebase.initializeApp(firebaseConfig);
       const db = firebase.database();
 
@@ -1004,6 +1006,73 @@
           });
         }
       }
+
+      async function checkMonthlyLimitByName(field, value, limitCount) {
+  if (!value || value.trim().length < 2 || !limitCount || limitCount === 0) return null;
+  const normVal = value.trim().toLowerCase();
+  const snap = await db.ref('tickets').once('value');
+  if (!snap.exists()) return null;
+ 
+  const targetDate = new Date(targetStr + 'T00:00:00');
+  const windowStart = new Date(targetDate);
+  windowStart.setDate(windowStart.getDate() - 29);
+  const windowStartStr = toDateStr(windowStart);
+ 
+  let count = 0;
+  let lastFound = null;
+  snap.forEach(c => {
+    const t = c.val();
+    if (!t || !t.date) return;
+    if (t.date < windowStartStr || t.date > targetStr) return;
+    if (editingTicketId && c.key === editingTicketId) return;
+    
+    // Check if the name matches either beneficiary slot if we are checking a beneficiary
+    const isBenCheck = field === 'ben1Name' || field === 'ben2Name';
+    const match = isBenCheck 
+      ? (t.ben1Name && t.ben1Name.trim().toLowerCase() === normVal) || (t.ben2Name && t.ben2Name.trim().toLowerCase() === normVal)
+      : (t[field] && t[field].trim().toLowerCase() === normVal);
+
+    if (match) {
+      count++;
+      lastFound = { id: c.key, ...t };
+    }
+  });
+ 
+  return count >= limitCount ? { count, lastFound, limitCount } : null;
+}
+ 
+async function checkMonthlyLimitByID(idType, idNum, limitCount) {
+  if (!idType || !idNum || !limitCount || limitCount === 0) return null;
+  const normType = idType.trim().toLowerCase();
+  const normNum  = idNum.trim().toLowerCase();
+  const snap = await db.ref('tickets').once('value');
+  if (!snap.exists()) return null;
+ 
+  const targetDate = new Date(targetStr + 'T00:00:00');
+  const windowStart = new Date(targetDate);
+  windowStart.setDate(windowStart.getDate() - 29);
+  const windowStartStr = toDateStr(windowStart);
+ 
+  let count = 0;
+  let lastFound = null;
+  snap.forEach(c => {
+    const t = c.val();
+    if (!t || !t.date) return;
+    if (t.date < windowStartStr || t.date > targetStr) return;
+    if (editingTicketId && c.key === editingTicketId) return;
+
+    // Check both ID slots
+    const match1 = t.idType && t.idNumber && t.idType.trim().toLowerCase() === normType && t.idNumber.trim().toLowerCase() === normNum;
+    const match2 = t.idType2 && t.idNumber2 && t.idType2.trim().toLowerCase() === normType && t.idNumber2.trim().toLowerCase() === normNum;
+
+    if (match1 || match2) {
+      count++;
+      lastFound = { id: c.key, ...t };
+    }
+  });
+ 
+  return count >= limitCount ? { count, lastFound, limitCount } : null;
+}
 
       function initializeAfterSync() {
         // Only initialize these once we have accurate server time
@@ -1120,13 +1189,14 @@
 
       let selectedTime = null;
       let editingTicketId = null;
-      // takenNumbersData: live snapshot of takenNumbers node (source of truth for slot counts)
       let takenNumbersData = {};
       let disabledNumbers = {};
+      let calDateSettings = {};
       let myTickets = [],
         myTicketIds = JSON.parse(
           localStorage.getItem("pq_my_ticket_ids") || "[]",
         );
+        let ticketsLoading = true;
 
       let scheduleSettings = {
         claimStart: "06:00",
@@ -1155,6 +1225,25 @@
       function pad3(n) {
         return String(n).padStart(3, "0");
       }
+
+      function shuffleArray(arr) {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function withTimeout(promise, ms) {
+        return Promise.race([
+          promise,
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("timeout")), ms)
+          )
+        ]);
+      }
+
       function fmt(t) {
         if (!t) return "—";
         const [h, m] = t.split(":").map(Number);
@@ -1163,7 +1252,7 @@
         return hr + ":" + String(m).padStart(2, "0") + " " + ap;
       }
 
-      // FIX 2: toMin-based time comparison (not string) prevents midnight edge-case bugs
+      // toMin-based time comparison (not string) prevents midnight edge-case bugs
       function toMin(t) {
         const [h, m] = t.split(":").map(Number);
         return h * 60 + m;
@@ -1425,7 +1514,7 @@
         return { start: toDateStr(d), end: toDateStr(end) };
       }
 
-      // FIX 3: Helper — count taken numbers for a session from the atomic takenNumbers node
+      // Helper — count taken numbers for a session from the atomic takenNumbers node
       function getTakenCountFromAtomic(dateStr, session) {
         const dayData = takenNumbersData[dateStr] || {};
         const nums =
@@ -1442,11 +1531,16 @@
         updateSlotBanner();
         applySlotButtonStates(targetStr, selectedTime);
         updateFormWindowTags();
+
+          // Clear selectedTime if its session just got disabled by admin
+        if (selectedTime === 'AM' && slotConfig.amEnabled === false) selectedTime = null;
+        if (selectedTime === 'PM' && slotConfig.pmEnabled === false) selectedTime = null;
       });
 
       db.ref("scheduleSettings").on("value", (s) => {
         if (s.exists())
           scheduleSettings = Object.assign({}, scheduleSettings, s.val());
+        applyBen2Visibility(scheduleSettings.ben2Enabled !== false);
         scheduleSettings.claimRestricted = true;
         updateScheduleBar();
         updateStatusBanner();
@@ -1458,9 +1552,38 @@
         disabledNumbers = s.val() || {};
         renderTickets();
       });
+      
 
       // FIX 4: takenNumbers is now the single source of truth for slot counts.
       // The tickets listener no longer writes back to slots/ (removed that sync).
+
+        let isFirstDateSettingsLoad = true;
+        db.ref("dateSettings").on("value", (s) => {
+          calDateSettings = s.val() || {};
+
+          if (!isFirstDateSettingsLoad) {
+            toast("📅 Schedule updated — refreshing...");
+          }
+          isFirstDateSettingsLoad = false;
+
+          renderCalendar();
+          renderCard();
+          updateStatusBanner();
+          updateSlotBanner();
+
+          if (document.getElementById("form-card").classList.contains("show")) {
+            const editDate = editingTicketId
+              ? (myTickets.find(x => x.id === editingTicketId) || {}).date || targetStr
+              : targetStr;
+            applySlotButtonStates(editDate, selectedTime);
+
+            // Clear selectedTime if the session got disabled for the target date
+            const _ds = calDateSettings[targetStr] || {};
+            if (selectedTime === 'AM' && _ds.amEnabled === false) selectedTime = null;
+            if (selectedTime === 'PM' && _ds.pmEnabled === false) selectedTime = null;
+          }
+        });
+
       db.ref("takenNumbers").on("value", (s) => {
         takenNumbersData = s.val() || {};
         renderCard();
@@ -1474,15 +1597,36 @@
               targetStr
             : targetStr;
           applySlotButtonStates(editDate, selectedTime);
+
+          // Clear selectedTime if its session just became unavailable
+        const amNowFull = getTakenCountFromAtomic(editDate, 'AM') >= getLimitAm() || slotConfig.amEnabled === false;
+        const pmNowFull = getTakenCountFromAtomic(editDate, 'PM') >= getLimitPm() || slotConfig.pmEnabled === false;
+        if (selectedTime === 'AM' && amNowFull) selectedTime = null;
+        if (selectedTime === 'PM' && pmNowFull) selectedTime = null;
         }
       });
 
       async function loadMyTickets() {
-        myTickets = [];
-        for (const id of myTicketIds) {
-          const s = await db.ref("tickets/" + id).once("value");
-          if (s.exists()) myTickets.push({ id, ...s.val() });
+        // Show loading state immediately
+        document.getElementById("tickets-list").innerHTML = `
+          <div class="tickets-loading">
+            <div class="tickets-spinner"></div>
+            <div class="tickets-loading-text">Loading your numbers...</div>
+          </div>
+        `;
+
+        try {
+          const promises = myTicketIds.map(id => db.ref("tickets/" + id).once("value"));
+          const snapshots = await Promise.all(promises);
+          
+          myTickets = snapshots
+            .filter(s => s.exists())
+            .map(s => ({ id: s.key, ...s.val() }));
+        } catch (error) {
+          console.error("Error loading tickets:", error);
         }
+
+        ticketsLoading = false;
         renderTickets();
       }
       loadMyTickets();
@@ -1538,15 +1682,16 @@
           fmt(scheduleSettings.pmStart) + "–" + fmt(scheduleSettings.pmEnd);
       }
 
-      // FIX 5: applySlotButtonStates now reads from takenNumbers (atomic source of truth)
+      // applySlotButtonStates now reads from takenNumbers (atomic source of truth)
       // instead of slotsData (ticket-count-based, which could desync).
       function applySlotButtonStates(dateStr, lockedTime) {
         const amTaken = getTakenCountFromAtomic(dateStr, "AM");
         const pmTaken = getTakenCountFromAtomic(dateStr, "PM");
         const limAm = getLimitAm(),
           limPm = getLimitPm();
-        const amDisabled = slotConfig.amEnabled === false;
-        const pmDisabled = slotConfig.pmEnabled === false;
+        const _ds = calDateSettings[targetStr] || {};
+        const amDisabled = slotConfig.amEnabled === false || _ds.amEnabled === false;
+        const pmDisabled = slotConfig.pmEnabled === false || _ds.pmEnabled === false;
         const aF = amTaken >= limAm || amDisabled;
         const pF = pmTaken >= limPm || pmDisabled;
         const ba = document.getElementById("btn-am"),
@@ -1589,74 +1734,184 @@
           bp.classList.add("active");
         } else {
           selectedTime = null;
+          document.getElementById('btn-am').classList.remove('active');
+          document.getElementById('btn-pm').classList.remove('active');
         }
       }
 
-      function renderCalendar() {
-        const tmr = getTargetDate(now);
-        const yr = tmr.getFullYear(),
-          mo = tmr.getMonth();
-        document.getElementById("cal-month-name").textContent = MONTHS[mo];
-        document.getElementById("cal-year").textContent = yr;
-        document.getElementById("cal-badge-today-day").textContent = String(
-          now.getDate(),
-        ).padStart(2, "0");
-        document.getElementById("cal-badge-today-name").textContent =
-          DAYS[now.getDay()];
-        document.getElementById("cal-badge-day").textContent = String(
-          tmr.getDate(),
-        ).padStart(2, "0");
-        document.getElementById("cal-badge-dayname").textContent =
-          DAYS[tmr.getDay()];
-        document.getElementById("notice-tmr-date").textContent =
-          MONTHS[tmr.getMonth()].slice(0, 3) + " " + tmr.getDate();
-        const todayDay = now.getDay();
-        const isNoClaimDay = todayDay === 5 || todayDay === 6;
-        const calNoticeEl = document.querySelector(".cal-notice");
-        if (calNoticeEl) calNoticeEl.style.display = isNoClaimDay ? "none" : "";
-        document.getElementById("notice-weekend-warn").textContent = "";
-        const firstDow = new Date(yr, mo, 1).getDay();
-        const daysInMo = new Date(yr, mo + 1, 0).getDate();
-        const prevDays = new Date(yr, mo, 0).getDate();
-        const todayY = now.getFullYear(),
-          todayM = now.getMonth(),
-          todayD = now.getDate();
-        const tmrD = tmr.getDate();
-        const grid = document.getElementById("cal-days");
-        grid.innerHTML = "";
-        for (let i = firstDow - 1; i >= 0; i--) {
-          const c = document.createElement("div");
-          c.className = "cal-day other-month";
-          c.textContent = prevDays - i;
-          grid.appendChild(c);
-        }
-        for (let d = 1; d <= daysInMo; d++) {
-          const c = document.createElement("div");
-          const dow = new Date(yr, mo, d).getDay();
-          const isThisToday = yr === todayY && mo === todayM && d === todayD;
-          const isPast = new Date(yr, mo, d) < new Date(todayY, todayM, todayD);
-          const isTmr = d === tmrD;
-          let cls = "cal-day";
-          if (isTmr && !isDistributionClosed(tmr)) cls += " tomorrow-cell";
-          else if (isThisToday || isPast) cls += " past";
-          else {
-            cls += " future-cell";
-            if (dow === 0) cls += " sunday";
-            else if (dow === 6) cls += " saturday";
-          }
-          c.className = cls;
-          c.textContent = d;
-          grid.appendChild(c);
-        }
-        const total = firstDow + daysInMo;
-        const trail = (7 - (total % 7)) % 7;
-        for (let d = 1; d <= trail; d++) {
-          const c = document.createElement("div");
-          c.className = "cal-day other-month";
-          c.textContent = d;
-          grid.appendChild(c);
-        }
+      function showCalDayPopup(ds, yr, mo, d) {
+      const existing = document.getElementById("cal-day-popup");
+      if (existing) existing.remove();
+
+      const dateKey = yr + "-" + String(mo + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0");
+      const dateObj = new Date(yr, mo, d);
+      const dateLabel = DAYS[dateObj.getDay()] + ", " + MONTHS[mo] + " " + d + ", " + yr;
+
+      const isHoliday = !!(ds.holiday);
+      const amOff = ds.amEnabled === false;
+      const pmOff = ds.pmEnabled === false;
+      const isFullyClosed = amOff && pmOff;
+
+      let bodyHtml = "";
+      if (isHoliday) {
+        bodyHtml = `
+          <div style="display:flex;align-items:center;gap:10px;background:#fee2e2;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+            
+            <div>
+              <div style="font-size:13px;font-weight:800;color:#991b1b;">Holiday</div>
+              <div style="font-size:14px;font-weight:700;color:#7f1d1d;margin-top:2px;">${ds.holiday}</div>
+            </div>
+          </div>
+          <div style="font-size:12px;color:#6b7280;line-height:1.6;">No distribution on this day due to the holiday.</div>
+        `;
+      } else if (isFullyClosed) {
+        bodyHtml = `
+          <div style="display:flex;align-items:center;gap:10px;background:#fee2e2;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+            <span style="font-size:22px;">🚫</span>
+            <div style="font-size:13px;font-weight:800;color:#991b1b;">All Sessions Closed</div>
+          </div>
+          <div style="font-size:12px;color:#6b7280;">Both AM and PM sessions are disabled for this date.</div>
+        `;
+      } else {
+        const amStatus = amOff
+          ? `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:#fee2e2;border-radius:8px;border:1px solid #fca5a5;">
+              <span style="font-size:14px;">🌅</span>
+              <div><div style="font-size:12px;font-weight:800;color:#991b1b;">AM Session</div><div style="font-size:11px;color:#b91c1c;margin-top:1px;">⛔ Closed</div></div>
+            </div>`
+          : `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:#f0fdf4;border-radius:8px;border:1px solid #86efac;">
+              <span style="font-size:14px;">🌅</span>
+              <div><div style="font-size:12px;font-weight:800;color:#166534;">AM Session</div><div style="font-size:11px;color:#15803d;margin-top:1px;">✅ ${fmt(scheduleSettings.amStart)} – ${fmt(scheduleSettings.amEnd)}</div></div>
+            </div>`;
+        const pmStatus = pmOff
+          ? `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:#fee2e2;border-radius:8px;border:1px solid #fca5a5;">
+              <span style="font-size:14px;">🌇</span>
+              <div><div style="font-size:12px;font-weight:800;color:#991b1b;">PM Session</div><div style="font-size:11px;color:#b91c1c;margin-top:1px;">⛔ Closed</div></div>
+            </div>`
+          : `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:#f0fdf4;border-radius:8px;border:1px solid #86efac;">
+              <span style="font-size:14px;">🌇</span>
+              <div><div style="font-size:12px;font-weight:800;color:#166534;">PM Session</div><div style="font-size:11px;color:#15803d;margin-top:1px;">✅ ${fmt(scheduleSettings.pmStart)} – ${fmt(scheduleSettings.pmEnd)}</div></div>
+            </div>`;
+        bodyHtml = `
+          <div style="background:#fef9c3;border-radius:10px;padding:10px 12px;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+            <span style="font-size:16px;">⚠️</span>
+            <span style="font-size:12px;font-weight:800;color:#854d0e;">Half-Day — Limited Sessions</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;">${amStatus}${pmStatus}</div>
+        `;
       }
+
+      const popup = document.createElement("div");
+      popup.id = "cal-day-popup";
+      popup.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:3000;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(3px);animation:fadeIn 0.15s;";
+      popup.innerHTML = `
+        <div style="background:#fff;border-radius:18px;width:100%;max-width:340px;box-shadow:0 20px 50px rgba(0,0,0,0.2);overflow:hidden;">
+          <div style="background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:16px 18px;display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <div style="color:#fff;font-weight:800;font-size:14px;font-family:Nunito,sans-serif;">📅 ${dateLabel}</div>
+            </div>
+            <button onclick="document.getElementById('cal-day-popup').remove()" style="width:28px;height:28px;border-radius:50%;border:none;background:rgba(255,255,255,0.2);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+          </div>
+          <div style="padding:16px 18px 18px;font-family:Nunito,sans-serif;">
+            ${bodyHtml}
+            <button onclick="document.getElementById('cal-day-popup').remove()" style="margin-top:14px;width:100%;padding:11px;background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:800;cursor:pointer;font-family:Nunito,sans-serif;">Got it</button>
+          </div>
+        </div>
+      `;
+      popup.onclick = (e) => { if (e.target === popup) popup.remove(); };
+      document.body.appendChild(popup);
+    }
+
+      function renderCalendar() {
+      const tmr = getTargetDate(now);
+      const yr = tmr.getFullYear(), mo = tmr.getMonth();
+      document.getElementById("cal-month-name").textContent = MONTHS[mo];
+      document.getElementById("cal-year").textContent = yr;
+      document.getElementById("cal-badge-today-day").textContent = String(now.getDate()).padStart(2, "0");
+      document.getElementById("cal-badge-today-name").textContent = DAYS[now.getDay()];
+      document.getElementById("cal-badge-day").textContent = String(tmr.getDate()).padStart(2, "0");
+      document.getElementById("cal-badge-dayname").textContent = DAYS[tmr.getDay()];
+      document.getElementById("notice-tmr-date").textContent = MONTHS[tmr.getMonth()].slice(0, 3) + " " + tmr.getDate();
+      const todayDay = now.getDay();
+      const isNoClaimDay = todayDay === 5 || todayDay === 6;
+      const calNoticeEl = document.querySelector(".cal-notice");
+      if (calNoticeEl) calNoticeEl.style.display = isNoClaimDay ? "none" : "";
+      document.getElementById("notice-weekend-warn").textContent = "";
+      const firstDow = new Date(yr, mo, 1).getDay();
+      const daysInMo = new Date(yr, mo + 1, 0).getDate();
+      const prevDays = new Date(yr, mo, 0).getDate();
+      const todayY = now.getFullYear(), todayM = now.getMonth(), todayD = now.getDate();
+      const tmrD = tmr.getDate();
+      const grid = document.getElementById("cal-days");
+      grid.innerHTML = "";
+
+      for (let i = firstDow - 1; i >= 0; i--) {
+        const c = document.createElement("div");
+        c.className = "cal-day other-month";
+        c.textContent = prevDays - i;
+        grid.appendChild(c);
+      }
+
+      for (let d = 1; d <= daysInMo; d++) {
+        const dow = new Date(yr, mo, d).getDay();
+        const isThisToday = yr === todayY && mo === todayM && d === todayD;
+        const isPast = new Date(yr, mo, d) < new Date(todayY, todayM, todayD);
+        const isTmr = d === tmrD;
+        const dateKey = yr + "-" + String(mo + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0");
+        const ds = calDateSettings[dateKey] || {};
+        const isHoliday = !!(ds.holiday);
+        const amOff = ds.amEnabled === false;
+        const pmOff = ds.pmEnabled === false;
+        const isHalfDay = !isHoliday && (amOff || pmOff) && !(amOff && pmOff);
+        const isFullyClosed = !isHoliday && amOff && pmOff;
+
+        const c = document.createElement("div");
+        let cls = "cal-day";
+
+        if (isTmr && !isDistributionClosed(tmr)) cls += " tomorrow-cell";
+        else if (isThisToday || isPast) cls += " past";
+        else {
+          cls += " future-cell";
+          if (dow === 0) cls += " sunday";
+          else if (dow === 6) cls += " saturday";
+        }
+
+        // Holiday/half-day overlays (skip past/today)
+        if (!isThisToday && !isPast) {
+          if (isHoliday || isFullyClosed) {
+            cls += " cal-holiday";
+            c.style.cssText += "background:#fee2e2!important;color:#991b1b!important;border:1.5px solid #fca5a5!important;cursor:pointer;";
+            c.title = isHoliday ? "Holiday: " + ds.holiday : "Closed (all sessions disabled)";
+            c.onclick = ((_ds, _d) => () => showCalDayPopup(_ds, yr, mo, _d))(ds, d);
+          } else if (isHalfDay) {
+            cls += " cal-halfday";
+            c.style.cssText += "background:#fef9c3!important;color:#854d0e!important;border:1.5px solid #fde047!important;cursor:pointer;";
+            const halfLabel = amOff ? "PM only" : "AM only";
+            c.title = "Half-day: " + halfLabel;
+            c.onclick = ((_ds, _d) => () => showCalDayPopup(_ds, yr, mo, _d))(ds, d);
+          }
+        }
+
+        c.className = cls;
+        c.textContent = d;
+
+        // Holiday dot indicator
+        // if (isHoliday && !isThisToday && !isPast) {
+        //   const dot = document.createElement("span");
+        //   dot.style.cssText = "display:block;width:5px;height:5px;border-radius:50%;background:#dc2626;margin:1px auto 0;";
+        // }
+
+        grid.appendChild(c);
+      }
+
+      const total = firstDow + daysInMo;
+      const trail = (7 - (total % 7)) % 7;
+      for (let d = 1; d <= trail; d++) {
+        const c = document.createElement("div");
+        c.className = "cal-day other-month";
+        c.textContent = d;
+        grid.appendChild(c);
+      }
+    }
 
       function renderCard() {
         renderCalendar();
@@ -1670,23 +1925,67 @@
         // FIX 6: Use takenNumbers atomic counts for slot pill display
         const amTaken = getTakenCountFromAtomic(targetStr, "AM");
         const pmTaken = getTakenCountFromAtomic(targetStr, "PM");
-        const amDisabled = slotConfig.amEnabled === false;
-        const pmDisabled = slotConfig.pmEnabled === false;
-        const limAm = getLimitAm(),
-          limPm = getLimitPm(),
-          limTotal = getLimitTotal();
-        const amLeft = limAm - amTaken,
-          pmLeft = limPm - pmTaken;
+        const _dsTarget = calDateSettings[targetStr] || {};
+        const targetIsHoliday = !!(_dsTarget.holiday);
+        const amDisabled = slotConfig.amEnabled === false || _dsTarget.amEnabled === false;
+        const pmDisabled = slotConfig.pmEnabled === false || _dsTarget.pmEnabled === false;
+        const limAm = getLimitAm(), limPm = getLimitPm(), limTotal = getLimitTotal();
+        const amLeft = limAm - amTaken, pmLeft = limPm - pmTaken;
         const amUnavailable = amTaken >= limAm || amDisabled;
         const pmUnavailable = pmTaken >= limPm || pmDisabled;
         const allUnavailable = amUnavailable && pmUnavailable;
-        document.getElementById('pill-am-count').textContent = amDisabled ? 'OFF' : amLeft > 0 ? amLeft + ' left' : 'FULL';
-        document.getElementById('pill-am-sub').textContent   = amDisabled ? 'Session disabled' : amTaken + '/' + limAm + ' taken';
-        document.getElementById('pill-am').classList.toggle('full-slot', amLeft <= 0 || amDisabled);
 
-        document.getElementById('pill-pm-count').textContent = pmDisabled ? 'OFF' : pmLeft > 0 ? pmLeft + ' left' : 'FULL';
-        document.getElementById('pill-pm-sub').textContent   = pmDisabled ? 'Session disabled' : pmTaken + '/' + limPm + ' taken';
-        document.getElementById('pill-pm').classList.toggle('full-slot', pmLeft <= 0 || pmDisabled);
+        const statusRow = document.querySelector(".today-status-row");
+        const tmrNotice = document.querySelector(".tmr-notice");
+        document.getElementById("today-card").style.display = "";
+        const calNoticeRestore = document.querySelector(".cal-notice");    // ← ADD
+        if (calNoticeRestore) calNoticeRestore.style.display = "";  // ← restore if was hidden
+
+        // If holiday or fully closed by date settings — hide slots, show holiday message
+        const targetFullyClosed = targetIsHoliday || (_dsTarget.amEnabled === false && _dsTarget.pmEnabled === false);
+
+        if (targetFullyClosed) {
+          if (statusRow) statusRow.style.display = "none";
+          if (tmrNotice) tmrNotice.style.display = "none";
+          // Inject holiday message inside today-card
+          let holMsg = document.getElementById("holiday-slot-msg");
+          if (!holMsg) {
+            holMsg = document.createElement("div");
+            holMsg.id = "holiday-slot-msg";
+            holMsg.style.cssText = "margin:12px 0 4px;padding:14px 16px;background:#fee2e2;border:1.5px solid #fca5a5;border-radius:12px;display:flex;align-items:center;gap:12px;";
+            const todayCard = document.getElementById("today-card");
+            if (todayCard) todayCard.insertBefore(holMsg, todayCard.firstChild);
+          }
+          const _tmrDateLabel = MONTHS[tmr.getMonth()] + " " + tmr.getDate() + ", " + tmr.getFullYear();
+          holMsg.innerHTML = targetIsHoliday
+            ? `
+              <div>
+                <div style="font-size:13px;font-weight:800;color:#991b1b;">Holiday — No Distribution</div>
+                <div style="font-size:14px;font-weight:700;color:#7f1d1d;margin-top:2px;">${_dsTarget.holiday}</div>
+                <div style="font-size:11px;color:#b91c1c;margin-top:4px;">📅 ${_tmrDateLabel}</div>
+              </div>`
+            : `<span style="font-size:24px;">🚫</span>
+              <div>
+                <div style="font-size:13px;font-weight:800;color:#991b1b;">No Distribution Tomorrow</div>
+                <div style="font-size:12px;color:#b91c1c;margin-top:2px;">All sessions have been disabled for this date.</div>
+              </div>`;
+          holMsg.style.display = "flex";
+        } else {
+          // Remove holiday message if it exists
+          const holMsg = document.getElementById("holiday-slot-msg");
+          if (holMsg) holMsg.style.display = "none";
+          const calNotice = document.querySelector(".cal-notice");
+          if (calNotice) calNotice.style.display = "";
+
+          // Normal slot pill display
+          document.getElementById('pill-am-count').textContent = amDisabled ? 'Closed' : amLeft > 0 ? amLeft + ' left' : 'FULL';
+          document.getElementById('pill-am-sub').textContent   = amDisabled ? 'Session disabled' : amTaken + '/' + limAm + ' taken';
+          document.getElementById('pill-am').classList.toggle('full-slot', amLeft <= 0 || amDisabled);
+
+          document.getElementById('pill-pm-count').textContent = pmDisabled ? 'Closed' : pmLeft > 0 ? pmLeft + ' left' : 'FULL';
+          document.getElementById('pill-pm-sub').textContent   = pmDisabled ? 'Session disabled' : pmTaken + '/' + limPm + ' taken';
+          document.getElementById('pill-pm').classList.toggle('full-slot', pmLeft <= 0 || pmDisabled);
+        }
         const btn = document.getElementById("btn-get-number");
         const msg = document.getElementById("today-closed-msg");
         const status = getClaimingStatus();
@@ -1698,12 +1997,15 @@
             ? "No Available Slots for Tomorrow"
             : "All Slots Full for Tomorrow";
         }
-        if (status === "blocked") {
+          if (status === "blocked") {
           btn.style.display = "none";
           msg.style.display = "none";
-          document.querySelector(".today-status-row").style.display = "none";
-          document.querySelector(".tmr-notice").style.display = "none";
-          document.querySelector(".cal-notice").style.display = "none";
+          if (statusRow) statusRow.style.display = "none";
+          if (tmrNotice) tmrNotice.style.display = "none";
+          document.getElementById("today-card").style.display = "none";
+          const calNoticeBlocked = document.querySelector(".cal-notice");  // ← ADD
+          if (calNoticeBlocked) calNoticeBlocked.style.display = "none";   // ← ADD
+          return; // ← stop here, don't let the rest of renderCard() re-show anything
         } else if (status === "weekend") {
           btn.style.display = "none";
           msg.style.display = "block";
@@ -1711,13 +2013,28 @@
             "No distribution on <strong>Saturday & Sunday</strong>.<br>Claiming resumes on <strong>Sunday</strong>";
           document.querySelector(".today-status-row").style.display = "none";
           document.querySelector(".tmr-notice").style.display = "none";
+          document.getElementById("today-card").style.display = "none";
+          document.getElementById("slot-banner").classList.remove("show");
+          const calNoticeWeekend = document.querySelector(".cal-notice");
+          if (calNoticeWeekend) calNoticeWeekend.style.display = "none";
+          return;
         } else if (status === "closed") {
-          btn.style.display = "none";
-          msg.style.display = "block";
-          msg.innerHTML =
-            "Claiming closed. Opens <strong>" +
-            fmt(scheduleSettings.claimStart) +
-            " Tomorrow</strong>";
+            document.getElementById("today-card").style.display = "none";
+            document.getElementById("slot-banner").classList.remove("show");
+            document.getElementById("form-card").classList.remove("show");
+            return;
+        }if (targetFullyClosed) {
+            btn.style.display = "block";
+            btn.disabled = true;
+            btn.textContent = targetIsHoliday
+              ? "No Distribution (" + _dsTarget.holiday + ")"
+              : "🚫 No Distribution Tomorrow";
+            btn.classList.add("full-btn");
+            msg.style.display = "none";
+            if (statusRow) statusRow.style.display = "none";
+            if (tmrNotice) tmrNotice.style.display = "none";
+            const calNotice = document.querySelector(".cal-notice");
+            if (calNotice) calNotice.style.display = "none";
         } else if (allUnavailable) {
           btn.style.display = "block";
           btn.disabled = true;
@@ -1725,6 +2042,7 @@
           btn.classList.add("full-btn");
           msg.style.display = "none";
         } else {
+          document.getElementById("today-card").style.display = "";
           btn.style.display = "block";
           btn.disabled = false;
           btn.textContent = "Get My Control Number";
@@ -1732,7 +2050,6 @@
           msg.style.display = "none";
           document.querySelector(".today-status-row").style.display = "";
           document.querySelector(".tmr-notice").style.display = "";
-          document.querySelector(".cal-notice").style.display = "";
         }
       }
 
@@ -1820,6 +2137,8 @@
       }
 
       function selectTime(t) {
+          document.getElementById('btn-am').style.outline = ''; // ← add
+          document.getElementById('btn-pm').style.outline = ''; // ← add
         if (!isClaimingOpen()) return;
           if (t === 'AM' && slotConfig.amEnabled === false) return;
           if (t === 'PM' && slotConfig.pmEnabled === false) return;
@@ -1868,24 +2187,30 @@
         document.getElementById("btn-generate").textContent = "Save Changes";
         const ba = document.getElementById("btn-am"),
           bp = document.getElementById("btn-pm");
+        selectedTime = t.time;
+        ba.classList.remove("active", "full");
+        bp.classList.remove("active", "full");
+
         if (t.time === "AM") {
-          bp.disabled = true;
-          bp.style.pointerEvents = "none";
-          bp.style.opacity = "0.4";
-          bp.style.cursor = "not-allowed";
+          ba.classList.add("active");
           ba.disabled = false;
           ba.style.pointerEvents = "none";
           ba.style.opacity = "1";
           ba.style.cursor = "default";
+          bp.disabled = true;
+          bp.style.pointerEvents = "none";
+          bp.style.opacity = "0.4";
+          bp.style.cursor = "not-allowed";
         } else {
-          ba.disabled = true;
-          ba.style.pointerEvents = "none";
-          ba.style.opacity = "0.4";
-          ba.style.cursor = "not-allowed";
+          bp.classList.add("active");
           bp.disabled = false;
           bp.style.pointerEvents = "none";
           bp.style.opacity = "1";
           bp.style.cursor = "default";
+          ba.disabled = true;
+          ba.style.pointerEvents = "none";
+          ba.style.opacity = "0.4";
+          ba.style.cursor = "not-allowed";
         }
         validateNameField("inp-name", "hint-name", "counter-name");
         validateNameField("inp-ben1-name", "hint-ben1-name", "counter-ben1");
@@ -1954,77 +2279,75 @@
         return found;
       }
 
-      function showErrorCard(
-        dupTicket,
-        idNumber,
-        benName,
-        idType,
-        beneficiaryLabel,
-        matchType,
-      ) {
-        const ticketDate = new Date(dupTicket.date + "T00:00:00");
-        const nextAvail = new Date(ticketDate);
-        nextAvail.setDate(ticketDate.getDate() + 7);
-        const nextMonStr =
-          MONTHS[nextAvail.getMonth()] +
-          " " +
-          nextAvail.getDate() +
-          ", " +
-          nextAvail.getFullYear();
-        const claimedDate = new Date(dupTicket.date + "T00:00:00");
-        const claimedDateStr =
-          DAYS[claimedDate.getDay()] +
-          ", " +
-          MONTHS[claimedDate.getMonth()] +
-          " " +
-          claimedDate.getDate() +
-          ", " +
-          claimedDate.getFullYear();
-        const isNameMatch = matchType === "name";
-        const norm = idNumber ? idNumber.trim().toLowerCase() : "";
-        const isSlot2 =
-          !isNameMatch &&
-          dupTicket.idNumber2 &&
-          dupTicket.idNumber2.trim().toLowerCase() === norm;
-        document.getElementById("error-card-icon").textContent = isNameMatch
-          ? "⚠️"
-          : "🚫";
-        document.getElementById("error-card-title").textContent = isNameMatch
-          ? "Already Claimed This Week"
-          : "7-Day Cooldown Active";
-        document.getElementById("error-card-subtitle").textContent = isNameMatch
-          ? beneficiaryLabel +
-            " name already has a registered control number this week."
-          : beneficiaryLabel +
-            " ID was used within the last 7 days. Please wait before claiming again.";
-        document.getElementById("error-card-ben-name").textContent = isNameMatch
-          ? benName
-          : isSlot2
-            ? dupTicket.ben2Name || "—"
-            : dupTicket.ben1Name || "—";
-        document.getElementById("error-card-id-type").textContent = isNameMatch
-          ? (dupTicket.matchedSlot === 2
-              ? dupTicket.idType2
-              : dupTicket.idType) || "—"
-          : idType || "—";
-        document.getElementById("error-card-id").textContent = isNameMatch
-          ? (dupTicket.matchedSlot === 2
-              ? dupTicket.idNumber2
-              : dupTicket.idNumber) || "—"
-          : idNumber;
-        document.getElementById("error-card-name").textContent =
-          dupTicket.name || dupTicket.ben1Name || "—";
-        document.getElementById("error-card-date").textContent =
-          claimedDateStr + " (" + dupTicket.time + " slot)";
-        document.getElementById("error-card-next").textContent =
-          "Next available claim : " + nextMonStr;
-        document.getElementById("error-card").classList.add("show");
-        document.getElementById("form-card").classList.remove("show");
-        document.getElementById("slot-banner").classList.remove("show");
-        document
-          .getElementById("error-card")
-          .scrollIntoView({ behavior: "smooth", block: "nearest" });
+      function showErrorCard(dupTicket, idNumber, benName, idType, beneficiaryLabel, matchType, extraInfo) {
+      const ticketDate = new Date(dupTicket.date + 'T00:00:00');
+      const nextAvail  = new Date(ticketDate);
+      nextAvail.setDate(ticketDate.getDate() + 7);
+      const nextMonStr = MONTHS[nextAvail.getMonth()] + ' ' + nextAvail.getDate() + ', ' + nextAvail.getFullYear();
+      const claimedDate    = new Date(dupTicket.date + 'T00:00:00');
+      const claimedDateStr = DAYS[claimedDate.getDay()] + ', ' +
+        MONTHS[claimedDate.getMonth()] + ' ' + claimedDate.getDate() + ', ' + claimedDate.getFullYear();
+
+      const isMonthly   = matchType === 'monthly';
+      const isNameMatch = matchType === 'name';
+      const norm = idNumber ? idNumber.trim().toLowerCase() : '';
+      const isSlot2 = !isNameMatch && !isMonthly &&
+        dupTicket.idNumber2 && dupTicket.idNumber2.trim().toLowerCase() === norm;
+
+      // ── Resolve which slot the match came from ──────────────────────────────────
+      // For monthly hits triggered by name: idType/idNumber args are '' — pull from dupTicket instead
+      let resolvedIdType, resolvedIdNumber, resolvedBenName;
+
+      if (isMonthly) {
+        // Was the monthly match on ben2 or ben1?
+        const matchedOnBen2 = benName && dupTicket.ben2Name &&
+          dupTicket.ben2Name.trim().toLowerCase() === benName.trim().toLowerCase();
+        resolvedBenName   = benName || dupTicket.ben1Name || '—';
+        resolvedIdType    = idType || (matchedOnBen2 ? dupTicket.idType2 : dupTicket.idType) || '—';
+        resolvedIdNumber  = idNumber || (matchedOnBen2 ? dupTicket.idNumber2 : dupTicket.idNumber) || '—';
+      } else if (isNameMatch) {
+        resolvedBenName   = benName;
+        resolvedIdType    = (dupTicket.matchedSlot === 2 ? dupTicket.idType2 : dupTicket.idType) || '—';
+        resolvedIdNumber  = (dupTicket.matchedSlot === 2 ? dupTicket.idNumber2 : dupTicket.idNumber) || '—';
+      } else {
+        resolvedBenName   = isSlot2 ? dupTicket.ben2Name || '—' : dupTicket.ben1Name || '—';
+        resolvedIdType    = idType || '—';
+        resolvedIdNumber  = idNumber || '—';
       }
+
+      document.getElementById('error-card-icon').textContent     = isMonthly ? '📅' : isNameMatch ? '⚠️' : '🚫';
+      document.getElementById('error-card-title').textContent    = isMonthly
+        ? 'Monthly Claim Limit Reached'
+        : isNameMatch ? 'Already Claimed This Week' : '7-Day Cooldown Active';
+      document.getElementById('error-card-subtitle').textContent = isMonthly
+        ? beneficiaryLabel + ' has already been claimed ' +
+          (extraInfo ? extraInfo.count : '') + ' time(s) this month (limit: ' +
+          (extraInfo ? extraInfo.limitCount : '') + ' per 30 days).'
+        : isNameMatch
+          ? beneficiaryLabel + ' name already has a registered control number this week.'
+          : beneficiaryLabel + ' ID was used within the last 7 days. Please wait before claiming again.';
+
+      document.getElementById('error-card-ben-name').textContent = resolvedBenName;
+      document.getElementById('error-card-id-type').textContent  = resolvedIdType;
+      document.getElementById('error-card-id').textContent       = resolvedIdNumber;
+      document.getElementById('error-card-name').textContent     = dupTicket.name || dupTicket.ben1Name || '—';
+      document.getElementById('error-card-date').textContent     = claimedDateStr + ' (' + dupTicket.time + ' slot)';
+
+      if (isMonthly) {
+        const nextAvailMonthly = new Date(dupTicket.date + 'T00:00:00');
+        nextAvailMonthly.setDate(nextAvailMonthly.getDate() + 30);
+        document.getElementById('error-card-next').textContent =
+          'Next available (30-day reset): ' +
+          MONTHS[nextAvailMonthly.getMonth()] + ' ' + nextAvailMonthly.getDate() + ', ' + nextAvailMonthly.getFullYear();
+      } else {
+        document.getElementById('error-card-next').textContent = 'Next available claim: ' + nextMonStr;
+      }
+
+      document.getElementById('error-card').classList.add('show');
+      document.getElementById('form-card').classList.remove('show');
+      document.getElementById('slot-banner').classList.remove('show');
+      document.getElementById('error-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
       function dismissErrorCard() {
         document.getElementById("error-card").classList.remove("show");
         document.getElementById("form-card").classList.add("show");
@@ -2044,7 +2367,20 @@
           return;
         }
 
-        // FIX 7: Device limit keyed to targetStr (the ticket's date), not todayStr.
+        // Block generation if tomorrow is a holiday or fully closed
+        const _targetDs = calDateSettings[targetStr] || {};
+        const _targetIsHoliday = !!(_targetDs.holiday);
+        const _targetAmOff = _targetDs.amEnabled === false;
+        const _targetPmOff = _targetDs.pmEnabled === false;
+        if (_targetIsHoliday || (_targetAmOff && _targetPmOff)) {
+          return toast(_targetIsHoliday
+            ? "No distribution on " + _targetDs.holiday + " — holiday"
+            : "🚫 No distribution tomorrow — all sessions are closed"
+          );
+        }
+        
+
+        // Device limit keyed to targetStr (the ticket's date), not todayStr.
         // This prevents a new day's counter from allowing a second ticket for the same target date.
         const deviceLimit = scheduleSettings.deviceLimit ?? 1;
         if (deviceLimit > 0 && !editingTicketId) {
@@ -2108,15 +2444,102 @@
               : "⚠️ Please enter ID Number for Beneficiary 2",
           );
         }
-        if (!selectedTime) return toast("Please select AM or PM");
+        if (!selectedTime) {
+          document.getElementById('btn-am').style.outline = '2px solid #ef4444';
+          document.getElementById('btn-pm').style.outline = '2px solid #ef4444';
+          setTimeout(() => {
+            document.getElementById('btn-am').style.outline = '';
+            document.getElementById('btn-pm').style.outline = '';
+          }, 2000);
+          return toast("⚠️ Please select AM or PM before generating");
+        }
 
         const btn = document.getElementById("btn-generate");
         const isEditing = !!editingTicketId;
+
+        // ── GUARD: Re-validate selected session is still enabled and has slots ───────
+        const _dateDs = calDateSettings[targetStr] || {};
+          if (!isEditing) {
+            if (selectedTime === 'AM' && slotConfig.amEnabled === false) {
+              return toast('⛔ AM session has been disabled. Please refresh.');
+            }
+            if (selectedTime === 'PM' && slotConfig.pmEnabled === false) {
+              return toast('⛔ PM session has been disabled. Please refresh.');
+            }
+          }
+        const _amTakenGuard = getTakenCountFromAtomic(targetStr, 'AM');
+        const _pmTakenGuard = getTakenCountFromAtomic(targetStr, 'PM');
+        if (!isEditing) {
+          if (selectedTime === 'AM' && _amTakenGuard >= getLimitAm())
+            return toast('⛔ AM slots just filled up. Please try PM.');
+          if (selectedTime === 'PM' && _pmTakenGuard >= getLimitPm())
+            return toast('⛔ PM slots just filled up. Please try AM.');
+        }
+
         btn.disabled = true;
         btn.textContent = "Checking...";
 
+        // Cross-slot duplicate check within the same submission
+        if (ben2Name && idType && idNumber && idType2 && idNumber2) {
+          if (
+            idType.trim().toLowerCase() === idType2.trim().toLowerCase() &&
+            idNumber.trim().toLowerCase() === idNumber2.trim().toLowerCase()
+          ) {
+            btn.disabled = false;
+            btn.textContent = isEditing ? 'Save Changes' : 'Generate Control Number';
+            return toast('⚠️ Beneficiary 1 and Beneficiary 2 cannot have the same ID type and number.');
+          }
+        }
+        if (ben2Name && ben1Name.trim().toLowerCase() === ben2Name.trim().toLowerCase()) {
+          btn.disabled = false;
+          btn.textContent = isEditing ? 'Save Changes' : 'Generate Control Number';
+          return toast('⚠️ Beneficiary 1 and Beneficiary 2 cannot have the same name.');
+        }
+
         // Duplicate checks (run for both new and editing)
         try {
+
+          const ml = scheduleSettings.monthlyLimits || {};
+          const claimantMonthlyLimit = ml.claimant ?? 0;
+          const ben1MonthlyLimit     = ml.ben1     ?? 0;
+          const ben2MonthlyLimit     = ml.ben2     ?? 0;
+
+          if (claimantMonthlyLimit > 0) {
+            const hit = await checkMonthlyLimitByName('name', name, claimantMonthlyLimit);
+            if (hit) {
+              showErrorCard(hit.lastFound, '', name, '', 'Claimant', 'monthly', hit);
+              btn.disabled = false; btn.textContent = isEditing ? 'Save Changes' : 'Generate Control Number'; return;
+            }
+          }
+          if (ben1MonthlyLimit > 0) {
+            const hit = await checkMonthlyLimitByName('ben1Name', ben1Name, ben1MonthlyLimit);
+            if (hit) {
+              showErrorCard(hit.lastFound, '', ben1Name, '', 'Beneficiary 1', 'monthly', hit);
+              btn.disabled = false; btn.textContent = isEditing ? 'Save Changes' : 'Generate Control Number'; return;
+            }
+            if (idType && idNumber) {
+              const hitID = await checkMonthlyLimitByID(idType, idNumber, ben1MonthlyLimit);
+              if (hitID) {
+                showErrorCard(hitID.lastFound, idNumber, ben1Name, idType, 'Beneficiary 1', 'monthly', hitID);
+                btn.disabled = false; btn.textContent = isEditing ? 'Save Changes' : 'Generate Control Number'; return;
+              }
+            }
+          }
+          if (ben2Name && ben2MonthlyLimit > 0) {
+            const hit = await checkMonthlyLimitByName('ben2Name', ben2Name, ben2MonthlyLimit);
+            if (hit) {
+              showErrorCard(hit.lastFound, '', ben2Name, '', 'Beneficiary 2', 'monthly', hit);
+              btn.disabled = false; btn.textContent = isEditing ? 'Save Changes' : 'Generate Control Number'; return;
+            }
+            if (idType2 && idNumber2) {
+              const hitID = await checkMonthlyLimitByID(idType2, idNumber2, ben2MonthlyLimit);
+              if (hitID) {
+                showErrorCard(hitID.lastFound, idNumber2, ben2Name, idType2, 'Beneficiary 2', 'monthly', hitID);
+                btn.disabled = false; btn.textContent = isEditing ? 'Save Changes' : 'Generate Control Number'; return;
+              }
+            }
+          }
+
           if (idType && idNumber) {
             const wd = await checkWeeklyCooldown(idType, idNumber);
             if (wd && wd.id !== editingTicketId) {
@@ -2218,7 +2641,7 @@
           }
 
           // ── Atomically claim a specific number ──────────────────────────────────
-          // FIX 8: Skip numbers that are disabled by admin before trying transaction.
+          // Skip numbers that are disabled by admin before trying transaction.
           const availableNums =
             selectedTime === "AM" ? getAmNumbers() : getPmNumbers();
           const disabledForDate = disabledNumbers[targetStr] || {};
@@ -2290,7 +2713,7 @@
           myTicketIds.push(ref.key);
           localStorage.setItem("pq_my_ticket_ids", JSON.stringify(myTicketIds));
 
-          // FIX 7 (cont): Increment device count keyed to targetStr
+          // Increment device count keyed to targetStr
           const limitKey = "pq_gen_count_" + targetStr;
           localStorage.setItem(
             limitKey,
@@ -2353,6 +2776,7 @@
       }
 
       function renderTickets() {
+        if (ticketsLoading) return;
         const list = document.getElementById("tickets-list");
         if (!myTickets.length) {
           list.innerHTML =
@@ -2487,7 +2911,7 @@
         if (localStorage.getItem("pq_last_reset") === resetKey) return;
         try {
           const ds = toDateStr(n);
-          // FIX 10: Also clean up takenNumbers for today on daily reset to prevent ghost-blocking
+          // Also clean up takenNumbers for today on daily reset to prevent ghost-blocking
           await Promise.all([
             db.ref("slots/" + ds).remove(),
             db.ref("disabledNumbers/" + ds).remove(),
@@ -2498,6 +2922,33 @@
           console.warn("Daily reset error:", e);
         }
       }
+
+
+        (function() {
+            const DAYS_C = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+            const MONTHS_C = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const pad = n => String(n).padStart(2, '0');
+
+            function getPHT() {
+              return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' }));
+            }
+
+            function tickClock() {
+              const d = getPHT();
+              let h = d.getHours(), m = d.getMinutes(), s = d.getSeconds();
+              const ap = h >= 12 ? 'PM' : 'AM';
+              h = h % 12 || 12;
+              const timeEl = document.getElementById('clock-time');
+              const dateEl = document.getElementById('clock-date');
+              if (timeEl) timeEl.textContent = pad(h) + ':' + pad(m) + ':' + pad(s) + ' ' + ap;
+              if (dateEl) dateEl.textContent = DAYS_C[d.getDay()] + ', ' + MONTHS_C[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+            }
+
+            tickClock();
+            setInterval(tickClock, 1000);
+          })();
+
+
 
       function scheduleNextReset() {
         const n = getServerTime();
@@ -2714,11 +3165,25 @@
       }
       applyTranslations();
 
-      function dismissWelcome() {
+    function dismissWelcome() {
     const today = getServerTime().toISOString().slice(0, 10);
     localStorage.setItem('pq_welcome_seen', today);
     document.getElementById('welcome-overlay').style.display = 'none';
   }
+
+  function applyBen2Visibility(show) {
+  // Find the Beneficiary 2 person-section by looking for its unique input
+  const ben2Input = document.getElementById('inp-ben2-name');
+  if (ben2Input) {
+    const section = ben2Input.closest('.person-section');
+    if (section) section.style.display = show ? '' : 'none';
+  }
+  if (!show) {
+    document.getElementById('inp-ben2-name').value  = '';
+    document.getElementById('inp-id-type2').value   = '';
+    document.getElementById('inp-id-number2').value = '';
+  }
+}
     </script>
   </body>
 </html>

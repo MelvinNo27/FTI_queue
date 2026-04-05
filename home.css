@@ -808,6 +808,31 @@ body {
 .ticket-card.expired::before {
   background: repeating-linear-gradient(to bottom, #fca5a5 0, #fca5a5 6px, transparent 6px, transparent 12px);
 }
+
+.tickets-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  gap: 12px;
+}
+
+.tickets-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #f3f4f6;
+  border-top: 3px solid #2563eb;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.tickets-loading-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
 .expired-banner {
   display: flex;
   align-items: center;

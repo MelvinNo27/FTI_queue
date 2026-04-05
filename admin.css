@@ -635,3 +635,50 @@ input:checked     + .slider:before { transform: translateX(26px); }
   font-size: 11px;
   color: #64748b;
 }
+
+.btn-nav-month {
+  width: 28px;
+  height: 28px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #374151;
+}
+.btn-nav-month:hover { background: #f3f4f6; }
+
+.cal-dow {
+  font-size: 11px;
+  color: #9ca3af;
+  text-align: center;
+  padding: 6px 0;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.admin-cal-cell {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #374151;
+  border: 1.5px solid transparent;
+  position: relative;
+  font-weight: 600;
+}
+.admin-cal-cell:hover:not(.other-month):not(.selected) { background: #f3f4f6; }
+.admin-cal-cell.other-month { color: #d1d5db; cursor: default; font-weight: 400; }
+.admin-cal-cell.today { color: #2563eb; font-weight: 800; }
+.admin-cal-cell.selected { background: #2563eb; color: #fff; font-weight: 800; border-radius: 10px; }
+.admin-cal-cell.holiday { background: #fef3c7; }
+.admin-cal-cell.holiday.selected { background: #b45309; color: #fff; }
+.hol-dot { position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: #f59e0b; }
+.admin-cal-cell.selected .hol-dot { background: #fff; }

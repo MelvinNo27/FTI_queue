@@ -6,6 +6,194 @@
 <title>Admin — Priority Queue</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="admin.css" />
+<style>
+/* ── Monthly Limit Block Styles ─────────────────────────────── */
+.monthly-limit-block {
+  background: #f9fafb;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px 16px;
+  transition: border-color 0.15s;
+}
+.monthly-limit-block:hover { border-color: #93c5fd; }
+.mlb-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.mlb-icon { font-size: 22px; line-height: 1; margin-top: 2px; flex-shrink: 0; }
+.mlb-info { flex: 1; min-width: 140px; }
+.mlb-title { font-size: 14px; font-weight: 800; color: #1e293b; margin-bottom: 2px; }
+.mlb-sub { font-size: 12px; color: #6b7280; line-height: 1.4; }
+.mlb-badge-wrap { flex-shrink: 0; }
+.mlb-mode-group { display: flex; gap: 6px; }
+.mlb-mode-btn {
+  padding: 6px 12px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: Nunito, sans-serif;
+  white-space: nowrap;
+}
+.mlb-mode-btn:hover { border-color: #93c5fd; background: #eff6ff; color: #1d4ed8; }
+.mlb-mode-btn.active { background: #dbeafe; border-color: #2563eb; color: #1d4ed8; }
+.mlb-divider { height: 1px; background: #e5e7eb; margin: 10px 0; }
+.mlb-info-box {
+  margin-top: 14px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 12px;
+  color: #1e40af;
+  line-height: 1.6;
+}
+
+/* ── Per-Date Settings Panel ─────────────────────────────────── */
+#date-settings-panel {
+  display: none;
+  animation: slideDown 0.2s ease;
+}
+#date-settings-panel.visible {
+  display: block;
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.date-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1.5px solid #e5e7eb;
+}
+.date-panel-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #1e293b;
+}
+.date-panel-sub {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 1px;
+}
+.date-panel-badge {
+  margin-left: auto;
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1.5px solid #93c5fd;
+  border-radius: 20px;
+  padding: 3px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.date-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+.date-toggle-row:last-of-type { border-bottom: none; }
+.date-toggle-info .dti-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+}
+.date-toggle-info .dti-sub {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+.holiday-section {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1.5px dashed #e5e7eb;
+}
+.holiday-section-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+.holiday-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fef3c7;
+  border: 1.5px solid #fde68a;
+  color: #92400e;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.holiday-remove-btn {
+  padding: 3px 9px;
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1.5px solid #fca5a5;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: Nunito, sans-serif;
+  transition: all 0.15s;
+}
+.holiday-remove-btn:hover { background: #dc2626; color: #fff; }
+.holiday-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.holiday-input-row input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 13px;
+  font-family: Nunito, sans-serif;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.holiday-input-row input:focus { border-color: #2563eb; }
+.holiday-save-btn {
+  padding: 8px 16px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: Nunito, sans-serif;
+  transition: background 0.15s;
+}
+.holiday-save-btn:hover { background: #1d4ed8; }
+.holiday-hint {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+.date-status-msg {
+  display: none;
+  margin-top: 10px;
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+</style>
 </head>
 <body>
 
@@ -124,7 +312,8 @@
     <div class="search-bar-title">🔍 Search by Claimant Name or Priority Number</div>
     <div class="search-row">
       <input class="search-input" type="text" id="search-input" placeholder="Enter claimant name or priority number" onkeydown="if(event.key==='Enter')doSearch()"/>
-      <button class="btn-search" onclick="doSearch()">Search</button>
+      <button class="btn-search" onclick="doSearch()">Search Date</button>
+      <button class="btn-search" onclick="doGlobalSearch()" style="background:#059669;">Global Search</button>
       <button class="btn-clear-search" onclick="clearSearch()">Clear</button>
     </div>
     <div class="search-results" id="search-results" style="display:none;"></div>
@@ -683,7 +872,7 @@ function showScStatus(msg,ok){
 let currentDate=null;
 let disabledNums={};
 let ticketsForDate=[];
-let allTickets={};
+
 let takenNumbersData={};
 let listFilter='all';
 let scheduleSettings={
@@ -1066,40 +1255,247 @@ function renderTicketList(){
   }).join('')+ghostHTML;
 }
 
-function doSearch(){
-  const query=document.getElementById('search-input').value.trim();
-  if(!query){toast('⚠ Enter a claimant name or priority number');return;}
-  if(!currentDate){toast('⚠ Please load a date first');return;}
-  const resultsDiv=document.getElementById('search-results');
-  resultsDiv.style.display='block';resultsDiv.innerHTML='<div class="search-empty">🔍 Searching...</div>';
-  const norm=query.toLowerCase(),isNum=/^\d+$/.test(query),targetNum=isNum?parseInt(query,10):null;
-  const matches=[];
-  Object.entries(allTickets).forEach(([key,t])=>{
-    if(!t||t.date!==currentDate)return;
-    if((t.name&&t.name.toLowerCase().includes(norm))||(isNum&&t.number===targetNum))matches.push({id:key,...t});
-  });
-  if(!matches.length){resultsDiv.innerHTML='<div class="search-empty">❌ No numbers found for "<strong>'+esc(query)+'</strong>" on <strong>'+currentDate+'</strong></div>';return;}
-  matches.sort((a,b)=>b.date.localeCompare(a.date)||a.number-b.number);
-  const nowMs=getServerTime().getTime();
-  resultsDiv.innerHTML=matches.map(t=>{
-    const d=new Date(t.date+'T00:00:00');
-    const dateLabel=MONTHS[d.getMonth()].slice(0,3)+' '+d.getDate()+', '+d.getFullYear();
-    const issued=new Date(t.issuedAt);
-    const issuedLbl=issued.toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-    const isExpired=new Date(t.expiresAt).getTime()<nowMs;
-    const isDisabled=disabledNums[t.date]&&disabledNums[t.date][t.number];
-    const sk=t.time==='AM'?'amStart':'pmStart',ek=t.time==='AM'?'amEnd':'pmEnd';
-    const windowLbl=fmt(scheduleSettings[sk])+' – '+fmt(scheduleSettings[ek]);
-    const statusBadge=isDisabled?'<span class="badge badge-disabled-b">⊘ Disabled</span>':isExpired?'<span class="badge badge-expired">✕ Expired</span>':'<span class="badge badge-valid">✓ Valid</span>';
-    return'<div class="search-result-card found">'+
-      '<div class="src-top"><div class="sr-num">#'+pad3(t.number)+'</div>'+
-      '<div class="sr-info"><div class="sr-name">'+esc(t.name||'—')+'</div>'+
-      '<div class="sr-meta">📅 '+dateLabel+' &nbsp;|&nbsp; Issued: '+issuedLbl+'</div>'+
-      '<div class="sr-meta" style="color:var(--blue);font-weight:700;margin-top:2px;">⏰ '+windowLbl+'</div>'+
-      '<div class="sr-badges">'+(t.time?'<span class="badge '+(t.time==='AM'?'badge-am':'badge-pm')+'">'+t.time+'</span>':'')+statusBadge+'</div>'+
-      '</div></div>'+personCardsHTML(t,'sr')+'</div>';
-  }).join('');
+function doSearch() {
+   const query = document.getElementById("search-input").value.trim();
+   if (!query) {
+     toast("⚠ Enter a claimant name or priority number");
+     return;
+   }
+   if (!currentDate) {
+     toast("⚠ Please load a date first");
+     return;
+   }
+   const resultsDiv = document.getElementById("search-results");
+   resultsDiv.style.display = "block";
+   resultsDiv.innerHTML =
+     '<div class="search-empty">🔍 Searching...</div>';
+   const norm = query.toLowerCase(),
+     isNum = /^\d+$/.test(query),
+     targetNum = isNum ? parseInt(query, 10) : null;
+   const matches = [];
+   ticketsForDate.forEach((t) => {
+     if (
+       (t.name && t.name.toLowerCase().includes(norm)) ||
+       (isNum && t.number === targetNum)
+     )
+       matches.push(t);
+   });
+   if (!matches.length) {
+     resultsDiv.innerHTML =
+       '<div class="search-empty">❌ No numbers found for "<strong>' +
+       esc(query) +
+       "</strong>\" on <strong>" +
+       currentDate +
+       "</strong></div>";
+     return;
+   }
+   matches.sort((a, b) => b.date.localeCompare(a.date) || a.number - b.number);
+   const nowMs = getServerTime().getTime();
+   resultsDiv.innerHTML = matches
+     .map((t) => {
+       const d = new Date(t.date + "T00:00:00");
+       const dateLabel =
+         MONTHS[d.getMonth()].slice(0, 3) +
+         " " +
+         d.getDate() +
+         ", " +
+         d.getFullYear();
+       const issued = new Date(t.issuedAt);
+       const issuedLbl = issued.toLocaleString("en-US", {
+         month: "short",
+         day: "numeric",
+         hour: "2-digit",
+         minute: "2-digit",
+       });
+       const isExpired = new Date(t.expiresAt).getTime() < nowMs;
+       const isDisabled =
+         disabledNums[t.date] && disabledNums[t.date][t.number];
+       const sk = t.time === "AM" ? "amStart" : "pmStart",
+         ek = t.time === "AM" ? "amEnd" : "pmEnd";
+       const windowLbl =
+         fmt(scheduleSettings[sk]) + " – " + fmt(scheduleSettings[ek]);
+       const statusBadge = isDisabled
+         ? '<span class="badge badge-disabled-b">⊘ Disabled</span>'
+         : isExpired
+           ? '<span class="badge badge-expired">✕ Expired</span>'
+           : '<span class="badge badge-valid">✓ Valid</span>';
+       return (
+         '<div class="search-result-card found">' +
+         '<div class="src-top"><div class="sr-num">#' +
+         pad3(t.number) +
+         "</div>" +
+         '<div class="sr-info"><div class="sr-name">' +
+         esc(t.name || "—") +
+         "</div>" +
+         '<div class="sr-meta">📅 ' +
+         dateLabel +
+         " &nbsp;|&nbsp; Issued: " +
+         issuedLbl +
+         "</div>" +
+         '<div class="sr-meta" style="color:var(--blue);font-weight:700;margin-top:2px;">⏰ ' +
+         windowLbl +
+         "</div>" +
+         '<div class="sr-badges">' +
+         (t.time
+           ? '<span class="badge ' +
+             (t.time === "AM" ? "badge-am" : "badge-pm") +
+             '">' +
+             t.time +
+             "</span>"
+           : "") +
+         statusBadge +
+         "</div>" +
+         "</div></div>" +
+         personCardsHTML(t, "sr") +
+         "</div>"
+       );
+     })
+     .join("");
+ }
+
+ async function doGlobalSearch() {
+  const query = document.getElementById("search-input").value.trim();
+  if (!query) {
+    toast("⚠ Enter a claimant name or priority number");
+    return;
+  }
+  const resultsDiv = document.getElementById("search-results");
+  resultsDiv.style.display = "block";
+  resultsDiv.innerHTML =
+    '<div class="search-empty">🔍 Searching all records...</div>';
+
+  const isNum = /^\d+$/.test(query);
+  const targetNum = isNum ? parseInt(query, 10) : null;
+  const matches = [];
+
+  try {
+    if (isNum) {
+      // Search by number across all tickets
+      const snap = await db
+        .ref("tickets")
+        .orderByChild("number")
+        .equalTo(targetNum)
+        .once("value");
+      snap.forEach((c) => matches.push({ id: c.key, ...c.val() }));
+    } else {
+      // Search by name (prefix match)
+      const snap = await db
+        .ref("tickets")
+        .orderByChild("name")
+        .startAt(query)
+        .endAt(query + "\uf8ff")
+        .once("value");
+      snap.forEach((c) => matches.push({ id: c.key, ...c.val() }));
+
+      // Also search by ben1Name (prefix match)
+      const snapBen1 = await db
+        .ref("tickets")
+        .orderByChild("ben1Name")
+        .startAt(query)
+        .endAt(query + "\uf8ff")
+        .once("value");
+      snapBen1.forEach((c) => {
+        if (!matches.some((m) => m.id === c.key))
+          matches.push({ id: c.key, ...c.val() });
+      });
+
+      // Also search by ben2Name (prefix match)
+      const snapBen2 = await db
+        .ref("tickets")
+        .orderByChild("ben2Name")
+        .startAt(query)
+        .endAt(query + "\uf8ff")
+        .once("value");
+      snapBen2.forEach((c) => {
+        if (!matches.some((m) => m.id === c.key))
+          matches.push({ id: c.key, ...c.val() });
+      });
+    }
+
+    if (!matches.length) {
+      resultsDiv.innerHTML =
+        '<div class="search-empty">❌ No records found for "<strong>' +
+        esc(query) +
+        "</strong>" +
+        (isNum ? "" : " (prefix search)") +
+        " across all dates.</div>";
+      return;
+    }
+
+    // Sort matches: newest first
+    matches.sort((a, b) => b.date.localeCompare(a.date) || a.number - b.number);
+
+    const nowMs = getServerTime().getTime();
+    resultsDiv.innerHTML =
+      '<div style="font-size:12px;color:var(--gray);margin-bottom:10px;">Found ' +
+      matches.length +
+      ' record(s) globally:</div>' +
+      matches
+        .map((t) => {
+          const d = new Date(t.date + "T00:00:00");
+          const dateLabel =
+            MONTHS[d.getMonth()].slice(0, 3) +
+            " " +
+            d.getDate() +
+            ", " +
+            d.getFullYear();
+          const issued = new Date(t.issuedAt);
+          const issuedLbl = issued.toLocaleString("en-US", {
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+          const isExpired = new Date(t.expiresAt).getTime() < nowMs;
+          const isDisabled =
+            disabledNums[t.date] && disabledNums[t.date][t.number];
+          const sk = t.time === "AM" ? "amStart" : "pmStart",
+            ek = t.time === "AM" ? "amEnd" : "pmEnd";
+          const windowLbl = fmt(scheduleSettings[sk]) + " – " + fmt(scheduleSettings[ek]);
+          const statusBadge = isDisabled
+            ? '<span class="badge badge-disabled-b">⊘ Disabled</span>'
+            : isExpired
+              ? '<span class="badge badge-expired">✕ Expired</span>'
+              : '<span class="badge badge-valid">✓ Valid</span>';
+          return (
+            '<div class="search-result-card found">' +
+            '<div class="src-top"><div class="sr-num">#' +
+            pad3(t.number) +
+            "</div>" +
+            '<div class="sr-info"><div class="sr-name">' +
+            esc(t.name || "—") +
+            "</div>" +
+            '<div class="sr-meta">📅 ' +
+            dateLabel +
+            " &nbsp;|&nbsp; Issued: " +
+            issuedLbl +
+            "</div>" +
+            '<div class="sr-meta" style="color:var(--blue);font-weight:700;margin-top:2px;">⏰ ' +
+            windowLbl +
+            "</div>" +
+            '<div class="sr-badges">' +
+            (t.time
+              ? '<span class="badge ' +
+                (t.time === "AM" ? "badge-am" : "badge-pm") +
+                '">' +
+                t.time +
+                "</span>"
+              : "") +
+            statusBadge +
+            "</div>" +
+            "</div></div>" +
+            personCardsHTML(t, "sr") +
+            "</div>"
+          );
+        })
+        .join("");
+  } catch (err) {
+    console.error(err);
+    resultsDiv.innerHTML =
+      '<div class="search-empty" style="color:var(--red);">❌ Error searching global records. Please ensure indexes are set up in Firebase.</div>';
+  }
 }
+
 
 function clearSearch(){
   document.getElementById('search-input').value='';

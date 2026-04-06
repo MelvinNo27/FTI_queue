@@ -716,6 +716,406 @@
 
     <div class="toast" id="toast"></div>
 
+    <style>
+      .header-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+      }
+      .header-text {
+        flex: 1;
+      }
+      .burger-btn {
+        width: 44px;
+        height: 44px;
+        background: rgba(255, 255, 255, 0.18);
+        border: 1.5px solid rgba(255, 255, 255, 0.35);
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        cursor: pointer;
+        padding: 0;
+        flex-shrink: 0;
+        transition: background 0.15s;
+      }
+      .burger-btn:hover {
+        background: rgba(255, 255, 255, 0.28);
+      }
+      .burger-btn span {
+        display: block;
+        width: 20px;
+        height: 2.5px;
+        background: #fff;
+        border-radius: 99px;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .burger-btn.open span:nth-child(1) {
+        transform: translateY(7.5px) rotate(45deg);
+      }
+      .burger-btn.open span:nth-child(2) {
+        opacity: 0;
+        transform: scaleX(0);
+      }
+      .burger-btn.open span:nth-child(3) {
+        transform: translateY(-7.5px) rotate(-45deg);
+      }
+      .drawer-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 1100;
+        backdrop-filter: blur(2px);
+      }
+      .drawer-overlay.open {
+        display: block;
+        animation: fadeIn 0.2s;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      .drawer {
+        position: fixed;
+        top: 0;
+        right: -300px;
+        width: 280px;
+        height: 100%;
+        background: #fff;
+        z-index: 1200;
+        box-shadow: -6px 0 32px rgba(0, 0, 0, 0.18);
+        display: flex;
+        flex-direction: column;
+        transition: right 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow-y: auto;
+      }
+      .drawer.open {
+        right: 0;
+      }
+      .drawer-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 20px 18px 16px;
+        background: linear-gradient(135deg, #1e3a5f, #2563eb);
+        color: #fff;
+      }
+      .drawer-logo {
+        font-size: 24px;
+      }
+      .drawer-title {
+        font-size: 16px;
+        font-weight: 800;
+        flex: 1;
+      }
+      .drawer-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        font-size: 15px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s;
+      }
+      .drawer-close:hover {
+        background: rgba(255, 255, 255, 0.35);
+      }
+      .drawer-section-label {
+        font-size: 11px;
+        font-weight: 800;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+        padding: 16px 18px 8px;
+      }
+      .lang-options {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 0 14px 4px;
+      }
+      .lang-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 10px;
+        background: #f9fafb;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        color: #374151;
+        transition: all 0.15s;
+        text-align: left;
+      }
+      .lang-btn:hover {
+        border-color: #3b82f6;
+        background: #eff6ff;
+        color: #1d4ed8;
+      }
+      .lang-btn.active {
+        border-color: #2563eb;
+        background: #dbeafe;
+        color: #1d4ed8;
+      }
+      .lang-flag {
+        font-size: 18px;
+      }
+      .lang-name {
+        flex: 1;
+      }
+      .lang-check {
+        font-size: 14px;
+        color: #2563eb;
+        font-weight: 800;
+        width: 16px;
+        text-align: center;
+      }
+      .drawer-divider {
+        height: 1px;
+        background: #f3f4f6;
+        margin: 10px 0;
+      }
+      .drawer-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 13px 18px;
+        background: none;
+        border: none;
+        width: 100%;
+        text-align: left;
+        font-size: 14px;
+        font-weight: 600;
+        color: #374151;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .drawer-item:hover {
+        background: #f3f4f6;
+      }
+      .di-icon {
+        font-size: 18px;
+        width: 24px;
+        text-align: center;
+      }
+      .drawer-footer {
+        margin-top: auto;
+        padding: 18px;
+        font-size: 11px;
+        color: #9ca3af;
+        text-align: center;
+        border-top: 1px solid #f3f4f6;
+      }
+      .about-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        z-index: 1300;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(3px);
+        padding: 16px;
+      }
+      .about-overlay.open {
+        display: flex;
+        animation: fadeIn 0.2s;
+      }
+      .about-modal {
+        background: #fff;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 420px;
+        max-height: 92vh;
+        overflow-y: auto;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+        animation: slideUp 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      .about-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: 20px 20px 0;
+      }
+      .about-logo {
+        font-size: 40px;
+      }
+      .about-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: none;
+        background: #f3f4f6;
+        color: #374151;
+        font-size: 15px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s;
+      }
+      .about-close:hover {
+        background: #e5e7eb;
+      }
+      .about-body {
+        padding: 12px 20px 16px;
+      }
+      .about-app-name {
+        font-size: 18px;
+        font-weight: 800;
+        color: #1e293b;
+        margin-bottom: 3px;
+        line-height: 1.3;
+      }
+      .about-version {
+        font-size: 12px;
+        color: #9ca3af;
+        font-weight: 600;
+        margin-bottom: 14px;
+      }
+      .about-desc {
+        font-size: 13px;
+        color: #4b5563;
+        line-height: 1.6;
+        margin-bottom: 16px;
+      }
+      .about-divider {
+        height: 1px;
+        background: #f3f4f6;
+        margin: 14px 0;
+      }
+      .about-note {
+        font-size: 12px;
+        color: #92400e;
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: 8px;
+        padding: 10px 12px;
+        line-height: 1.5;
+      }
+      .about-footer {
+        padding: 0 20px 20px;
+      }
+      .about-ok-btn {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: opacity 0.15s;
+      }
+      .about-section-label {
+        font-size: 11px;
+        font-weight: 800;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        margin-bottom: 8px;
+        margin-top: 4px;
+      }
+      .about-team-block {
+        margin-bottom: 14px;
+      }
+      .about-team-role {
+        font-size: 13px;
+        font-weight: 800;
+        color: #1e293b;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .about-team-list {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        padding-left: 4px;
+      }
+      .about-team-member {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+      }
+      .atm-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #3b82f6;
+        flex-shrink: 0;
+      }
+      .about-ok-btn:hover {
+        opacity: 0.9;
+      }
+      .loading-overlay {
+        position: fixed;
+        inset: 0;
+        background: #fff;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition:
+          opacity 0.3s,
+          visibility 0.3s;
+      }
+      .loading-overlay.hide {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f4f6;
+        border-top: 4px solid #2563eb;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 16px;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .loading-text {
+        font-size: 15px;
+        font-weight: 700;
+        color: #1e3a5f;
+      }
+    </style>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -910,6 +1310,68 @@
         // Start Tracking
         trackPresence();
         trackVisitor();
+
+        // Optimized listeners: Only fetch relevant date data for live updates
+        db.ref("disabledNumbers/" + targetStr).on("value", (s) => {
+          disabledNumbers[targetStr] = s.val() || {};
+          renderTickets();
+        });
+
+        db.ref("dateSettings/" + targetStr).on("value", (s) => {
+          calDateSettings[targetStr] = s.val() || {};
+          renderCalendar();
+          renderCard();
+          updateStatusBanner();
+          updateSlotBanner();
+
+          if (document.getElementById("form-card").classList.contains("show")) {
+            const editDate = editingTicketId
+              ? (myTickets.find((x) => x.id === editingTicketId) || {}).date ||
+                targetStr
+              : targetStr;
+            applySlotButtonStates(editDate, selectedTime);
+
+            // Clear selectedTime if the session got disabled for the target date
+            const _ds = calDateSettings[targetStr] || {};
+            if (selectedTime === "AM" && _ds.amEnabled === false)
+              selectedTime = null;
+            if (selectedTime === "PM" && _ds.pmEnabled === false)
+              selectedTime = null;
+          }
+        });
+
+        db.ref("takenNumbers/" + targetStr).on("value", (s) => {
+          takenNumbersData[targetStr] = s.val() || {};
+          renderCard();
+          updateSlotBanner();
+          const formOpen = document
+            .getElementById("form-card")
+            .classList.contains("show");
+          if (formOpen) {
+            const editDate = editingTicketId
+              ? (myTickets.find((x) => x.id === editingTicketId) || {}).date ||
+                targetStr
+              : targetStr;
+            applySlotButtonStates(editDate, selectedTime);
+
+            // Clear selectedTime if its session just became unavailable
+            const amNowFull =
+              getTakenCountFromAtomic(editDate, "AM") >= getLimitAm() ||
+              slotConfig.amEnabled === false;
+            const pmNowFull =
+              getTakenCountFromAtomic(editDate, "PM") >= getLimitPm() ||
+              slotConfig.pmEnabled === false;
+            if (selectedTime === "AM" && amNowFull) selectedTime = null;
+            if (selectedTime === "PM" && pmNowFull) selectedTime = null;
+          }
+        });
+
+        // Fetch other dates for calendar view (one-time fetch to avoid constant large sync)
+        db.ref("dateSettings").once("value", (s) => {
+          const allSettings = s.val() || {};
+          Object.assign(calDateSettings, allSettings);
+          renderCalendar();
+        });
 
         // Hide loading overlay
         document.getElementById("time-sync-overlay").classList.add("hide");
@@ -1377,69 +1839,9 @@
         renderTickets();
       });
 
-      db.ref("disabledNumbers").on("value", (s) => {
-        disabledNumbers = s.val() || {};
-        renderTickets();
-      });
+      // Removed global listeners to fix slow loading.
+      // Now using optimized date-specific listeners in initializeAfterSync().
 
-      // FIX 4: takenNumbers is now the single source of truth for slot counts.
-      // The tickets listener no longer writes back to slots/ (removed that sync).
-
-      let isFirstDateSettingsLoad = true;
-      db.ref("dateSettings").on("value", (s) => {
-        calDateSettings = s.val() || {};
-
-        if (!isFirstDateSettingsLoad) {
-          toast("📅 Schedule updated — refreshing...");
-        }
-        isFirstDateSettingsLoad = false;
-
-        renderCalendar();
-        renderCard();
-        updateStatusBanner();
-        updateSlotBanner();
-
-        if (document.getElementById("form-card").classList.contains("show")) {
-          const editDate = editingTicketId
-            ? (myTickets.find((x) => x.id === editingTicketId) || {}).date ||
-              targetStr
-            : targetStr;
-          applySlotButtonStates(editDate, selectedTime);
-
-          // Clear selectedTime if the session got disabled for the target date
-          const _ds = calDateSettings[targetStr] || {};
-          if (selectedTime === "AM" && _ds.amEnabled === false)
-            selectedTime = null;
-          if (selectedTime === "PM" && _ds.pmEnabled === false)
-            selectedTime = null;
-        }
-      });
-
-      db.ref("takenNumbers").on("value", (s) => {
-        takenNumbersData = s.val() || {};
-        renderCard();
-        updateSlotBanner();
-        const formOpen = document
-          .getElementById("form-card")
-          .classList.contains("show");
-        if (formOpen) {
-          const editDate = editingTicketId
-            ? (myTickets.find((x) => x.id === editingTicketId) || {}).date ||
-              targetStr
-            : targetStr;
-          applySlotButtonStates(editDate, selectedTime);
-
-          // Clear selectedTime if its session just became unavailable
-          const amNowFull =
-            getTakenCountFromAtomic(editDate, "AM") >= getLimitAm() ||
-            slotConfig.amEnabled === false;
-          const pmNowFull =
-            getTakenCountFromAtomic(editDate, "PM") >= getLimitPm() ||
-            slotConfig.pmEnabled === false;
-          if (selectedTime === "AM" && amNowFull) selectedTime = null;
-          if (selectedTime === "PM" && pmNowFull) selectedTime = null;
-        }
-      });
 
       async function loadMyTickets() {
         // Show loading state immediately

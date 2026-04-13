@@ -311,7 +311,7 @@
   <div class="search-bar">
     <div class="search-bar-title">🔍 Search by Claimant Name or Priority Number</div>
     <div class="search-row">
-      <input class="search-input" type="text" id="search-input" placeholder="Enter claimant name or priority number" onkeydown="if(event.key==='Enter')doSearch()"/>
+      <input class="search-input" type="text" id="search-input" placeholder="Enter claimant name or priority number" onkeydown="if(event.key==='Enter')handleSearchEnter()"/>
       <button class="btn-search" onclick="doSearch()">Search Date</button>
       <button class="btn-search" onclick="doGlobalSearch()" style="background:#059669;">Global Search</button>
       <button class="btn-clear-search" onclick="clearSearch()">Clear</button>
@@ -1255,7 +1255,15 @@ function renderTicketList(){
   }).join('')+ghostHTML;
 }
 
-function doSearch() {
+function handleSearchEnter() {
+   if (currentDate) {
+     doSearch();
+   } else {
+     doGlobalSearch();
+   }
+ }
+
+ function doSearch() {
    const query = document.getElementById("search-input").value.trim();
    if (!query) {
      toast("⚠ Enter a claimant name or priority number");
@@ -1276,6 +1284,8 @@ function doSearch() {
    ticketsForDate.forEach((t) => {
      if (
        (t.name && t.name.toLowerCase().includes(norm)) ||
+       (t.ben1Name && t.ben1Name.toLowerCase().includes(norm)) ||
+       (t.ben2Name && t.ben2Name.toLowerCase().includes(norm)) ||
        (isNum && t.number === targetNum)
      )
        matches.push(t);
@@ -1378,37 +1388,25 @@ function doSearch() {
         .once("value");
       snap.forEach((c) => matches.push({ id: c.key, ...c.val() }));
     } else {
-      // Search by name (prefix match)
-      const snap = await db
-        .ref("tickets")
-        .orderByChild("name")
-        .startAt(query)
-        .endAt(query + "\uf8ff")
-        .once("value");
-      snap.forEach((c) => matches.push({ id: c.key, ...c.val() }));
+      // Search by name (prefix match) - Try both original and Title Case for better results
+      const searchTerms = [query];
+      const titleCase = query.charAt(0).toUpperCase() + query.slice(1).toLowerCase();
+      if (titleCase !== query) searchTerms.push(titleCase);
+      const upperCase = query.toUpperCase();
+      if (upperCase !== query && upperCase !== titleCase) searchTerms.push(upperCase);
 
-      // Also search by ben1Name (prefix match)
-      const snapBen1 = await db
-        .ref("tickets")
-        .orderByChild("ben1Name")
-        .startAt(query)
-        .endAt(query + "\uf8ff")
-        .once("value");
-      snapBen1.forEach((c) => {
-        if (!matches.some((m) => m.id === c.key))
-          matches.push({ id: c.key, ...c.val() });
+      const searchPromises = [];
+      searchTerms.forEach(term => {
+        searchPromises.push(db.ref("tickets").orderByChild("name").startAt(term).endAt(term + "\uf8ff").once("value"));
+        searchPromises.push(db.ref("tickets").orderByChild("ben1Name").startAt(term).endAt(term + "\uf8ff").once("value"));
+        searchPromises.push(db.ref("tickets").orderByChild("ben2Name").startAt(term).endAt(term + "\uf8ff").once("value"));
       });
 
-      // Also search by ben2Name (prefix match)
-      const snapBen2 = await db
-        .ref("tickets")
-        .orderByChild("ben2Name")
-        .startAt(query)
-        .endAt(query + "\uf8ff")
-        .once("value");
-      snapBen2.forEach((c) => {
-        if (!matches.some((m) => m.id === c.key))
-          matches.push({ id: c.key, ...c.val() });
+      const snapshots = await Promise.all(searchPromises);
+      snapshots.forEach(snap => {
+        snap.forEach(c => {
+          if (!matches.some(m => m.id === c.key)) matches.push({ id: c.key, ...c.val() });
+        });
       });
     }
 
@@ -1533,7 +1531,7 @@ function switchTab(tab){
     const btn=document.getElementById('tab-'+t);
     if(btn)btn.className='tab-btn'+(t===tab?' active':'')+(t==='dbmanage'?' tab-danger':'');
   });
-  if(tab==='dbmanage')calcStorage();
+  // Removed automatic calcStorage() to prevent slow loading
 }
 
 function roughSizeOf(obj){

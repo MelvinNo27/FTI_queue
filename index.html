@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Daily Control Number</title>
+    <title>Priority Queue</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Courier+Prime:wght@400;700&display=swap"
       rel="stylesheet"
@@ -1366,14 +1366,21 @@
           }
         });
 
-        // Fetch other dates for calendar view (one-time fetch to avoid constant large sync)
-        db.ref("dateSettings").once("value", (s) => {
-          const allSettings = s.val() || {};
-          Object.assign(calDateSettings, allSettings);
-          renderCalendar();
-        });
+        // Fetch only relevant dateSettings for the calendar (current month +/- 1 month)
+        const calStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const calEnd = new Date(now.getFullYear(), now.getMonth() + 2, 0);
+        db.ref("dateSettings")
+          .orderByKey()
+          .startAt(toDateStr(calStart))
+          .endAt(toDateStr(calEnd))
+          .once("value", (s) => {
+            const allSettings = s.val() || {};
+            Object.assign(calDateSettings, allSettings);
+            renderCalendar();
+          });
 
-        // Hide loading overlay
+        // Hide loading overlay as soon as we have server time and initial target data setup
+        // We don't wait for the large dateSettings fetch to complete
         document.getElementById("time-sync-overlay").classList.add("hide");
 
         // Welcome popup check (wait for server time)
@@ -1389,6 +1396,9 @@
         purgeExpiredTickets();
         dailyReset();
         scheduleNextReset();
+        
+        // Load my tickets after main setup to speed up initial view
+        // loadMyTickets() is now called in initializeAfterSync()
       }
 
       const MONTHS = [
@@ -1868,7 +1878,7 @@
         ticketsLoading = false;
         renderTickets();
       }
-      loadMyTickets();
+      // loadMyTickets(); // Moved to initializeAfterSync
 
       // ─────────────────────────────────────────────────────────────────────────────
 

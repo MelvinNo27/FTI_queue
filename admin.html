@@ -759,12 +759,25 @@ firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 
 let serverTimeOffset = 0;
+let syncPerformanceTime = performance.now();
+let syncServerTime = Date.now();
 let serverTimeSynced = false;
+
 db.ref(".info/serverTimeOffset").on("value", (snap) => {
   serverTimeOffset = snap.val() || 0;
-  if (!serverTimeSynced) { serverTimeSynced = true; }
+  syncPerformanceTime = performance.now();
+  syncServerTime = Date.now() + serverTimeOffset;
+  if (!serverTimeSynced) {
+    serverTimeSynced = true;
+  }
 });
-function getServerTime() { return new Date(Date.now() + serverTimeOffset); }
+
+function getServerTime() {
+  // Use performance.now() to calculate time elapsed since last sync.
+  // This prevents users from bypassing time checks by changing their device clock.
+  const elapsed = performance.now() - syncPerformanceTime;
+  return new Date(syncServerTime + elapsed);
+}
 
 // ── Dynamic Slot Config ──────────────────────────────────────────────────────
 const DEFAULT_SLOT_CONFIG={amCount:75,amStart:1,amType:'odd',pmCount:75,pmStart:151,pmType:'odd'};

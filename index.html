@@ -1157,10 +1157,14 @@
 
       // Synchronize with Firebase Server Time to prevent device time bypass
       let serverTimeOffset = 0;
+      let syncPerformanceTime = performance.now();
+      let syncServerTime = Date.now();
       let serverTimeSynced = false;
 
       db.ref(".info/serverTimeOffset").on("value", (snap) => {
         serverTimeOffset = snap.val() || 0;
+        syncPerformanceTime = performance.now();
+        syncServerTime = Date.now() + serverTimeOffset;
         if (!serverTimeSynced) {
           serverTimeSynced = true;
           initializeAfterSync();
@@ -1168,7 +1172,10 @@
       });
 
       function getServerTime() {
-        return new Date(Date.now() + serverTimeOffset);
+        // Use performance.now() to calculate time elapsed since last sync.
+        // This prevents users from bypassing time checks by changing their device clock.
+        const elapsed = performance.now() - syncPerformanceTime;
+        return new Date(syncServerTime + elapsed);
       }
 
       function trackPresence() {
@@ -2761,6 +2768,12 @@
       }
 
       async function generateNumber() {
+        // Securely recalculate current time and target distribution date
+        // to prevent users from bypassing claiming windows by changing device time.
+        now = getServerTime();
+        todayStr = toDateStr(now);
+        targetStr = toDateStr(getTargetDate(now));
+
         if (!serverTimeSynced)
           return toast("Waiting for server time synchronization...");
         if (!isClaimingOpen()) {

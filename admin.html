@@ -1257,6 +1257,7 @@ function renderTicketList(){
     const wl='Valid: '+fmt(scheduleSettings[sk])+' – '+fmt(scheduleSettings[ek]);
     const sb=isDis?'<span class="badge badge-disabled-b">⊘ Disabled</span>':isExp?'<span class="badge badge-expired">✕ Expired</span>':'<span class="badge badge-valid">✓ Valid</span>';
     const tb=t.time?'<span class="badge '+(t.time==='AM'?'badge-am':'badge-pm')+'">'+t.time+'</span>':'';
+    const devId = t.deviceId ? '<div class="tr-meta" style="font-size:10px;color:var(--gray);margin-top:2px;opacity:0.7;">Device ID: '+t.deviceId+'</div>' : '';
     return'<div class="ticket-row">'+
       '<div class="ticket-row-top">'+
       '<div class="tr-num">#'+pad3(t.number)+'</div>'+
@@ -1264,6 +1265,7 @@ function renderTicketList(){
       '<div class="tr-name">'+esc(t.name||'—')+'</div>'+
       '<div class="tr-meta">Issued: '+il+' &nbsp;'+tb+' &nbsp;'+sb+'</div>'+
       '<div class="tr-meta" style="color:var(--blue);font-weight:700;margin-top:2px;">⏰ '+wl+'</div>'+
+      devId +
       '</div></div>'+personCardsHTML(t,'tr')+'</div>';
   }).join('')+ghostHTML;
 }
@@ -1274,6 +1276,13 @@ function handleSearchEnter() {
    } else {
      doGlobalSearch();
    }
+ }
+
+ function jumpToDate(ds) {
+   calSelectedDate = ds;
+   document.getElementById("search-results").style.display = "none";
+   document.getElementById("search-input").value = "";
+   onAdminDateSelected(ds);
  }
 
  function doSearch() {
@@ -1462,12 +1471,16 @@ function handleSearchEnter() {
             disabledNums[t.date] && disabledNums[t.date][t.number];
           const sk = t.time === "AM" ? "amStart" : "pmStart",
             ek = t.time === "AM" ? "amEnd" : "pmEnd";
-          const windowLbl = fmt(scheduleSettings[sk]) + " – " + fmt(scheduleSettings[ek]);
+          const windowLbl =
+            fmt(scheduleSettings[sk]) + " – " + fmt(scheduleSettings[ek]);
           const statusBadge = isDisabled
             ? '<span class="badge badge-disabled-b">⊘ Disabled</span>'
             : isExpired
               ? '<span class="badge badge-expired">✕ Expired</span>'
               : '<span class="badge badge-valid">✓ Valid</span>';
+          
+          const devId = t.deviceId ? '<div class="sr-meta" style="font-size:10px;color:var(--gray);margin-top:2px;opacity:0.7;">Device ID: '+t.deviceId+'</div>' : '';
+          
           return (
             '<div class="search-result-card found">' +
             '<div class="src-top"><div class="sr-num">#' +
@@ -1484,6 +1497,7 @@ function handleSearchEnter() {
             '<div class="sr-meta" style="color:var(--blue);font-weight:700;margin-top:2px;">⏰ ' +
             windowLbl +
             "</div>" +
+            devId +
             '<div class="sr-badges">' +
             (t.time
               ? '<span class="badge ' +
@@ -1494,7 +1508,9 @@ function handleSearchEnter() {
               : "") +
             statusBadge +
             "</div>" +
-            "</div></div>" +
+            "</div>" +
+            '<button class="btn-view-date" onclick="jumpToDate(\'' + t.date + '\')">📂 View Date</button>' +
+            "</div>" +
             personCardsHTML(t, "sr") +
             "</div>"
           );

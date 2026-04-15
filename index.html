@@ -1160,6 +1160,7 @@
         let syncPerformanceTime = performance.now();
         let syncServerTime = Date.now();
         let serverTimeSynced = false;
+        let initialized = false;
 
         db.ref(".info/serverTimeOffset").on("value", (snap) => {
           serverTimeOffset = snap.val() || 0;
@@ -1167,7 +1168,20 @@
           syncServerTime = Date.now() + serverTimeOffset;
           if (!serverTimeSynced) {
             serverTimeSynced = true;
-            initializeAfterSync();
+            
+            // Initialize UI FIRST (very fast, no blocking)
+            if (!initialized) {
+              initialized = true;
+              now = getServerTime();
+              todayStr = toDateStr(now);
+              targetStr = toDateStr(getTargetDate(now));
+              
+              // Hide loading overlay NOW, don't wait for all data
+              document.getElementById("time-sync-overlay").classList.add("hide");
+
+              // Do heavy lifting and data loading in the background
+              setTimeout(() => initializeAfterSync(), 50);
+            }
           }
         });
 

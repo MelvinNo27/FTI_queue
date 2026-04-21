@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Analytics — P20 DDN</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Nunito', sans-serif; background: #f1f5f9; color: #1e293b; }
@@ -88,6 +89,31 @@
     }
     .card-body { padding: 12px 16px 16px; }
 
+    /* ── Visitor stats grid ── */
+    .vstat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .vstat {
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+      border: 1px solid #e2e8f0;
+    }
+    .vstat-val { font-size: 22px; font-weight: 800; color: #1e3a5f; line-height: 1; }
+    .vstat-val.today { color: #10b981; }
+    .vstat-val.week  { color: #2563eb; }
+    .vstat-lbl { font-size: 10px; color: #94a3b8; margin-top: 4px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    .chart-section-label {
+      font-size: 11px; font-weight: 700; color: #94a3b8;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    .chart-wrap { position: relative; width: 100%; height: 160px; }
+
     /* ── Session split ── */
     .split-bar {
       height: 8px; border-radius: 99px; overflow: hidden;
@@ -158,6 +184,7 @@
       .count-item:nth-child(2) { border-right: none; }
       .count-item:nth-child(3) { border-right: 1px solid #f1f5f9; border-top: 1px solid #f1f5f9; }
       .count-item:nth-child(4) { border-top: 1px solid #f1f5f9; border-right: none; }
+      .vstat-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -199,6 +226,34 @@
       <div class="kpi-label">DB Size</div>
       <div class="kpi-val" id="kpi-dbsize" style="font-size:18px; padding-top:5px;">—</div>
       <div class="kpi-sub">Estimated</div>
+    </div>
+  </div>
+
+  <!-- ── VISITOR STATS CARD ── -->
+  <div class="card">
+    <div class="card-head">
+      👥 Visitor Stats
+      <span class="card-badge" id="visitor-badge">Live</span>
+    </div>
+    <div class="card-body">
+      <div class="vstat-grid">
+        <div class="vstat">
+          <div class="vstat-val today" id="visitors-today">—</div>
+          <div class="vstat-lbl">Today</div>
+        </div>
+        <div class="vstat">
+          <div class="vstat-val week" id="visitors-week">—</div>
+          <div class="vstat-lbl">This Week</div>
+        </div>
+        <div class="vstat">
+          <div class="vstat-val" id="visitors-alltime">—</div>
+          <div class="vstat-lbl">All-Time</div>
+        </div>
+      </div>
+      <div class="chart-section-label">Past 7 days</div>
+      <div class="chart-wrap">
+        <canvas id="visitorChart" role="img" aria-label="Bar chart of daily unique visitors over the past 7 days">Daily visitor counts for the past 7 days.</canvas>
+      </div>
     </div>
   </div>
 
@@ -320,6 +375,7 @@
   });
   const db = firebase.database();
 
+  // ── Date helpers ────────────────────────────────────────────
   function today() { return new Date().toISOString().slice(0, 10); }
   function fmtTime(ts) { return new Date(ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }); }
   function estimateBytes(val) {
@@ -332,8 +388,34 @@
     return (b / (1024 * 1024)).toFixed(2) + ' MB';
   }
 
+  // Returns YYYY-MM-DD for each of the past N days (newest last)
+  function pastDays(n) {
+    const arr = [];
+    for (let i = n - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      arr.push(d.toISOString().slice(0, 10));
+    }
+    return arr;
+  }
+
+  // Returns the YYYY-MM-DD of Monday of this week
+  function weekStart() {
+    const d = new Date();
+    const day = d.getDay(); // 0=Sun
+    const diff = (day === 0) ? -6 : 1 - day; // roll back to Monday
+    d.setDate(d.getDate() + diff);
+    return d.toISOString().slice(0, 10);
+  }
+
+  // Short day label: "Mon", "Tue", etc.
+  function dayLabel(dateStr) {
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short' });
+  }
+
   const FREE_QUOTA = 1024 * 1024 * 1024;
   let sizeMap = {};
+  let visitorChart = null;
 
   function setStorage(key, val, fillId, szId, max) {
     const bytes = estimateBytes(val);
@@ -355,7 +437,112 @@
     document.getElementById('last-updated').textContent = 'Live · updated ' + fmtTime(Date.now());
   }
 
-  // presence
+  // ── Visitor chart (initialised once, updated on data change) ──
+  function initOrUpdateChart(dailyCounts, labels) {
+    const ctx = document.getElementById('visitorChart').getContext('2d');
+    if (visitorChart) {
+      visitorChart.data.labels = labels;
+      visitorChart.data.datasets[0].data = dailyCounts;
+      visitorChart.update();
+      return;
+    }
+    visitorChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Visitors',
+          data: dailyCounts,
+          backgroundColor: 'rgba(59,130,246,0.75)',
+          borderColor: '#2563eb',
+          borderWidth: 1,
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ' ' + ctx.parsed.y + ' visitor' + (ctx.parsed.y !== 1 ? 's' : '') } }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#64748b', font: { size: 11, family: "'Nunito', sans-serif" }, autoSkip: false },
+            grid: { display: false },
+            border: { display: false }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              color: '#64748b',
+              font: { size: 11, family: "'Nunito', sans-serif" },
+              precision: 0,
+              stepSize: 1
+            },
+            grid: { color: 'rgba(0,0,0,0.05)' },
+            border: { display: false }
+          }
+        }
+      }
+    });
+  }
+
+  // ── Visitors listener ──────────────────────────────────────
+  db.ref("visitors").on("value", snap => {
+    const visitors = snap.val() || {};
+    const allKeys = Object.keys(visitors);
+    const allTime = allKeys.length;
+
+    // Update KPI + count
+    document.getElementById('kpi-visitors').textContent = allTime;
+    document.getElementById('cnt-visitors').textContent = allTime;
+    document.getElementById('visitors-alltime').textContent = allTime;
+
+    // Determine first-seen date per visitor.
+    // Supports two data shapes:
+    //   { firstSeen: "2025-01-15", ... }   ← preferred
+    //   { lastSeen: 1700000000000, ... }   ← fallback (timestamp ms)
+    //   { ts: 1700000000000, ... }         ← fallback alt
+    function getDate(v) {
+      if (v && v.firstSeen) return v.firstSeen.slice(0, 10);
+      const ms = v && (v.lastSeen || v.ts || v.timestamp);
+      if (ms) return new Date(ms).toISOString().slice(0, 10);
+      return null;
+    }
+
+    const todayStr = today();
+    const wStart = weekStart();
+    let countToday = 0;
+    let countWeek  = 0;
+
+    // Build map: date → count for past 7 days
+    const last7 = pastDays(7);
+    const dayCounts = {};
+    last7.forEach(d => { dayCounts[d] = 0; });
+
+    allKeys.forEach(k => {
+      const d = getDate(visitors[k]);
+      if (!d) return;
+      if (d === todayStr) countToday++;
+      if (d >= wStart) countWeek++;
+      if (dayCounts.hasOwnProperty(d)) dayCounts[d]++;
+    });
+
+    document.getElementById('visitors-today').textContent = countToday;
+    document.getElementById('visitors-week').textContent  = countWeek;
+
+    const chartLabels = last7.map(dayLabel);
+    const chartData   = last7.map(d => dayCounts[d]);
+    initOrUpdateChart(chartData, chartLabels);
+
+    // Badge shows today count
+    document.getElementById('visitor-badge').textContent = countToday + ' today';
+
+    setStorage('visitors', visitors, 'sfill-visitors', 'sz-visitors', 200 * 1024);
+  });
+
+  // ── Presence ──────────────────────────────────────────────
   db.ref("presence").on("value", snap => {
     const users = snap.val() || {};
     const count = Object.keys(users).length;
@@ -368,10 +555,8 @@
       list.innerHTML = '<div class="empty">No active sessions</div>';
     } else {
       const entries = Object.values(users);
-      let mobile = 0;
       list.innerHTML = entries.map(u => {
         const isMobile = /iPhone|iPad|iPod|Android/i.test(u.ua || '');
-        if (isMobile) mobile++;
         return `<div class="user-item">
           <div class="user-icon ${isMobile ? 'ui-mobile' : 'ui-desktop'}">${isMobile ? '📱' : '💻'}</div>
           <div>
@@ -381,7 +566,8 @@
           <div class="ubadge ${isMobile ? 'ub-m' : 'ub-d'}">${isMobile ? 'Mobile' : 'Desktop'}</div>
         </div>`;
       }).join('');
-      const mPct = Math.round((entries.filter(u => /iPhone|iPad|iPod|Android/i.test(u.ua||'')).length / count) * 100);
+      const mCount = entries.filter(u => /iPhone|iPad|iPod|Android/i.test(u.ua||'')).length;
+      const mPct = Math.round((mCount / count) * 100);
       document.getElementById('mobile-pct').textContent = mPct + '%';
       document.getElementById('desktop-pct').textContent = (100 - mPct) + '%';
       document.getElementById('bar-mobile').style.width = mPct + '%';
@@ -392,27 +578,10 @@
     bumpTime();
   });
 
-  // visitors
-  db.ref("visitors").on("value", snap => {
-    document.getElementById('kpi-visitors').textContent = snap.numChildren();
-    document.getElementById('cnt-visitors').textContent = snap.numChildren();
-    setStorage('visitors', snap.val(), 'sfill-visitors', 'sz-visitors', 200 * 1024);
-  });
-
-  // Total tickets (one-time on load to avoid repeated large downloads)
-  db.ref("tickets").once("value", allSnap => {
-    const count = allSnap.numChildren();
-    document.getElementById('cnt-tickets').textContent = count;
-    setStorage('tickets', allSnap.val(), 'sfill-tickets', 'sz-tickets', 500 * 1024);
-  });
-
-  // tickets (Live for today only)
+  // ── Tickets (today only, live) ─────────────────────────────
   db.ref("tickets").orderByChild("date").equalTo(today()).on("value", snap => {
     let am = 0, pm = 0;
-    snap.forEach(c => {
-      const t = c.val();
-      t.time === 'AM' ? am++ : pm++;
-    });
+    snap.forEach(c => { const t = c.val(); t.time === 'AM' ? am++ : pm++; });
     const total = am + pm;
     document.getElementById('kpi-tickets').textContent = total;
     document.getElementById('kpi-tickets-sub').textContent = 'AM: ' + am + ' · PM: ' + pm;
@@ -423,7 +592,13 @@
     document.getElementById('split-pm').style.width = ((pm / d) * 100) + '%';
   });
 
-  // takenNumbers
+  // ── Tickets (all-time count + storage) ────────────────────
+  db.ref("tickets").once("value", allSnap => {
+    document.getElementById('cnt-tickets').textContent = allSnap.numChildren();
+    setStorage('tickets', allSnap.val(), 'sfill-tickets', 'sz-tickets', 500 * 1024);
+  });
+
+  // ── takenNumbers ──────────────────────────────────────────
   db.ref("takenNumbers").on("value", snap => {
     const data = snap.val() || {};
     let entries = 0;
@@ -432,12 +607,12 @@
     setStorage('takenNumbers', data, 'sfill-taken', 'sz-taken', 100 * 1024);
   });
 
-  // disabledNumbers
+  // ── disabledNumbers ───────────────────────────────────────
   db.ref("disabledNumbers").on("value", snap => {
     setStorage('disabledNumbers', snap.val(), 'sfill-disabled', 'sz-disabled', 20 * 1024);
   });
 
-  // scheduleSettings
+  // ── scheduleSettings ──────────────────────────────────────
   db.ref("scheduleSettings").on("value", snap => {
     setStorage('scheduleSettings', snap.val(), 'sfill-schedule', 'sz-schedule', 5 * 1024);
   });

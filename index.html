@@ -1163,30 +1163,18 @@
         let initialized = false;
         let maxWaitTimeout = null;
 
-        // Try to use cached offset from previous visit (for immediate unlock)
-        const cachedOffset = localStorage.getItem("pq_server_offset");
-        if (cachedOffset !== null) {
-          serverTimeOffset = parseInt(cachedOffset, 10) || 0;
-          syncPerformanceTime = performance.now();
-          syncServerTime = Date.now() + serverTimeOffset;
-        }
 
         // MAX wait: hide overlay after 500ms regardless (security still enforced in generateNumber())
         maxWaitTimeout = setTimeout(() => {
           if (!initialized) {
-            initialized = true;
-            now = getServerTime();
-            todayStr = toDateStr(now);
-            targetStr = toDateStr(getTargetDate(now));
-            document.getElementById("time-sync-overlay").classList.add("hide");
-            setTimeout(() => initializeAfterSync(), 50);
+            document.querySelector(".loading-text").textContent =
+              "⚠️ Cannot connect to server. Please check your internet and refresh.";
+            document.querySelector(".spinner").style.display = "none";
           }
-        }, 500);
+        }, 5000);
 
         db.ref(".info/serverTimeOffset").on("value", (snap) => {
           serverTimeOffset = snap.val() || 0;
-          // Cache offset for next visit
-          localStorage.setItem("pq_server_offset", String(serverTimeOffset));
           syncPerformanceTime = performance.now();
           syncServerTime = Date.now() + serverTimeOffset;
           serverTimeSynced = true; // Mark as fully synced now
@@ -1847,6 +1835,7 @@
 
         // ─── CLAIMING STATUS ──────────────────────────────────────────────────────────
         function getClaimingStatus() {
+          if (!serverTimeSynced) return "blocked";
           if (!scheduleSettings.claimingEnabled) return "blocked";
           if (isGenerationClosed(getServerTime())) return "weekend";
           const n = getServerTime();
@@ -2817,14 +2806,12 @@
         }
 
         async function generateNumber() {
-          // Securely recalculate current time and target distribution date
-          // to prevent users from bypassing claiming windows by changing device time.
+            if (!serverTimeSynced) {
+              return toast("⏳ Cannot generate — server time not verified. Please refresh.");
+            }
           now = getServerTime();
           todayStr = toDateStr(now);
           targetStr = toDateStr(getTargetDate(now));
-
-          if (!serverTimeSynced)
-            return toast("Waiting for server time synchronization...");
           if (!isClaimingOpen()) {
             const s = getClaimingStatus();
             if (s === "blocked")
@@ -3762,4 +3749,3 @@
       </script>
     </body>
   </html>
-      

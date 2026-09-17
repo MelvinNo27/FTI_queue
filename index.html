@@ -1197,6 +1197,12 @@
           return new Date(syncServerTime + elapsed);
         }
 
+        const PHT_OFFSET_MS = 8 * 60 * 60 * 1000; // Philippines is always UTC+8, no DST
+
+        function toPHT(date) {
+          return new Date(date.getTime() + PHT_OFFSET_MS);
+        }
+
         function getDeviceId() {
           let id = localStorage.getItem("pq_device_id");
           if (!id) {
@@ -1521,12 +1527,10 @@
         // All other days → tomorrow (+1)
         function getTargetDate(from) {
           const d = from || getServerTime();
-          const day = d.getDay();
+          const day = toPHT(d).getUTCDay(); // was d.getDay()
           let offset = 1;
-          // Since generation is closed on Fri/Sat, the next distribution target
-          // from a Fri/Sat/Sun standpoint is always Monday.
-          if (day === 5) offset = 3; // Friday → Monday
-          if (day === 6) offset = 2; // Saturday → Monday
+          if (day === 5) offset = 3;
+          if (day === 6) offset = 2;
           return addDays(d, offset);
         }
 
@@ -1558,9 +1562,8 @@
           return r;
         }
         function toDateStr(d) {
-          return (
-            d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate())
-          );
+          const p = toPHT(d);
+          return p.getUTCFullYear() + "-" + pad(p.getUTCMonth() + 1) + "-" + pad(p.getUTCDate());
         }
         function pad(n) {
           return String(n).padStart(2, "0");
@@ -1601,13 +1604,13 @@
           return h * 60 + m;
         }
 
-        function isDistributionClosed(d) {
-          const day = (d || getServerTime()).getDay();
-          return day === 6 || day === 0; // Saturday & Sunday have no distribution
+         function isDistributionClosed(d) {
+          const day = toPHT(d || getServerTime()).getUTCDay();
+          return day === 6 || day === 0;
         }
         function isGenerationClosed(d) {
-          const day = (d || getServerTime()).getDay();
-          return day === 5 || day === 6; // Friday & Saturday are closed for generation (only open Sun-Thu)
+          const day = toPHT(d || getServerTime()).getUTCDay();
+          return day === 5 || day === 6;
         }
         function toast(msg) {
           const e = document.getElementById("toast");
@@ -1838,8 +1841,8 @@
           if (!serverTimeSynced) return "blocked";
           if (!scheduleSettings.claimingEnabled) return "blocked";
           if (isGenerationClosed(getServerTime())) return "weekend";
-          const n = getServerTime();
-          const c = n.getHours() * 60 + n.getMinutes();
+          const n = toPHT(getServerTime());
+          const c = n.getUTCHours() * 60 + n.getUTCMinutes();
           if (
             c < toMin(scheduleSettings.claimStart) ||
             c >= toMin(scheduleSettings.claimEnd)
@@ -3305,8 +3308,8 @@
         }
 
         function isTicketValid(t) {
-          const n = getServerTime();
-          const cur = n.getHours() * 60 + n.getMinutes();
+          const n = toPHT(getServerTime());
+          const cur = n.getUTCHours() * 60 + n.getUTCMinutes();
           const ts = toDateStr(n);
           const td = new Date(t.date + "T00:00:00"),
             today = new Date(ts + "T00:00:00");
@@ -3476,21 +3479,12 @@
           const pad = (n) => String(n).padStart(2, "0");
 
           function tickClock() {
-            const d = getServerTime();
-            let h = d.getHours(),
-              m = d.getMinutes(),
-              s = d.getSeconds();
+            const d = toPHT(getServerTime());
+            let h = d.getUTCHours(), m = d.getUTCMinutes(), s = d.getUTCSeconds();
             const ap = h >= 12 ? "PM" : "AM";
-            h = h % 12 || 12;
+             h = h % 12 || 12;
             const timeStr = pad(h) + ":" + pad(m) + ":" + pad(s) + " " + ap;
-            const dateStr =
-              DAYS_C[d.getDay()] +
-              ", " +
-              MONTHS_C[d.getMonth()] +
-              " " +
-              d.getDate() +
-              ", " +
-              d.getFullYear();
+            const dateStr = DAYS_C[d.getUTCDay()] + ", " + MONTHS_C[d.getUTCMonth()] + " " + d.getUTCDate() + ", " + d.getUTCFullYear();
             const timeEl = document.getElementById("clock-time");
             const dateEl = document.getElementById("clock-date");
             if (timeEl) timeEl.textContent = timeStr;

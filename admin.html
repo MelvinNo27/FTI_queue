@@ -1019,32 +1019,6 @@ function setMonthlyLimitMode(person, mode) {
   document.getElementById(person + '-limit-unlimited-msg').style.display = isLimited ? 'none' : 'block';
 }
 
-  function toLocalDatetimeValue(ms){
-  const d=new Date(ms);
-  const p2=(n)=>String(n).padStart(2,'0');
-  return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())+'T'+p2(d.getHours())+':'+p2(d.getMinutes());
-}
-
-async function adminSetIssuedDate(ticketId){
-  const input=document.getElementById('issued-edit-'+ticketId);
-  if(!input)return;
-  const val=input.value;
-  if(!val){toast('⚠ Pick a date/time first');return;}
-  const ms=new Date(val).getTime();
-  try{
-    await db.ref('tickets/'+ticketId).update({issuedDateOverride:ms});
-    toast('✅ Issued date updated');
-  }catch(e){toast('❌ Error: '+e.message);}
-}
-
-async function adminClearIssuedOverride(ticketId){
-  if(!confirm('Reset this ticket back to its real (server) issued time?'))return;
-  try{
-    await db.ref('tickets/'+ticketId).update({issuedDateOverride:null});
-    toast('↺ Reset to real server time');
-  }catch(e){toast('❌ Error: '+e.message);}
-}
-
 function applySettingsToUI(){
   const isOn=!!scheduleSettings.claimingEnabled;
   document.getElementById('claiming-toggle').checked=isOn;
@@ -1289,35 +1263,28 @@ const il=iss.toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',
     const wl='Valid: '+fmt(scheduleSettings[sk])+' – '+fmt(scheduleSettings[ek]);
     const sb=isDis?'<span class="badge badge-disabled-b">⊘ Disabled</span>':isExp?'<span class="badge badge-expired">✕ Expired</span>':'<span class="badge badge-valid">✓ Valid</span>';
     const tb=t.time?'<span class="badge '+(t.time==='AM'?'badge-am':'badge-pm')+'">'+t.time+'</span>':'';
-    // const devId = t.deviceId ? '<div class="tr-meta" style="font-size:10px;color:var(--gray);margin-top:2px;opacity:0.7;">Device ID: '+t.deviceId+'</div>' : '';
-    // return'<div class="ticket-row">'+
-    //   '<div class="ticket-row-top">'+
-    //   '<div class="tr-num">#'+pad3(t.number)+'</div>'+
-    //   '<div class="tr-info">'+
-    //   '<div class="tr-name">'+esc(t.name||'—')+'</div>'+
-    //   '<div class="tr-meta">Issued: '+il+' &nbsp;'+tb+' &nbsp;'+sb+'</div>'+
-    //   '<div class="tr-meta" style="color:var(--blue);font-weight:700;margin-top:2px;">⏰ '+wl+'</div>'+
-    //   devId +
-    //   '</div></div>'+personCardsHTML(t,'tr')+'</div>';
-    const devId = t.deviceId ? '<div class="tr-meta" style="font-size:10px;color:var(--gray);margin-top:2px;opacity:0.7;">Device ID: '+t.deviceId+'</div>' : '';
-const issuedEditVal = toLocalDatetimeValue(issMs);
-const issuedEditor =
-  '<div class="tr-meta" style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">'+
-  '<input type="datetime-local" id="issued-edit-'+t.id+'" value="'+issuedEditVal+'" style="font-size:11px;padding:4px 6px;border:1.5px solid #e5e7eb;border-radius:6px;font-family:Nunito,sans-serif;">'+
-  '<button onclick="adminSetIssuedDate(\''+t.id+'\')" style="padding:4px 10px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">💾 Save Issued</button>'+
-  (t.issuedDateOverride ? '<button onclick="adminClearIssuedOverride(\''+t.id+'\')" style="padding:4px 10px;background:#fee2e2;color:#dc2626;border:1.5px solid #fca5a5;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">↺ Reset to real time</button>' : '')+
-  '</div>';
-return'<div class="ticket-row">'+
-  '<div class="ticket-row-top">'+
-  '<div class="tr-num">#'+pad3(t.number)+'</div>'+
-  '<div class="tr-info">'+
-  '<div class="tr-name">'+esc(t.name||'—')+'</div>'+
-  '<div class="tr-meta">Issued: '+il+(t.issuedDateOverride?' <span style="color:#d97706;font-weight:700;">(manually set)</span>':'')+' &nbsp;'+tb+' &nbsp;'+sb+'</div>'+
-  '<div class="tr-meta" style="color:var(--blue);font-weight:700;margin-top:2px;">⏰ '+wl+'</div>'+
-  devId +
-  issuedEditor +
-  '</div></div>'+personCardsHTML(t,'tr')+'</div>';
-    
+//     const devId = t.deviceId ? '<div class="tr-meta" style="font-size:10px;color:var(--gray);margin-top:2px;opacity:0.7;">Device ID: '+t.deviceId+'</div>' : '';
+//     return'<div class="ticket-row">'+
+//       '<div class="ticket-row-top">'+
+//       '<div class="tr-num">#'+pad3(t.number)+'</div>'+
+//       '<div class="tr-info">'+
+//       '<div class="tr-name">'+esc(t.name||'—')+'</div>'+
+//       '<div class="tr-meta">Issued: '+il+' &nbsp;'+tb+' &nbsp;'+sb+'</div>'+
+//       '<div class="tr-meta" style="color:var(--blue);font-weight:700;margin-top:2px;">⏰ '+wl+'</div>'+
+//       devId +
+//       '</div></div>'+personCardsHTML(t,'tr')+'</div>';
+//   }).join('')+ghostHTML;
+// }
+        const devId = t.deviceId ? '<div class="tr-meta" style="font-size:10px;color:var(--gray);margin-top:2px;opacity:0.7;">Device ID: '+t.deviceId+'</div>' : '';
+    return'<div class="ticket-row">'+
+      '<div class="ticket-row-top">'+
+      '<div class="tr-num">#'+pad3(t.number)+'</div>'+
+      '<div class="tr-info">'+
+      '<div class="tr-name">'+esc(t.name||'—')+'</div>'+
+      '<div class="tr-meta">Issued: '+il+(t.issuedDateOverride?' <span style="color:#d97706;font-weight:700;">(manually set)</span>':'')+' &nbsp;'+tb+' &nbsp;'+sb+'</div>'+
+      '<div class="tr-meta" style="color:var(--blue);font-weight:700;margin-top:2px;">⏰ '+wl+'</div>'+
+      devId +
+      '</div></div>'+personCardsHTML(t,'tr')+'</div>';
   }).join('')+ghostHTML;
 }
 
@@ -1383,7 +1350,9 @@ function handleSearchEnter() {
          d.getDate() +
          ", " +
          d.getFullYear();
-       const issued = new Date(t.issuedAt);
+       // const issued = new Date(t.issuedAt);
+       const issued = new Date(issuedMs);
+       
        const issuedLbl = issued.toLocaleString("en-US", {
          month: "short",
          day: "numeric",

@@ -1019,6 +1019,32 @@ function setMonthlyLimitMode(person, mode) {
   document.getElementById(person + '-limit-unlimited-msg').style.display = isLimited ? 'none' : 'block';
 }
 
+  function toLocalDatetimeValue(ms){
+  const d=new Date(ms);
+  const p2=(n)=>String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())+'T'+p2(d.getHours())+':'+p2(d.getMinutes());
+}
+
+async function adminSetIssuedDate(ticketId){
+  const input=document.getElementById('issued-edit-'+ticketId);
+  if(!input)return;
+  const val=input.value;
+  if(!val){toast('⚠ Pick a date/time first');return;}
+  const ms=new Date(val).getTime();
+  try{
+    await db.ref('tickets/'+ticketId).update({issuedDateOverride:ms});
+    toast('✅ Issued date updated');
+  }catch(e){toast('❌ Error: '+e.message);}
+}
+
+async function adminClearIssuedOverride(ticketId){
+  if(!confirm('Reset this ticket back to its real (server) issued time?'))return;
+  try{
+    await db.ref('tickets/'+ticketId).update({issuedDateOverride:null});
+    toast('↺ Reset to real server time');
+  }catch(e){toast('❌ Error: '+e.message);}
+}
+
 function applySettingsToUI(){
   const isOn=!!scheduleSettings.claimingEnabled;
   document.getElementById('claiming-toggle').checked=isOn;

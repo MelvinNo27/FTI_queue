@@ -1251,24 +1251,44 @@ function renderTicketList(){
   c.innerHTML=filtered.map(t=>{
     const isExp=new Date(t.expiresAt).getTime()<nowMs;
     const isDis=!!df[t.number];
-    const iss=new Date(t.issuedAt);
+   const issMs = t.issuedDateOverride ? t.issuedDateOverride
+  : (typeof t.createdAt === 'number' ? t.createdAt : getServerTime().getTime());
+    const iss=new Date(issMs);
     const il=iss.toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
     const sk=t.time==='AM'?'amStart':'pmStart',ek=t.time==='AM'?'amEnd':'pmEnd';
     const wl='Valid: '+fmt(scheduleSettings[sk])+' – '+fmt(scheduleSettings[ek]);
     const sb=isDis?'<span class="badge badge-disabled-b">⊘ Disabled</span>':isExp?'<span class="badge badge-expired">✕ Expired</span>':'<span class="badge badge-valid">✓ Valid</span>';
     const tb=t.time?'<span class="badge '+(t.time==='AM'?'badge-am':'badge-pm')+'">'+t.time+'</span>':'';
+//     const devId = t.deviceId ? '<div class="tr-meta" style="font-size:10px;color:var(--gray);margin-top:2px;opacity:0.7;">Device ID: '+t.deviceId+'</div>' : '';
+//     return'<div class="ticket-row">'+
+//       '<div class="ticket-row-top">'+
+//       '<div class="tr-num">#'+pad3(t.number)+'</div>'+
+//       '<div class="tr-info">'+
+//       '<div class="tr-name">'+esc(t.name||'—')+'</div>'+
+//       '<div class="tr-meta">Issued: '+il+' &nbsp;'+tb+' &nbsp;'+sb+'</div>'+
+//       '<div class="tr-meta" style="color:var(--blue);font-weight:700;margin-top:2px;">⏰ '+wl+'</div>'+
+//       devId +
+//       '</div></div>'+personCardsHTML(t,'tr')+'</div>';
+//   }).join('')+ghostHTML;
+// }
     const devId = t.deviceId ? '<div class="tr-meta" style="font-size:10px;color:var(--gray);margin-top:2px;opacity:0.7;">Device ID: '+t.deviceId+'</div>' : '';
-    return'<div class="ticket-row">'+
-      '<div class="ticket-row-top">'+
-      '<div class="tr-num">#'+pad3(t.number)+'</div>'+
-      '<div class="tr-info">'+
-      '<div class="tr-name">'+esc(t.name||'—')+'</div>'+
-      '<div class="tr-meta">Issued: '+il+' &nbsp;'+tb+' &nbsp;'+sb+'</div>'+
-      '<div class="tr-meta" style="color:var(--blue);font-weight:700;margin-top:2px;">⏰ '+wl+'</div>'+
-      devId +
-      '</div></div>'+personCardsHTML(t,'tr')+'</div>';
-  }).join('')+ghostHTML;
-}
+const issuedEditVal = toLocalDatetimeValue(issMs);
+const issuedEditor =
+  '<div class="tr-meta" style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">'+
+  '<input type="datetime-local" id="issued-edit-'+t.id+'" value="'+issuedEditVal+'" style="font-size:11px;padding:4px 6px;border:1.5px solid #e5e7eb;border-radius:6px;font-family:Nunito,sans-serif;">'+
+  '<button onclick="adminSetIssuedDate(\''+t.id+'\')" style="padding:4px 10px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">💾 Save Issued</button>'+
+  (t.issuedDateOverride ? '<button onclick="adminClearIssuedOverride(\''+t.id+'\')" style="padding:4px 10px;background:#fee2e2;color:#dc2626;border:1.5px solid #fca5a5;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">↺ Reset to real time</button>' : '')+
+  '</div>';
+return'<div class="ticket-row">'+
+  '<div class="ticket-row-top">'+
+  '<div class="tr-num">#'+pad3(t.number)+'</div>'+
+  '<div class="tr-info">'+
+  '<div class="tr-name">'+esc(t.name||'—')+'</div>'+
+  '<div class="tr-meta">Issued: '+il+(t.issuedDateOverride?' <span style="color:#d97706;font-weight:700;">(manually set)</span>':'')+' &nbsp;'+tb+' &nbsp;'+sb+'</div>'+
+  '<div class="tr-meta" style="color:var(--blue);font-weight:700;margin-top:2px;">⏰ '+wl+'</div>'+
+  devId +
+  issuedEditor +
+  '</div></div>'+personCardsHTML(t,'tr')+'</div>';
 
 function handleSearchEnter() {
    if (currentDate) {
@@ -1332,6 +1352,9 @@ function handleSearchEnter() {
          d.getDate() +
          ", " +
          d.getFullYear();
+
+      const issuedMs = t.issuedDateOverride ? t.issuedDateOverride
+  : (typeof t.createdAt === 'number' ? t.createdAt : getServerTime().getTime());
        const issued = new Date(t.issuedAt);
        const issuedLbl = issued.toLocaleString("en-US", {
          month: "short",
@@ -1459,6 +1482,8 @@ function handleSearchEnter() {
             d.getDate() +
             ", " +
             d.getFullYear();
+          const issuedMs = t.issuedDateOverride ? t.issuedDateOverride
+  : (typeof t.createdAt === 'number' ? t.createdAt : getServerTime().getTime());
           const issued = new Date(t.issuedAt);
           const issuedLbl = issued.toLocaleString("en-US", {
             month: "short",

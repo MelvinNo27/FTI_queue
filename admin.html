@@ -1351,6 +1351,8 @@ function handleSearchEnter() {
          ", " +
          d.getFullYear();
        // const issued = new Date(t.issuedAt);
+       const issuedMs = t.issuedDateOverride ? t.issuedDateOverride
+  : (typeof t.createdAt === 'number' ? t.createdAt : getServerTime().getTime());
        const issued = new Date(issuedMs);
        
        const issuedLbl = issued.toLocaleString("en-US", {

@@ -47,6 +47,18 @@
     }
     @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
 
+    /* ── Storage alert ── */
+    .storage-alert {
+      display: none; align-items: flex-start; gap: 10px;
+      padding: 14px 16px; border-radius: 14px; margin-bottom: 14px;
+      font-size: 13px; line-height: 1.5; font-weight: 600;
+    }
+    .storage-alert.show { display: flex; }
+    .storage-alert .sa-icon { font-size: 22px; line-height: 1; }
+    .storage-alert b { display: block; font-size: 14px; font-weight: 800; }
+    .storage-alert.warn   { background: #fef3c7; border: 1.5px solid #fbbf24; color: #92400e; }
+    .storage-alert.danger { background: #fee2e2; border: 1.5px solid #f87171; color: #991b1b; }
+
     /* ── KPI grid ── */
     .kpi-grid {
       display: grid;
@@ -63,6 +75,8 @@
     .kpi-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; margin-bottom: 6px; }
     .kpi-val { font-size: 28px; font-weight: 800; color: #1e3a5f; line-height: 1; }
     .kpi-val.green { color: #10b981; }
+    .kpi-val.warn { color: #d97706; }
+    .kpi-val.danger { color: #dc2626; }
     .kpi-sub { font-size: 11px; color: #94a3b8; margin-top: 4px; }
 
     /* ── Card ── */
@@ -87,6 +101,8 @@
       padding: 2px 8px; border-radius: 99px;
       background: #eff6ff; color: #2563eb;
     }
+    .card-badge.warn { background: #fef3c7; color: #92400e; }
+    .card-badge.danger { background: #fee2e2; color: #991b1b; }
     .card-body { padding: 12px 16px 16px; }
 
     /* ── Visitor stats grid ── */
@@ -159,14 +175,40 @@
     .bar-track { height: 7px; background: #f1f5f9; border-radius: 99px; overflow: hidden; }
     .bar-fill { height: 100%; border-radius: 99px; transition: width 0.8s; }
 
+    /* ── Overall quota meter ── */
+    .quota-meter { margin-bottom: 18px; }
+    .quota-track {
+      position: relative; height: 12px; background: #f1f5f9;
+      border-radius: 99px; overflow: hidden;
+    }
+    .quota-fill { height: 100%; width: 0%; background: #10b981; border-radius: 99px; transition: width 0.8s, background 0.3s; }
+    .quota-fill.warn { background: #f59e0b; }
+    .quota-fill.danger { background: #ef4444; }
+    .quota-mark {
+      position: absolute; top: 0; bottom: 0; width: 2px;
+      background: rgba(30,41,59,0.35);
+    }
+    .quota-legend {
+      display: flex; justify-content: space-between;
+      font-size: 10px; color: #94a3b8; font-weight: 700; margin-top: 4px;
+    }
+    .quota-caption { font-size: 12px; color: #64748b; margin-top: 8px; font-weight: 600; }
+    .quota-caption b { color: #1e293b; }
+
     /* ── Storage total ── */
     .storage-total {
       margin-top: 16px; padding-top: 14px; border-top: 1px solid #f1f5f9;
-      display: flex; justify-content: space-between; align-items: center;
+      display: flex; justify-content: space-between; align-items: flex-start;
     }
-    .storage-total-label { font-size: 13px; font-weight: 700; }
+    .storage-total-label { font-size: 12px; font-weight: 700; color: #64748b; }
     .storage-total-val { font-size: 16px; font-weight: 800; color: #1e3a5f; }
     .storage-quota { font-size: 11px; color: #94a3b8; margin-top: 2px; text-align: right; }
+    .btn-rescan {
+      margin-top: 14px; width: 100%; padding: 9px; border: 1px solid #e2e8f0;
+      background: #f8fafc; border-radius: 10px; font: 700 12px 'Nunito', sans-serif;
+      color: #475569; cursor: pointer;
+    }
+    .btn-rescan:disabled { opacity: 0.6; cursor: default; }
 
     /* ── Counts row ── */
     .counts-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
@@ -205,6 +247,12 @@
     <span id="last-updated">Connecting…</span>
   </div>
 
+  <!-- Storage warning banner (hidden until 50%) -->
+  <div class="storage-alert" id="storage-alert">
+    <div class="sa-icon" id="sa-icon">⚠️</div>
+    <div><b id="sa-title"></b><span id="sa-msg"></span></div>
+  </div>
+
   <!-- KPIs -->
   <div class="kpi-grid">
     <div class="kpi">
@@ -223,9 +271,9 @@
       <div class="kpi-sub" id="kpi-tickets-sub">AM: — · PM: —</div>
     </div>
     <div class="kpi">
-      <div class="kpi-label">DB Size</div>
-      <div class="kpi-val" id="kpi-dbsize" style="font-size:18px; padding-top:5px;">—</div>
-      <div class="kpi-sub">Estimated</div>
+      <div class="kpi-label">Storage Left</div>
+      <div class="kpi-val" id="kpi-dbsize" style="font-size:20px; padding-top:4px;">—</div>
+      <div class="kpi-sub" id="kpi-dbsize-sub">Scanning…</div>
     </div>
   </div>
 
@@ -302,9 +350,21 @@
   <div class="card">
     <div class="card-head">
       🗄️ Firebase Storage Usage
-      <span class="card-badge">1 GB free</span>
+      <span class="card-badge" id="storage-badge">1 GB free</span>
     </div>
     <div class="card-body">
+
+      <!-- Overall quota meter with 50% and 80% markers -->
+      <div class="quota-meter">
+        <div class="quota-track">
+          <div class="quota-fill" id="quota-fill"></div>
+          <div class="quota-mark" style="left:50%"></div>
+          <div class="quota-mark" style="left:80%"></div>
+        </div>
+        <div class="quota-legend"><span>0%</span><span>50%</span><span>80%</span><span>100%</span></div>
+        <div class="quota-caption" id="quota-caption">Scanning database…</div>
+      </div>
+
       <div class="bar-row">
         <div class="bar-head"><span>tickets/</span><span id="sz-tickets">—</span></div>
         <div class="bar-track"><div class="bar-fill" id="sfill-tickets" style="background:#3b82f6; width:0%"></div></div>
@@ -329,14 +389,23 @@
         <div class="bar-head"><span>scheduleSettings/</span><span id="sz-schedule">—</span></div>
         <div class="bar-track"><div class="bar-fill" id="sfill-schedule" style="background:#06b6d4; width:0%"></div></div>
       </div>
+      <div class="bar-row">
+        <div class="bar-head"><span>other (dates, slots…)</span><span id="sz-other">—</span></div>
+        <div class="bar-track"><div class="bar-fill" id="sfill-other" style="background:#64748b; width:0%"></div></div>
+      </div>
 
       <div class="storage-total">
-        <div class="storage-total-label">Total Estimated</div>
         <div>
+          <div class="storage-total-label">Used</div>
           <div class="storage-total-val" id="sz-total">—</div>
+        </div>
+        <div>
+          <div class="storage-total-label" style="text-align:right">Left</div>
+          <div class="storage-total-val" id="sz-left" style="text-align:right">—</div>
           <div class="storage-quota" id="sz-quota">of 1,024 MB free quota</div>
         </div>
       </div>
+      <button class="btn-rescan" id="btn-rescan" onclick="scanStorage()">🔄 Re-scan storage</button>
     </div>
 
     <div class="counts-grid">
@@ -385,7 +454,8 @@
     if (!b || b < 1) return '0 B';
     if (b < 1024) return b + ' B';
     if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
-    return (b / (1024 * 1024)).toFixed(2) + ' MB';
+    if (b < 1024 * 1024 * 1024) return (b / (1024 * 1024)).toFixed(2) + ' MB';
+    return (b / (1024 * 1024 * 1024)).toFixed(3) + ' GB';
   }
 
   // Returns YYYY-MM-DD for each of the past N days (newest last)
@@ -413,29 +483,98 @@
     return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short' });
   }
 
-  const FREE_QUOTA = 1024 * 1024 * 1024;
-  let sizeMap = {};
-  let visitorChart = null;
-
-  function setStorage(key, val, fillId, szId, max) {
-    const bytes = estimateBytes(val);
-    sizeMap[key] = bytes;
-    document.getElementById(szId).textContent = fmtBytes(bytes);
-    document.getElementById(fillId).style.width = Math.min((bytes / max) * 100, 100) + '%';
-    refreshTotal();
-  }
-
-  function refreshTotal() {
-    const total = Object.values(sizeMap).reduce((a, b) => a + b, 0);
-    document.getElementById('sz-total').textContent = fmtBytes(total);
-    document.getElementById('kpi-dbsize').textContent = fmtBytes(total);
-    const pct = (total / FREE_QUOTA * 100).toFixed(4);
-    document.getElementById('sz-quota').textContent = pct + '% of 1,024 MB free quota';
-  }
-
   function bumpTime() {
     document.getElementById('last-updated').textContent = 'Live · updated ' + fmtTime(Date.now());
   }
+
+  // ── Storage scan (real remaining space + warnings) ──────────
+  const FREE_QUOTA = 1024 * 1024 * 1024; // 1 GB free tier
+  const WARN_PCT = 50;                   // yellow warning
+  const DANGER_PCT = 80;                 // red alert
+  let visitorChart = null;
+
+  // node name → [bar fill id, size label id]
+  const STORAGE_ROWS = {
+    tickets:          ['sfill-tickets',  'sz-tickets'],
+    takenNumbers:     ['sfill-taken',    'sz-taken'],
+    presence:         ['sfill-presence', 'sz-presence'],
+    visitors:         ['sfill-visitors', 'sz-visitors'],
+    disabledNumbers:  ['sfill-disabled', 'sz-disabled'],
+    scheduleSettings: ['sfill-schedule', 'sz-schedule']
+  };
+  // Other top-level nodes counted toward the total
+  const OTHER_NODES = ['dateSettings', 'slotConfig', 'slots'];
+
+  async function scanStorage() {
+    const btn = document.getElementById('btn-rescan');
+    btn.disabled = true;
+    btn.textContent = '⏳ Scanning…';
+    try {
+      const names = [...Object.keys(STORAGE_ROWS), ...OTHER_NODES];
+      const snaps = await Promise.all(names.map(n => db.ref(n).once('value')));
+      const sizes = {};
+      let other = 0, total = 0;
+
+      snaps.forEach((s, i) => {
+        const n = names[i];
+        const b = s.exists() ? estimateBytes(s.val()) + n.length : 0;
+        total += b;
+        if (STORAGE_ROWS[n]) sizes[n] = b; else other += b;
+        if (n === 'tickets') document.getElementById('cnt-tickets').textContent = s.numChildren();
+      });
+
+      // Per-node rows (bar = share of total used)
+      Object.entries(STORAGE_ROWS).forEach(([n, [fillId, szId]]) => {
+        document.getElementById(szId).textContent = fmtBytes(sizes[n]);
+        document.getElementById(fillId).style.width = (total ? sizes[n] / total * 100 : 0) + '%';
+      });
+      document.getElementById('sz-other').textContent = fmtBytes(other);
+      document.getElementById('sfill-other').style.width = (total ? other / total * 100 : 0) + '%';
+
+      // Totals
+      const left = Math.max(FREE_QUOTA - total, 0);
+      const pct = total / FREE_QUOTA * 100;
+      const pctTxt = pct < 0.01 ? '<0.01' : pct.toFixed(2);
+
+      document.getElementById('sz-total').textContent = fmtBytes(total);
+      document.getElementById('sz-left').textContent = fmtBytes(left);
+      document.getElementById('sz-quota').textContent = pctTxt + '% of 1,024 MB used';
+      document.getElementById('kpi-dbsize').textContent = fmtBytes(left);
+      document.getElementById('kpi-dbsize-sub').textContent = fmtBytes(total) + ' used (' + pctTxt + '%)';
+
+      // Overall meter
+      const fill = document.getElementById('quota-fill');
+      fill.style.width = Math.min(pct, 100) + '%';
+      document.getElementById('quota-caption').innerHTML =
+        '<b>' + fmtBytes(left) + '</b> left of 1 GB · ' + fmtBytes(total) + ' used';
+
+      // Warning state
+      const level = pct >= DANGER_PCT ? 'danger' : pct >= WARN_PCT ? 'warn' : '';
+      fill.className = 'quota-fill' + (level ? ' ' + level : '');
+      document.getElementById('kpi-dbsize').className = 'kpi-val' + (level ? ' ' + level : ' green');
+      document.getElementById('storage-badge').className = 'card-badge' + (level ? ' ' + level : '');
+      document.getElementById('storage-badge').textContent = level ? pct.toFixed(0) + '% used' : '1 GB free';
+
+      const alertEl = document.getElementById('storage-alert');
+      alertEl.className = 'storage-alert' + (level ? ' show ' + level : '');
+      if (level) {
+        document.getElementById('sa-icon').textContent = level === 'danger' ? '🚨' : '⚠️';
+        document.getElementById('sa-title').textContent =
+          level === 'danger' ? 'Storage almost full!' : 'Storage warning: ' + WARN_PCT + '% reached';
+        document.getElementById('sa-msg').textContent =
+          'Only ' + fmtBytes(left) + ' left of the 1 GB free quota. Delete old months in Admin → Database.';
+      }
+      bumpTime();
+    } catch (e) {
+      document.getElementById('quota-caption').textContent = 'Scan failed: ' + e.message;
+      document.getElementById('sz-quota').textContent = 'Scan failed';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '🔄 Re-scan storage';
+    }
+  }
+  scanStorage();
+  setInterval(scanStorage, 10 * 60 * 1000); // auto re-scan every 10 min
 
   // ── Visitor chart (initialised once, updated on data change) ──
   function initOrUpdateChart(dailyCounts, labels) {
@@ -494,16 +633,11 @@
     const allKeys = Object.keys(visitors);
     const allTime = allKeys.length;
 
-    // Update KPI + count
     document.getElementById('kpi-visitors').textContent = allTime;
     document.getElementById('cnt-visitors').textContent = allTime;
     document.getElementById('visitors-alltime').textContent = allTime;
 
-    // Determine first-seen date per visitor.
-    // Supports two data shapes:
-    //   { firstSeen: "2025-01-15", ... }   ← preferred
-    //   { lastSeen: 1700000000000, ... }   ← fallback (timestamp ms)
-    //   { ts: 1700000000000, ... }         ← fallback alt
+    // Supports: firstSeen (YYYY-MM-DD) | lastSeen / ts / timestamp (ms)
     function getDate(v) {
       if (v && v.firstSeen) return v.firstSeen.slice(0, 10);
       const ms = v && (v.lastSeen || v.ts || v.timestamp);
@@ -516,7 +650,6 @@
     let countToday = 0;
     let countWeek  = 0;
 
-    // Build map: date → count for past 7 days
     const last7 = pastDays(7);
     const dayCounts = {};
     last7.forEach(d => { dayCounts[d] = 0; });
@@ -536,10 +669,7 @@
     const chartData   = last7.map(d => dayCounts[d]);
     initOrUpdateChart(chartData, chartLabels);
 
-    // Badge shows today count
     document.getElementById('visitor-badge').textContent = countToday + ' today';
-
-    setStorage('visitors', visitors, 'sfill-visitors', 'sz-visitors', 200 * 1024);
   });
 
   // ── Presence ──────────────────────────────────────────────
@@ -573,8 +703,6 @@
       document.getElementById('bar-mobile').style.width = mPct + '%';
       document.getElementById('bar-desktop').style.width = (100 - mPct) + '%';
     }
-
-    setStorage('presence', users, 'sfill-presence', 'sz-presence', 50 * 1024);
     bumpTime();
   });
 
@@ -592,29 +720,12 @@
     document.getElementById('split-pm').style.width = ((pm / d) * 100) + '%';
   });
 
-  // ── Tickets (all-time count + storage) ────────────────────
-  db.ref("tickets").once("value", allSnap => {
-    document.getElementById('cnt-tickets').textContent = allSnap.numChildren();
-    setStorage('tickets', allSnap.val(), 'sfill-tickets', 'sz-tickets', 500 * 1024);
-  });
-
-  // ── takenNumbers ──────────────────────────────────────────
+  // ── takenNumbers (count only; size comes from scanStorage) ──
   db.ref("takenNumbers").on("value", snap => {
     const data = snap.val() || {};
     let entries = 0;
     Object.values(data).forEach(d => { entries += Object.keys(d || {}).length; });
     document.getElementById('cnt-taken').textContent = entries;
-    setStorage('takenNumbers', data, 'sfill-taken', 'sz-taken', 100 * 1024);
-  });
-
-  // ── disabledNumbers ───────────────────────────────────────
-  db.ref("disabledNumbers").on("value", snap => {
-    setStorage('disabledNumbers', snap.val(), 'sfill-disabled', 'sz-disabled', 20 * 1024);
-  });
-
-  // ── scheduleSettings ──────────────────────────────────────
-  db.ref("scheduleSettings").on("value", snap => {
-    setStorage('scheduleSettings', snap.val(), 'sfill-schedule', 'sz-schedule', 5 * 1024);
   });
 </script>
 </body>

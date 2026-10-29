@@ -1,4 +1,4 @@
-  <!doctype html>
+<!doctype html>
   <html lang="en">
     <head>
       <meta charset="UTF-8" />
@@ -9,6 +9,7 @@
         rel="stylesheet"
       />
       <link rel="stylesheet" href="home.css" />
+      <script src="queue-gate.js"></script>
     </head>
     <body>
       <div class="loading-overlay" id="time-sync-overlay">
@@ -335,6 +336,12 @@
             <span class="sch-label" data-i18n="schPM">PM valid:</span
             ><strong id="sch-pm">—</strong>
           </div>
+          <div class="sch-item">
+            <span class="sch-label">Online:</span>
+            <strong id="sch-online">
+              <span class="online-dot"></span><span id="online-count">0</span>
+            </strong>
+          </div>
         </div>
         <div class="status-banner" id="status-banner"></div>
         <div class="date-card">
@@ -392,6 +399,11 @@
               ></span
               >Half-day (tap for details)</span
             >
+
+            <span id="leg-selected" style="display: none">
+  <span><span class="leg-dot week"></span>Available this week</span>
+  <span><span class="leg-dot sel"></span>Your selected date</span>
+</span>
           </div>
           <div class="cal-notice">
             📋
@@ -677,6 +689,10 @@
             IDs will be verified in person by staff upon arrival.
           </div>
           <div class="field">
+            <div class="field" id="field-appt-date" style="display: none">
+              <label>Appointment Date <span class="opt">(choose a day this week)</span></label>
+              <div class="date-chip-row" id="appt-date-chips"></div>
+            </div>
             <label data-i18n="labelPrefTime">Preferred Time</label>
             <div class="time-row">
               <button class="time-btn" id="btn-am" onclick="selectTime('AM')">
@@ -1119,41 +1135,40 @@
 
       <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
       <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-      <script>
-        const firebaseConfig = {
-          apiKey: "AIzaSyAiRK64ZYzF8lBKnxmubCZEO9qrCN42B1g",
-          authDomain: "fti-queue.firebaseapp.com",
-          databaseURL: "https://fti-queue-default-rtdb.firebaseio.com",
-          projectId: "fti-queue",
-          storageBucket: "fti-queue.firebasestorage.app",
-          messagingSenderId: "794859488896",
-          appId: "1:794859488896:web:4e7dcb7e830fc4bf334865",
-          measurementId: "G-HSTB5FR8G9",
-        };
+      <script type="text/plain" data-app>
+          const firebaseConfig = {
+            apiKey: "AIzaSyCerH4-U-AJQeM0op5xa5XXU0c1vFSICB4",
+            authDomain: "fti-queue-f29e9.firebaseapp.com",
+            projectId: "fti-queue-f29e9",
+            storageBucket: "fti-queue-f29e9.firebasestorage.app",
+            messagingSenderId: "691384064945",
+            appId: "1:691384064945:web:c3ef376cf514ddb7413b90",
+            measurementId: "G-J7WN49EKJ3"
+          };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // ─── ADMIN REDIRECT LOGIC ────────────────────────────────────────────────────
-        let tapCount = 0,
-          tapTimer = null;
-        function handleTitleTap() {
-          tapCount++;
-          if (tapTimer) clearTimeout(tapTimer);
-          if (tapCount >= 5) {
-            tapCount = 0;
-            // toast("Redirecting to Admin Panel...");
-            window.location.href = "admin.html";
-            return;
-          }
-          const remaining = 5 - tapCount;
-          // toast("Tap " + remaining + " more time" + (remaining > 1 ? "s" : "") + " to open admin panel.");
-          const titleEl = document.getElementById("header-title");
-          titleEl.style.opacity = ".6";
-          setTimeout(() => (titleEl.style.opacity = "1"), 120);
-          tapTimer = setTimeout(() => {
-            tapCount = 0;
-          }, 3000);
-        }
+        // // ─── ADMIN REDIRECT LOGIC ────────────────────────────────────────────────────
+        // let tapCount = 0,
+        //   tapTimer = null;
+        // function handleTitleTap() {
+        //   tapCount++;
+        //   if (tapTimer) clearTimeout(tapTimer);
+        //   if (tapCount >= 5) {
+        //     tapCount = 0;
+        //     // toast("Redirecting to Admin Panel...");
+        //     window.location.href = "admin.html";
+        //     return;
+        //   }
+        //   const remaining = 5 - tapCount;
+        //   // toast("Tap " + remaining + " more time" + (remaining > 1 ? "s" : "") + " to open admin panel.");
+        //   const titleEl = document.getElementById("header-title");
+        //   titleEl.style.opacity = ".6";
+        //   setTimeout(() => (titleEl.style.opacity = "1"), 120);
+        //   tapTimer = setTimeout(() => {
+        //     tapCount = 0;
+        //   }, 3000);
+        // }
 
         // Synchronize with Firebase Server Time to prevent device time bypass
         let serverTimeOffset = 0;
@@ -1241,103 +1256,91 @@
           }
         }
 
-        async function checkMonthlyLimitByName(field, value, limitCount) {
-          if (
-            !value ||
-            value.trim().length < 2 ||
-            !limitCount ||
-            limitCount === 0
-          )
-            return null;
-          const normVal = value.trim().toLowerCase();
-
-          const targetDate = new Date(targetStr + "T00:00:00");
-          const windowStart = new Date(targetDate);
-          windowStart.setDate(windowStart.getDate() - 29);
-          const windowStartStr = toDateStr(windowStart);
-
-          // Optimized: Only fetch tickets within the 30-day window
-          const snap = await db
-            .ref("tickets")
-            .orderByChild("date")
-            .startAt(windowStartStr)
-            .endAt(targetStr)
-            .once("value");
-
-          if (!snap.exists()) return null;
-
-          let count = 0;
-          let lastFound = null;
-          snap.forEach((c) => {
-            const t = c.val();
-            if (!t || !t.date) return;
-            if (editingTicketId && c.key === editingTicketId) return;
-
-            // Check if the name matches either beneficiary slot if we are checking a beneficiary
-            const isBenCheck = field === "ben1Name" || field === "ben2Name";
-            const match = isBenCheck
-              ? (t.ben1Name && t.ben1Name.trim().toLowerCase() === normVal) ||
-                (t.ben2Name && t.ben2Name.trim().toLowerCase() === normVal)
-              : t[field] && t[field].trim().toLowerCase() === normVal;
-
-            if (match) {
-              count++;
-              lastFound = { id: c.key, ...t };
-            }
-          });
-
-          return count >= limitCount ? { count, lastFound, limitCount } : null;
-        }
-
-        async function checkMonthlyLimitByID(idType, idNum, limitCount) {
-          if (!idType || !idNum || !limitCount || limitCount === 0) return null;
-          const normType = idType.trim().toLowerCase();
-          const normNum = idNum.trim().toLowerCase();
-
-          const targetDate = new Date(targetStr + "T00:00:00");
-          const windowStart = new Date(targetDate);
-          windowStart.setDate(windowStart.getDate() - 29);
-          const windowStartStr = toDateStr(windowStart);
-
-          // Optimized: Only fetch tickets within the 30-day window
-          const snap = await db
-            .ref("tickets")
-            .orderByChild("date")
-            .startAt(windowStartStr)
-            .endAt(targetStr)
-            .once("value");
-
-          if (!snap.exists()) return null;
-
-          let count = 0;
-          let lastFound = null;
-          snap.forEach((c) => {
-            const t = c.val();
-            if (!t || !t.date) return;
-            if (editingTicketId && c.key === editingTicketId) return;
-
-            // Check both ID slots
-            const match1 =
-              t.idType &&
-              t.idNumber &&
-              t.idType.trim().toLowerCase() === normType &&
-              t.idNumber.trim().toLowerCase() === normNum;
-            const match2 =
-              t.idType2 &&
-              t.idNumber2 &&
-              t.idType2.trim().toLowerCase() === normType &&
-              t.idNumber2.trim().toLowerCase() === normNum;
-
-            if (match1 || match2) {
-              count++;
-              lastFound = { id: c.key, ...t };
-            }
-          });
-
-          return count >= limitCount ? { count, lastFound, limitCount } : null;
-        }
+       async function checkMonthlyLimitByName(field, value, limitCount) {
+            if (!value || value.trim().length < 2 || !limitCount || limitCount === 0)
+              return null;
+            const normVal = value.trim().toLowerCase();
+            const bookStrLocal = bookDate();
+          
+            const targetDate = new Date(bookStrLocal + "T00:00:00");
+            const windowStart = new Date(targetDate);
+            windowStart.setDate(windowStart.getDate() - 29);
+            const windowStartStr = toDateStr(windowStart);
+          
+            const snap = await db
+              .ref("tickets")
+              .orderByChild("date")
+              .startAt(windowStartStr)
+              .endAt(bookStrLocal)
+              .once("value");
+          
+            if (!snap.exists()) return null;
+          
+            let count = 0;
+            let lastFound = null;
+            snap.forEach((c) => {
+              const t = c.val();
+              if (!t || !t.date) return;
+              if (editingTicketId && c.key === editingTicketId) return;
+              const isBenCheck = field === "ben1Name" || field === "ben2Name";
+              const match = isBenCheck
+                ? (t.ben1Name && t.ben1Name.trim().toLowerCase() === normVal) ||
+                  (t.ben2Name && t.ben2Name.trim().toLowerCase() === normVal)
+                : t[field] && t[field].trim().toLowerCase() === normVal;
+              if (match) {
+                count++;
+                lastFound = { id: c.key, ...t };
+              }
+            });
+          
+            return count >= limitCount ? { count, lastFound, limitCount } : null;
+          }
+          
+          async function checkMonthlyLimitByID(idType, idNum, limitCount) {
+            if (!idType || !idNum || !limitCount || limitCount === 0) return null;
+            const normType = idType.trim().toLowerCase();
+            const normNum = idNum.trim().toLowerCase();
+            const bookStrLocal = bookDate();
+          
+            const targetDate = new Date(bookStrLocal + "T00:00:00");
+            const windowStart = new Date(targetDate);
+            windowStart.setDate(windowStart.getDate() - 29);
+            const windowStartStr = toDateStr(windowStart);
+          
+            const snap = await db
+              .ref("tickets")
+              .orderByChild("date")
+              .startAt(windowStartStr)
+              .endAt(bookStrLocal)
+              .once("value");
+          
+            if (!snap.exists()) return null;
+          
+            let count = 0;
+            let lastFound = null;
+            snap.forEach((c) => {
+              const t = c.val();
+              if (!t || !t.date) return;
+              if (editingTicketId && c.key === editingTicketId) return;
+              const match1 =
+                t.idType && t.idNumber &&
+                t.idType.trim().toLowerCase() === normType &&
+                t.idNumber.trim().toLowerCase() === normNum;
+              const match2 =
+                t.idType2 && t.idNumber2 &&
+                t.idType2.trim().toLowerCase() === normType &&
+                t.idNumber2.trim().toLowerCase() === normNum;
+              if (match1 || match2) {
+                count++;
+                lastFound = { id: c.key, ...t };
+              }
+            });
+          
+            return count >= limitCount ? { count, lastFound, limitCount } : null;
+          }
 
         let activeTargetStr = null;
+        let targetListeners = [];
         function initializeAfterSync() {
           // Only initialize these once we have accurate server time
           now = getServerTime();
@@ -1348,68 +1351,47 @@
           if (targetStr === activeTargetStr) return;
           activeTargetStr = targetStr;
 
-          // Clean up old listeners if they exist
-          db.ref("disabledNumbers").off();
-          db.ref("dateSettings").off();
-          db.ref("takenNumbers").off();
+                    targetListeners.forEach(([r, cb]) => r.off("value", cb));
+          targetListeners = [];
+          const listen = (path, cb) => {
+            const r = db.ref(path);
+            r.on("value", cb);
+            targetListeners.push([r, cb]);
+          };
+          const refreshFormButtons = () => {
+            if (
+              document.getElementById("form-card").classList.contains("show") &&
+              !editingTicketId
+            )
+              applySlotButtonStates(bookDate(), selectedTime);
+          };
 
           // Start Tracking
           trackPresence();
           trackVisitor();
 
-          // Optimized listeners: Only fetch relevant date data for live updates
-          db.ref("disabledNumbers/" + targetStr).on("value", (s) => {
+          listen("disabledNumbers/" + targetStr, (s) => {
             disabledNumbers[targetStr] = s.val() || {};
+            renderCard();
+            updateSlotBanner();
             renderTickets();
+            refreshFormButtons();
           });
 
-          db.ref("dateSettings/" + targetStr).on("value", (s) => {
+          listen("dateSettings/" + targetStr, (s) => {
             calDateSettings[targetStr] = s.val() || {};
             renderCalendar();
             renderCard();
             updateStatusBanner();
             updateSlotBanner();
-
-            if (document.getElementById("form-card").classList.contains("show")) {
-              const editDate = editingTicketId
-                ? (myTickets.find((x) => x.id === editingTicketId) || {}).date ||
-                  targetStr
-                : targetStr;
-              applySlotButtonStates(editDate, selectedTime);
-
-              // Clear selectedTime if the session got disabled for the target date
-              const _ds = calDateSettings[targetStr] || {};
-              if (selectedTime === "AM" && _ds.amEnabled === false)
-                selectedTime = null;
-              if (selectedTime === "PM" && _ds.pmEnabled === false)
-                selectedTime = null;
-            }
+            refreshFormButtons();
           });
 
-          db.ref("takenNumbers/" + targetStr).on("value", (s) => {
+          listen("takenNumbers/" + targetStr, (s) => {
             takenNumbersData[targetStr] = s.val() || {};
             renderCard();
             updateSlotBanner();
-            const formOpen = document
-              .getElementById("form-card")
-              .classList.contains("show");
-            if (formOpen) {
-              const editDate = editingTicketId
-                ? (myTickets.find((x) => x.id === editingTicketId) || {}).date ||
-                  targetStr
-                : targetStr;
-              applySlotButtonStates(editDate, selectedTime);
-
-              // Clear selectedTime if its session just became unavailable
-              const amNowFull =
-                getTakenCountFromAtomic(editDate, "AM") >= getLimitAm() ||
-                slotConfig.amEnabled === false;
-              const pmNowFull =
-                getTakenCountFromAtomic(editDate, "PM") >= getLimitPm() ||
-                slotConfig.pmEnabled === false;
-              if (selectedTime === "AM" && amNowFull) selectedTime = null;
-              if (selectedTime === "PM" && pmNowFull) selectedTime = null;
-            }
+            refreshFormButtons();
           });
 
           // Fetch only relevant dateSettings for the calendar (current month +/- 1 month)
@@ -1571,6 +1553,76 @@
         function pad3(n) {
           return String(n).padStart(3, "0");
         }
+        const esc = (s) =>
+          String(s ?? "").replace(/[&<>"']/g, (c) =>
+          ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+        const normName = (s) => (s || "").toLowerCase().replace(/\s+/g, " ").trim();
+const normId   = (s) => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+const idKey    = (type, num) => normName(type) + "|" + normId(num);
+const fbKey    = (s) => s.replace(/[.$#\[\]\/]/g, "").replace(/\s+/g, "_");
+
+function weekKeyOf(ds) {
+  const dow = phtParts(ds).getUTCDay();
+  const back = (dow + 6) % 7;
+  return toDateStr(new Date(Date.parse(ds + "T00:00:00+08:00") - back * 86400000));
+}
+
+async function findDuplicate(f) {
+  const base = Date.parse(bookDate() + "T00:00:00+08:00");
+  const start = toDateStr(new Date(base - 6 * 86400000));
+  const end   = toDateStr(new Date(base + 6 * 86400000));
+  const snap = await db.ref("tickets").orderByChild("date").startAt(start).endAt(end).once("value");
+  if (!snap.exists()) return null;
+
+  const myClaimant = normName(f.name);
+  const myNames = [normName(f.ben1Name), normName(f.ben2Name)].filter(Boolean);
+  const myIds = [[f.idType, f.idNumber], [f.idType2, f.idNumber2]]
+    .filter(([a, b]) => a && b).map(([a, b]) => idKey(a, b));
+
+  let hit = null;
+  snap.forEach((c) => {
+    if (hit || c.key === editingTicketId) return;
+    const t = { id: c.key, ...c.val() };
+
+    if (normName(t.name) === myClaimant)
+      return void (hit = { kind: "claimant", t: { ...t, matchedSlot: 1 }, label: "Claimant", benName: f.name });
+
+    for (const slot of [1, 2]) {
+      const bn = slot === 1 ? t.ben1Name : t.ben2Name;
+      const ty = slot === 1 ? t.idType : t.idType2;
+      const nu = slot === 1 ? t.idNumber : t.idNumber2;
+      if (bn && myNames.includes(normName(bn)))
+        return void (hit = { kind: "name", t: { ...t, matchedSlot: slot }, label: "Beneficiary", benName: bn });
+      if (ty && nu && myIds.includes(idKey(ty, nu)))
+        return void (hit = { kind: "id", t, label: "Beneficiary", benName: bn || "", idType: ty, idNumber: nu });
+    }
+  });
+  return hit;
+}
+
+async function reserveIdentities(f, bookStr) {
+  const wk = weekKeyOf(bookStr);
+  const keys = [
+    "c_" + fbKey(normName(f.name)),
+    "b_" + fbKey(normName(f.ben1Name)),
+    "i_" + fbKey(idKey(f.idType, f.idNumber)),
+  ];
+  if (f.ben2Name) keys.push("b_" + fbKey(normName(f.ben2Name)));
+  if (f.idType2 && f.idNumber2) keys.push("i_" + fbKey(idKey(f.idType2, f.idNumber2)));
+
+  const got = [];
+  for (const k of [...new Set(keys)]) {
+    const ref = db.ref("claims/" + wk + "/" + k);
+    const r = await ref.transaction((cur) => (cur === null ? getDeviceId() : undefined));
+    if (!r.committed) { await releaseIdentities(got); return null; }
+    got.push(ref);
+  }
+  return got;
+}
+async function releaseIdentities(refs) {
+  await Promise.all((refs || []).map((r) => r.remove().catch(() => {})));
+}
 
         function shuffleArray(arr) {
           const a = [...arr];
@@ -1861,30 +1913,56 @@
           return { start: toDateStr(d), end: toDateStr(end) };
         }
 
-        // Helper — count taken numbers for a session from the atomic takenNumbers node
-        function getTakenCountFromAtomic(dateStr, session) {
-          const dayData = takenNumbersData[dateStr] || {};
-          const nums =
-            session === "AM" ? new Set(getAmNumbers()) : new Set(getPmNumbers());
-          return Object.keys(dayData).filter((n) => nums.has(parseInt(n))).length;
-        }
+// Single source of truth for availability
+function getSessionStats(dateStr, session) {
+  const nums = session === "AM" ? getAmNumbers() : getPmNumbers();
+  const taken = takenNumbersData[dateStr] || {};
+  const disabled = disabledNumbers[dateStr] || {};
+  const ds = calDateSettings[dateStr] || {};
+  let takenCount = 0, disabledCount = 0;
+  for (const n of nums) {
+    if (disabled[n]) disabledCount++;
+    else if (taken[n]) takenCount++;
+  }
+  const capacity = nums.length - disabledCount;
+  const off =
+    session === "AM"
+      ? slotConfig.amEnabled === false || ds.amEnabled === false
+      : slotConfig.pmEnabled === false || ds.pmEnabled === false;
+  const left = Math.max(capacity - takenCount, 0);
+  return {
+    taken: takenCount,
+    capacity,
+    left,
+    off,
+    full: left <= 0,
+    unavailable: off || left <= 0,
+  };
+}
+function getTakenCountFromAtomic(dateStr, session) {
+  return getSessionStats(dateStr, session).taken;
+}
 
         // ── Firebase listeners ────────────────────────────────────────────────────────
         db.ref("slotConfig").on("value", (s) => {
-          slotConfig = s.exists()
-            ? Object.assign({}, DEFAULT_SLOT_CONFIG, s.val())
-            : Object.assign({}, DEFAULT_SLOT_CONFIG);
-          renderCard();
-          updateSlotBanner();
-          applySlotButtonStates(targetStr, selectedTime);
-          updateFormWindowTags();
+        slotConfig = s.exists()
+          ? Object.assign({}, DEFAULT_SLOT_CONFIG, s.val())
+          : Object.assign({}, DEFAULT_SLOT_CONFIG);
+        renderCard();
+        updateSlotBanner();
+        updateFormWindowTags();
+        if (
+          document.getElementById("form-card").classList.contains("show") &&
+          !editingTicketId
+        )
+          applySlotButtonStates(bookDate(), selectedTime);
+      });
 
-          // Clear selectedTime if its session just got disabled by admin
-          if (selectedTime === "AM" && slotConfig.amEnabled === false)
-            selectedTime = null;
-          if (selectedTime === "PM" && slotConfig.pmEnabled === false)
-            selectedTime = null;
-        });
+                    // ── Devices online ──────────────────────────────────────────────
+            db.ref("presence").on("value", (snap) => {
+              const el = document.getElementById("online-count");
+              if (el) el.textContent = snap.numChildren();
+            });
 
         db.ref("scheduleSettings").on("value", (s) => {
           if (s.exists())
@@ -1895,6 +1973,7 @@
           updateStatusBanner();
           renderCard();
           renderTickets();
+          refreshDateSelect();
         });
 
         // Removed global listeners to fix slow loading.
@@ -1979,70 +2058,45 @@
             fmt(scheduleSettings.pmStart) + "–" + fmt(scheduleSettings.pmEnd);
         }
 
-        // applySlotButtonStates now reads from takenNumbers (atomic source of truth)
-        // instead of slotsData (ticket-count-based, which could desync).
         function applySlotButtonStates(dateStr, lockedTime) {
-          const amTaken = getTakenCountFromAtomic(dateStr, "AM");
-          const pmTaken = getTakenCountFromAtomic(dateStr, "PM");
-          const limAm = getLimitAm(),
-            limPm = getLimitPm();
-          const _ds = calDateSettings[targetStr] || {};
-          const amDisabled =
-            slotConfig.amEnabled === false || _ds.amEnabled === false;
-          const pmDisabled =
-            slotConfig.pmEnabled === false || _ds.pmEnabled === false;
-          const aF = amTaken >= limAm || amDisabled;
-          const pF = pmTaken >= limPm || pmDisabled;
-          const ba = document.getElementById("btn-am"),
-            bp = document.getElementById("btn-pm");
-          ba.classList.remove("active", "full");
-          bp.classList.remove("active", "full");
-          ba.disabled = false;
-          bp.disabled = false;
-          ba.style.pointerEvents = "";
-          bp.style.pointerEvents = "";
-          ba.style.opacity = "";
-          bp.style.opacity = "";
-          ba.style.cursor = "pointer";
-          bp.style.cursor = "pointer";
-          document.getElementById("tag-am").textContent = amDisabled
-            ? "DISABLED"
-            : aF
-              ? "FULL (" + limAm + "/" + limAm + ")"
-              : amTaken + "/" + limAm + " slots";
-          document.getElementById("tag-pm").textContent = pmDisabled
-            ? "DISABLED"
-            : pF
-              ? "FULL (" + limPm + "/" + limPm + ")"
-              : pmTaken + "/" + limPm + " slots";
-          if (aF) {
-            ba.classList.add("full");
-            ba.disabled = true;
-            ba.style.pointerEvents = "none";
-            ba.style.cursor = "not-allowed";
-          }
-          if (pF) {
-            bp.classList.add("full");
-            bp.disabled = true;
-            bp.style.pointerEvents = "none";
-            bp.style.cursor = "not-allowed";
-          }
-          if (lockedTime) {
-            selectedTime = lockedTime;
-            if (lockedTime === "AM" && !aF) ba.classList.add("active");
-            if (lockedTime === "PM" && !pF) bp.classList.add("active");
-          } else if (!aF && pF) {
-            selectedTime = "AM";
-            ba.classList.add("active");
-          } else if (aF && !pF) {
-            selectedTime = "PM";
-            bp.classList.add("active");
-          } else {
-            selectedTime = null;
-            document.getElementById("btn-am").classList.remove("active");
-            document.getElementById("btn-pm").classList.remove("active");
-          }
-        }
+  const am = getSessionStats(dateStr, "AM");
+  const pm = getSessionStats(dateStr, "PM");
+  const ba = document.getElementById("btn-am");
+  const bp = document.getElementById("btn-pm");
+
+  [ba, bp].forEach((b) => {
+    b.classList.remove("active", "full");
+    b.disabled = false;
+    b.style.pointerEvents = "";
+    b.style.opacity = "";
+    b.style.cursor = "pointer";
+  });
+
+  const label = (s) =>
+    s.off ? "DISABLED"
+    : s.full ? "FULL (" + s.capacity + "/" + s.capacity + ")"
+    : s.taken + "/" + s.capacity + " slots";
+  document.getElementById("tag-am").textContent = label(am);
+  document.getElementById("tag-pm").textContent = label(pm);
+
+  [[ba, am], [bp, pm]].forEach(([b, s]) => {
+    if (s.unavailable) {
+      b.classList.add("full");
+      b.disabled = true;
+      b.style.pointerEvents = "none";
+      b.style.cursor = "not-allowed";
+    }
+  });
+
+  if (lockedTime === "AM" && !am.unavailable) selectedTime = "AM";
+  else if (lockedTime === "PM" && !pm.unavailable) selectedTime = "PM";
+  else if (!am.unavailable && pm.unavailable) selectedTime = "AM";
+  else if (am.unavailable && !pm.unavailable) selectedTime = "PM";
+  else selectedTime = null;
+
+  if (selectedTime === "AM") ba.classList.add("active");
+  if (selectedTime === "PM") bp.classList.add("active");
+}
 
         function showCalDayPopup(ds, yr, mo, d) {
           const existing = document.getElementById("cal-day-popup");
@@ -2175,6 +2229,9 @@
             grid.appendChild(c);
           }
 
+          const weekSet =
+  dateSelectOn() && !editingTicketId ? new Set(getWeekDates()) : new Set();
+
           for (let d = 1; d <= daysInMo; d++) {
             const dow = new Date(yr, mo, d).getDay();
             const isThisToday = yr === todayY && mo === todayM && d === todayD;
@@ -2230,6 +2287,15 @@
               }
             }
 
+if (weekSet.has(dateKey)) {
+  cls += " week-cell";
+  if (dateKey === selectedDate) cls += " selected-cell";
+}
+const legSel = document.getElementById("leg-selected");
+if (legSel)
+  legSel.style.display =
+    dateSelectOn() && !editingTicketId && getWeekDates().length ? "" : "none";
+
             c.className = cls;
             c.textContent = d;
 
@@ -2261,22 +2327,17 @@
             tmr.getDate() +
             ", " +
             tmr.getFullYear();
-          // FIX 6: Use takenNumbers atomic counts for slot pill display
-          const amTaken = getTakenCountFromAtomic(targetStr, "AM");
-          const pmTaken = getTakenCountFromAtomic(targetStr, "PM");
-          const _dsTarget = calDateSettings[targetStr] || {};
+          const viewStr = bookDate();
+          const amS = getSessionStats(viewStr, "AM");
+          const pmS = getSessionStats(viewStr, "PM");
+          const _dsTarget = calDateSettings[viewStr] || {};
           const targetIsHoliday = !!_dsTarget.holiday;
-          const amDisabled =
-            slotConfig.amEnabled === false || _dsTarget.amEnabled === false;
-          const pmDisabled =
-            slotConfig.pmEnabled === false || _dsTarget.pmEnabled === false;
-          const limAm = getLimitAm(),
-            limPm = getLimitPm(),
-            limTotal = getLimitTotal();
-          const amLeft = limAm - amTaken,
-            pmLeft = limPm - pmTaken;
-          const amUnavailable = amTaken >= limAm || amDisabled;
-          const pmUnavailable = pmTaken >= limPm || pmDisabled;
+          const amDisabled = amS.off, pmDisabled = pmS.off;
+          const amTaken = amS.taken, pmTaken = pmS.taken;
+          const limAm = amS.capacity, limPm = pmS.capacity;
+          const amLeft = amS.left, pmLeft = pmS.left;
+          const amUnavailable = amS.unavailable;
+          const pmUnavailable = pmS.unavailable;
           const allUnavailable = amUnavailable && pmUnavailable;
 
           const statusRow = document.querySelector(".today-status-row");
@@ -2453,79 +2514,63 @@
         }
 
         function openForm() {
-          if (!isClaimingOpen()) {
-            const s = getClaimingStatus();
-            if (s === "blocked")
-              toast("⛔ Number generation is currently disabled by admin");
-            else if (s === "closed")
-              toast(
-                "Numbers claiming is currently closed. Opens at " +
-                  fmt(scheduleSettings.claimStart),
-              );
-            else toast("Number claiming is not available right now");
-            return;
+            if (!isClaimingOpen()) {
+              const s = getClaimingStatus();
+              if (s === "blocked")
+                toast("⛔ Number generation is currently disabled by admin");
+              else if (s === "closed")
+                toast(
+                  "Numbers claiming is currently closed. Opens at " +
+                    fmt(scheduleSettings.claimStart),
+                );
+              else toast("Number claiming is not available right now");
+              return;
+            }
+            editingTicketId = null;
+            document.getElementById("btn-generate").textContent =
+              "Generate Control Number";
+          
+            // ── Date selection (replaces the old tmr / form-date-label block) ──
+            renderDatePicker();      // shows or hides the date chips
+            updateFormDateLabel();   // "For: Monday, October 5, 2026" based on bookDate()
+            applySlotButtonStates(bookDate(), null);
+          
+            const ba = document.getElementById("btn-am"),
+              bp = document.getElementById("btn-pm");
+            ba.style.pointerEvents = "";
+            ba.style.opacity = "";
+            ba.style.cursor = "pointer";
+            bp.style.pointerEvents = "";
+            bp.style.opacity = "";
+            bp.style.cursor = "pointer";
+            updateFormWindowTags();
+            [
+              "inp-name",
+              "inp-ben1-name",
+              "inp-id-number",
+              "inp-ben2-name",
+              "inp-id-number2",
+            ].forEach((id) => (document.getElementById(id).value = ""));
+            document.getElementById("inp-id-type").value = "";
+            document.getElementById("inp-id-type2").value = "";
+            clearNameValidation();
+            updateSlotBanner();
+            document.getElementById("slot-banner").classList.add("show");
+            document.getElementById("form-card").classList.add("show");
+            document
+              .getElementById("form-card")
+              .scrollIntoView({ behavior: "smooth", block: "nearest" });
           }
-          editingTicketId = null;
-          document.getElementById("btn-generate").textContent =
-            "Generate Control Number";
-          const tmr = getTargetDate(now);
-          document.getElementById("form-date-label").textContent =
-            "For: " +
-            DAYS[tmr.getDay()] +
-            ", " +
-            MONTHS[tmr.getMonth()] +
-            " " +
-            tmr.getDate() +
-            ", " +
-            tmr.getFullYear();
-          applySlotButtonStates(targetStr, null);
-          const ba = document.getElementById("btn-am"),
-            bp = document.getElementById("btn-pm");
-          ba.style.pointerEvents = "";
-          ba.style.opacity = "";
-          ba.style.cursor = "pointer";
-          bp.style.pointerEvents = "";
-          bp.style.opacity = "";
-          bp.style.cursor = "pointer";
-          updateFormWindowTags();
-          [
-            "inp-name",
-            "inp-ben1-name",
-            "inp-id-number",
-            "inp-ben2-name",
-            "inp-id-number2",
-          ].forEach((id) => (document.getElementById(id).value = ""));
-          document.getElementById("inp-id-type").value = "";
-          document.getElementById("inp-id-type2").value = "";
-          clearNameValidation();
-          updateSlotBanner();
-          document.getElementById("slot-banner").classList.add("show");
-          document.getElementById("form-card").classList.add("show");
-          document
-            .getElementById("form-card")
-            .scrollIntoView({ behavior: "smooth", block: "nearest" });
-        }
 
-        function selectTime(t) {
-          document.getElementById("btn-am").style.outline = ""; // ← add
-          document.getElementById("btn-pm").style.outline = ""; // ← add
-          if (!isClaimingOpen()) return;
-          if (t === "AM" && slotConfig.amEnabled === false) return;
-          if (t === "PM" && slotConfig.pmEnabled === false) return;
-          const amTaken = getTakenCountFromAtomic(targetStr, "AM");
-          const pmTaken = getTakenCountFromAtomic(targetStr, "PM");
-          const aF = amTaken >= getLimitAm(),
-            pF = pmTaken >= getLimitPm();
-          if (t === "AM" && aF) return;
-          if (t === "PM" && pF) return;
-          selectedTime = t;
-          const ba = document.getElementById("btn-am"),
-            bp = document.getElementById("btn-pm");
-          ba.classList.remove("active");
-          bp.classList.remove("active");
-          if (t === "AM" && !aF) ba.classList.add("active");
-          if (t === "PM" && !pF) bp.classList.add("active");
-        }
+              function selectTime(t) {
+  document.getElementById("btn-am").style.outline = "";
+  document.getElementById("btn-pm").style.outline = "";
+  if (!isClaimingOpen()) return;
+  if (getSessionStats(bookDate(), t).unavailable) return;
+  selectedTime = t;
+  document.getElementById("btn-am").classList.toggle("active", t === "AM");
+  document.getElementById("btn-pm").classList.toggle("active", t === "PM");
+}
 
         function editTicket(ticketId) {
           const t = myTickets.find((x) => x.id === ticketId);
@@ -2534,6 +2579,7 @@
             return;
           }
           editingTicketId = ticketId;
+          renderDatePicker();
           document.getElementById("inp-name").value = t.name || "";
           document.getElementById("inp-ben1-name").value = t.ben1Name || "";
           document.getElementById("inp-id-type").value = t.idType || "";
@@ -2595,79 +2641,71 @@
 
         // ─── DUPLICATE CHECKS ─────────────────────────────────────────────────────────
         async function checkWeeklyCooldown(idType, idNumber) {
-          if (!idType || !idNumber) return null;
-          const normType = idType.trim().toLowerCase();
-          const normNum = idNumber.trim().toLowerCase();
-          
-          // Cooldown: 7 days including the target date
-          const windowStart = new Date(targetStr + "T00:00:00");
-          windowStart.setDate(windowStart.getDate() - 6);
-          const start = toDateStr(windowStart);
-
-          // Optimized: Only fetch tickets within the cooldown window
-          const snap = await db.ref("tickets")
-            .orderByChild("date")
-            .startAt(start)
-            .endAt(targetStr)
-            .once("value");
-
-          if (!snap.exists()) return null;
-          let found = null;
-          snap.forEach((c) => {
-            if (found) return;
-            const t = c.val();
-            if (!t.date) return;
-            if (
-              t.idType &&
-              t.idNumber &&
-              t.idType.trim().toLowerCase() === normType &&
-              t.idNumber.trim().toLowerCase() === normNum
-            )
-              found = { id: c.key, ...t };
-            if (
-              !found &&
-              t.idType2 &&
-              t.idNumber2 &&
-              t.idType2.trim().toLowerCase() === normType &&
-              t.idNumber2.trim().toLowerCase() === normNum
-            )
-              found = { id: c.key, ...t };
-          });
-          return found;
-        }
-        async function checkBeneficiaryNameCooldown(benName) {
-          if (!benName || benName.trim().length < 2) return null;
-          const normName = benName.trim().toLowerCase();
-
-          // Cooldown: 7 days including the target date
-          const windowStart = new Date(targetStr + "T00:00:00");
-          windowStart.setDate(windowStart.getDate() - 6);
-          const start = toDateStr(windowStart);
-
-          // Optimized: Only fetch tickets within the cooldown window
-          const snap = await db.ref("tickets")
-            .orderByChild("date")
-            .startAt(start)
-            .endAt(targetStr)
-            .once("value");
-
-          if (!snap.exists()) return null;
-          let found = null;
-          snap.forEach((c) => {
-            if (found) return;
-            const t = c.val();
-            if (!t.date) return;
-            if (t.ben1Name && t.ben1Name.trim().toLowerCase() === normName)
-              found = { id: c.key, matchedSlot: 1, ...t };
-            if (
-              !found &&
-              t.ben2Name &&
-              t.ben2Name.trim().toLowerCase() === normName
-            )
-              found = { id: c.key, matchedSlot: 2, ...t };
-          });
-          return found;
-        }
+              if (!idType || !idNumber) return null;
+              const normType = idType.trim().toLowerCase();
+              const normNum = idNumber.trim().toLowerCase();
+              const bookStrLocal = bookDate();
+            
+              const windowStart = new Date(bookStrLocal + "T00:00:00");
+              windowStart.setDate(windowStart.getDate() - 6);
+              const start = toDateStr(windowStart);
+            
+              const snap = await db.ref("tickets")
+                .orderByChild("date")
+                .startAt(start)
+                .endAt(bookStrLocal)
+                .once("value");
+            
+              if (!snap.exists()) return null;
+              let found = null;
+              snap.forEach((c) => {
+                if (found) return;
+                const t = c.val();
+                if (!t.date) return;
+                if (
+                  t.idType && t.idNumber &&
+                  t.idType.trim().toLowerCase() === normType &&
+                  t.idNumber.trim().toLowerCase() === normNum
+                )
+                  found = { id: c.key, ...t };
+                if (
+                  !found && t.idType2 && t.idNumber2 &&
+                  t.idType2.trim().toLowerCase() === normType &&
+                  t.idNumber2.trim().toLowerCase() === normNum
+                )
+                  found = { id: c.key, ...t };
+              });
+              return found;
+            }
+            
+            async function checkBeneficiaryNameCooldown(benName) {
+              if (!benName || benName.trim().length < 2) return null;
+              const normName = benName.trim().toLowerCase();
+              const bookStrLocal = bookDate();
+            
+              const windowStart = new Date(bookStrLocal + "T00:00:00");
+              windowStart.setDate(windowStart.getDate() - 6);
+              const start = toDateStr(windowStart);
+            
+              const snap = await db.ref("tickets")
+                .orderByChild("date")
+                .startAt(start)
+                .endAt(bookStrLocal)
+                .once("value");
+            
+              if (!snap.exists()) return null;
+              let found = null;
+              snap.forEach((c) => {
+                if (found) return;
+                const t = c.val();
+                if (!t.date) return;
+                if (t.ben1Name && t.ben1Name.trim().toLowerCase() === normName)
+                  found = { id: c.key, matchedSlot: 1, ...t };
+                if (!found && t.ben2Name && t.ben2Name.trim().toLowerCase() === normName)
+                  found = { id: c.key, matchedSlot: 2, ...t };
+              });
+              return found;
+            }
 
         function showErrorCard(
           dupTicket,
@@ -2698,7 +2736,8 @@
             claimedDate.getFullYear();
 
           const isMonthly = matchType === "monthly";
-          const isNameMatch = matchType === "name";
+          const isClaimant = matchType === "claimant";
+          const isNameMatch = matchType === "name" || isClaimant;
           const norm = idNumber ? idNumber.trim().toLowerCase() : "";
           const isSlot2 =
             !isNameMatch &&
@@ -2751,9 +2790,11 @@
               : "🚫";
           document.getElementById("error-card-title").textContent = isMonthly
             ? "Monthly Claim Limit Reached"
-            : isNameMatch
-              ? "Already Claimed This Week"
-              : "7-Day Cooldown Active";
+            : isClaimant
+                ? "7-Day Cooldown Active"
+                : isNameMatch
+                  ? "Already Claimed This Week"
+                  : "7-Day Cooldown Active";
           document.getElementById("error-card-subtitle").textContent = isMonthly
             ? beneficiaryLabel +
               " has already been claimed " +
@@ -2761,9 +2802,11 @@
               " time(s) this month (limit: " +
               (extraInfo ? extraInfo.limitCount : "") +
               " per 30 days)."
-            : isNameMatch
-              ? beneficiaryLabel +
-                " name already has a registered control number this week."
+            : isClaimant
+              ? "This claimant already has a control number within the 7-day cooldown."
+              : isNameMatch
+                ? beneficiaryLabel +
+                  " name already has a registered control number this week."
               : beneficiaryLabel +
                 " ID was used within the last 7 days. Please wait before claiming again.";
 
@@ -2815,6 +2858,7 @@
           now = getServerTime();
           todayStr = toDateStr(now);
           targetStr = toDateStr(getTargetDate(now));
+          const bookStr = window.bookDate();
           if (!isClaimingOpen()) {
             const s = getClaimingStatus();
             if (s === "blocked")
@@ -2824,7 +2868,7 @@
           }
 
           // Block generation if tomorrow is a holiday or fully closed
-          const _targetDs = calDateSettings[targetStr] || {};
+          const _targetDs = calDateSettings[bookStr] || {};
           const _targetIsHoliday = !!_targetDs.holiday;
           const _targetAmOff = _targetDs.amEnabled === false;
           const _targetPmOff = _targetDs.pmEnabled === false;
@@ -2914,17 +2958,18 @@
           const isEditing = !!editingTicketId;
 
           // ── GUARD: Re-validate selected session is still enabled and has slots ───────
-          const _dateDs = calDateSettings[targetStr] || {};
           if (!isEditing) {
-            if (selectedTime === "AM" && slotConfig.amEnabled === false) {
-              return toast("⛔ AM session has been disabled. Please refresh.");
-            }
-            if (selectedTime === "PM" && slotConfig.pmEnabled === false) {
-              return toast("⛔ PM session has been disabled. Please refresh.");
-            }
+            const st = getSessionStats(bookStr, selectedTime);
+            if (st.off)
+              return toast("⛔ " + selectedTime + " session has been disabled. Please refresh.");
+            if (st.full)
+              return toast(
+                "⛔ " + selectedTime + " slots just filled up. Please try " +
+                  (selectedTime === "AM" ? "PM" : "AM") + ".",
+              );
           }
-          const _amTakenGuard = getTakenCountFromAtomic(targetStr, "AM");
-          const _pmTakenGuard = getTakenCountFromAtomic(targetStr, "PM");
+          const _amTakenGuard = getTakenCountFromAtomic(bookStr, "AM");
+          const _pmTakenGuard = getTakenCountFromAtomic(bookStr, "PM");
           if (!isEditing) {
             if (selectedTime === "AM" && _amTakenGuard >= getLimitAm())
               return toast("⛔ AM slots just filled up. Please try PM.");
@@ -2993,48 +3038,24 @@
                 return;
               }
             }
-            if (ben1MonthlyLimit > 0) {
+          if (ben1MonthlyLimit > 0) {
               const hit = await checkMonthlyLimitByName(
                 "ben1Name",
                 ben1Name,
                 ben1MonthlyLimit,
               );
               if (hit) {
-                showErrorCard(
-                  hit.lastFound,
-                  "",
-                  ben1Name,
-                  "",
-                  "Beneficiary 1",
-                  "monthly",
-                  hit,
-                );
+                showErrorCard(hit.lastFound, "", ben1Name, "", "Beneficiary 1", "monthly", hit);
                 btn.disabled = false;
-                btn.textContent = isEditing
-                  ? "Save Changes"
-                  : "Generate Control Number";
+                btn.textContent = isEditing ? "Save Changes" : "Generate Control Number";
                 return;
               }
               if (idType && idNumber) {
-                const hitID = await checkMonthlyLimitByID(
-                  idType,
-                  idNumber,
-                  ben1MonthlyLimit,
-                );
+                const hitID = await checkMonthlyLimitByID(idType, idNumber, ben1MonthlyLimit);
                 if (hitID) {
-                  showErrorCard(
-                    hitID.lastFound,
-                    idNumber,
-                    ben1Name,
-                    idType,
-                    "Beneficiary 1",
-                    "monthly",
-                    hitID,
-                  );
+                  showErrorCard(hitID.lastFound, idNumber, ben1Name, idType, "Beneficiary 1", "monthly", hitID);
                   btn.disabled = false;
-                  btn.textContent = isEditing
-                    ? "Save Changes"
-                    : "Generate Control Number";
+                  btn.textContent = isEditing ? "Save Changes" : "Generate Control Number";
                   return;
                 }
               }
@@ -3046,101 +3067,31 @@
                 ben2MonthlyLimit,
               );
               if (hit) {
-                showErrorCard(
-                  hit.lastFound,
-                  "",
-                  ben2Name,
-                  "",
-                  "Beneficiary 2",
-                  "monthly",
-                  hit,
-                );
+                showErrorCard(hit.lastFound, "", ben2Name, "", "Beneficiary 2", "monthly", hit);
                 btn.disabled = false;
-                btn.textContent = isEditing
-                  ? "Save Changes"
-                  : "Generate Control Number";
+                btn.textContent = isEditing ? "Save Changes" : "Generate Control Number";
                 return;
               }
               if (idType2 && idNumber2) {
-                const hitID = await checkMonthlyLimitByID(
-                  idType2,
-                  idNumber2,
-                  ben2MonthlyLimit,
-                );
+                const hitID = await checkMonthlyLimitByID(idType2, idNumber2, ben2MonthlyLimit);
                 if (hitID) {
-                  showErrorCard(
-                    hitID.lastFound,
-                    idNumber2,
-                    ben2Name,
-                    idType2,
-                    "Beneficiary 2",
-                    "monthly",
-                    hitID,
-                  );
+                  showErrorCard(hitID.lastFound, idNumber2, ben2Name, idType2, "Beneficiary 2", "monthly", hitID);
                   btn.disabled = false;
-                  btn.textContent = isEditing
-                    ? "Save Changes"
-                    : "Generate Control Number";
+                  btn.textContent = isEditing ? "Save Changes" : "Generate Control Number";
                   return;
                 }
               }
             }
 
-            if (idType && idNumber) {
-              const wd = await checkWeeklyCooldown(idType, idNumber);
-              if (wd && wd.id !== editingTicketId) {
-                showErrorCard(
-                  wd,
-                  idNumber,
-                  ben1Name,
-                  idType,
-                  "Beneficiary 1",
-                  "id",
-                );
-                btn.disabled = false;
-                btn.textContent = isEditing
-                  ? "Save Changes"
-                  : "Generate Control Number";
-                return;
-              }
-            }
-            const wn1 = await checkBeneficiaryNameCooldown(ben1Name);
-            if (wn1 && wn1.id !== editingTicketId) {
-              showErrorCard(wn1, "", ben1Name, "", "Beneficiary 1", "name");
+            const dup = await findDuplicate({ name, ben1Name, ben2Name, idType, idNumber, idType2, idNumber2 });
+            if (dup) {
+              if (dup.kind === "id")
+                showErrorCard(dup.t, dup.idNumber, dup.benName, dup.idType, dup.label, "id");
+              else
+                showErrorCard(dup.t, "", dup.benName, "", dup.label, dup.kind === "claimant" ? "claimant" : "name");
               btn.disabled = false;
-              btn.textContent = isEditing
-                ? "Save Changes"
-                : "Generate Control Number";
+              btn.textContent = isEditing ? "Save Changes" : "Generate Control Number";
               return;
-            }
-            if (idType2 && idNumber2) {
-              const wd2 = await checkWeeklyCooldown(idType2, idNumber2);
-              if (wd2 && wd2.id !== editingTicketId) {
-                showErrorCard(
-                  wd2,
-                  idNumber2,
-                  ben2Name,
-                  idType2,
-                  "Beneficiary 2",
-                  "id",
-                );
-                btn.disabled = false;
-                btn.textContent = isEditing
-                  ? "Save Changes"
-                  : "Generate Control Number";
-                return;
-              }
-            }
-            if (ben2Name) {
-              const wn2 = await checkBeneficiaryNameCooldown(ben2Name);
-              if (wn2 && wn2.id !== editingTicketId) {
-                showErrorCard(wn2, "", ben2Name, "", "Beneficiary 2", "name");
-                btn.disabled = false;
-                btn.textContent = isEditing
-                  ? "Save Changes"
-                  : "Generate Control Number";
-                return;
-              }
             }
           } catch (e) {
             console.error("Duplicate check error:", e);
@@ -3153,6 +3104,7 @@
           }
 
           btn.textContent = "Saving...";
+          let claimRefs = null, ticketSaved = false;
 
           try {
             if (isEditing) {
@@ -3186,118 +3138,119 @@
               return;
             }
 
+            if (!isEditing) {
+                claimRefs = await reserveIdentities(
+                  { name, ben1Name, ben2Name, idType, idNumber, idType2, idNumber2 }, bookStr);
+                if (!claimRefs) {
+                  toast("⚠️ This claimant, name or ID was just registered. Please refresh.");
+                  btn.disabled = false;
+                  btn.textContent = "Generate Control Number";
+                  return;
+                }
+              }
+
             // ── Atomically claim a specific number ──────────────────────────────────
             // Skip numbers that are disabled by admin before trying transaction.
             const availableNums =
-              selectedTime === "AM" ? getAmNumbers() : getPmNumbers();
-            const disabledForDate = disabledNumbers[targetStr] || {};
-
-            let assignedNum = null;
-            for (const candidate of availableNums) {
-              // Skip admin-disabled numbers
-              if (disabledForDate[candidate]) continue;
-
-              const numRef = db.ref(
-                "takenNumbers/" + targetStr + "/" + candidate,
-              );
-              const result = await numRef.transaction((current) => {
-                if (current === null) return true; // claim it atomically
-                return; // already taken — abort
-              });
-              if (result.committed) {
-                assignedNum = candidate;
-                break;
+                selectedTime === "AM" ? getAmNumbers() : getPmNumbers();
+              const disabledForDate = disabledNumbers[bookStr] || {};
+              const takenForDate = takenNumbersData[bookStr] || {};
+              
+              let assignedNum = null;
+              for (const candidate of availableNums) {
+              if (disabledForDate[candidate] || takenForDate[candidate]) continue;
+              
+                const numRef = db.ref("takenNumbers/" + bookStr + "/" + candidate);
+                const result = await numRef.transaction((current) => {
+                  if (current === null) return true;
+                  return;
+                });
+                if (result.committed) {
+                  assignedNum = candidate;
+                  break;
+                }
               }
-            }
-
-            if (assignedNum === null) {
-              toast(
-                "All " +
-                  selectedTime +
-                  " slots are full! Please try another session.",
+              
+              if (assignedNum === null) {
+                 await releaseIdentities(claimRefs);
+                toast(
+                  "All " + selectedTime + " slots are full! Please try another session.",
+                );
+                btn.disabled = false;
+                btn.textContent = "Generate Control Number";
+                return;
+              }
+              const num = assignedNum;
+              
+              const expiry = new Date(
+                bookStr + "T" + (scheduleSettings.pmEnd || "17:00") + ":00",
               );
-              btn.disabled = false;
-              btn.textContent = "Generate Control Number";
-              return;
-            }
-            const num = assignedNum;
-
-            // Write the ticket record
-            const tmr = getTargetDate(now);
-            const expiry = new Date(
-              targetStr + "T" + (scheduleSettings.pmEnd || "17:00") + ":00",
-            );
-            const td = {
-              number: num,
-              name,
-              ben1Name: ben1Name || "",
-              idType: idType || "",
-              idNumber: idNumber || "",
-              ben2Name: ben2Name || "",
-              idType2: idType2 || "",
-              idNumber2: idNumber2 || "",
-              time: selectedTime,
-              date: targetStr,
-              deviceId: getDeviceId(),
-              issuedAt: getServerTime().toISOString(),
-              expiresAt: expiry.toISOString(),
-              createdAt: firebase.database.ServerValue.TIMESTAMP,
-              disabled: false,
-            };
-
-            const ref = db.ref("tickets").push();
-            try {
-              await ref.set(td);
-            } catch (ticketWriteError) {
-              // FIX 9: If ticket write fails, release the atomic claim to prevent ghost-locking
-              await db
-                .ref("takenNumbers/" + targetStr + "/" + num)
-                .remove()
-                .catch(() => {});
-              throw ticketWriteError;
-            }
-
-            myTicketIds.push(ref.key);
-            localStorage.setItem("pq_my_ticket_ids", JSON.stringify(myTicketIds));
-
-            // Increment device count keyed to targetStr
-            const limitKey = "pq_gen_count_" + targetStr;
-            localStorage.setItem(
-              limitKey,
-              (parseInt(localStorage.getItem(limitKey) || "0") + 1).toString(),
-            );
-
-            myTickets.unshift({ id: ref.key, ...td });
-            renderTickets();
-            toast(
-              "Control #" +
-                pad3(num) +
-                " for " +
-                MONTHS[tmr.getMonth()].slice(0, 3) +
-                " " +
-                tmr.getDate() +
-                "!",
-            );
+              const td = {
+                number: num,
+                name,
+                ben1Name: ben1Name || "",
+                idType: idType || "",
+                idNumber: idNumber || "",
+                ben2Name: ben2Name || "",
+                idType2: idType2 || "",
+                idNumber2: idNumber2 || "",
+                time: selectedTime,
+                date: bookStr,
+                deviceId: getDeviceId(),
+                issuedAt: getServerTime().toISOString(),
+                expiresAt: expiry.toISOString(),
+                createdAt: firebase.database.ServerValue.TIMESTAMP,
+                disabled: false,
+              };
+              
+              const ref = db.ref("tickets").push();
+             try {
+                  await ref.set(td);
+                  ticketSaved = true;
+                } catch (ticketWriteError) {
+                await db
+                  .ref("takenNumbers/" + bookStr + "/" + num)
+                  .remove()
+                  .catch(() => {});
+                throw ticketWriteError;
+              }
+              
+              myTicketIds.push(ref.key);
+              localStorage.setItem("pq_my_ticket_ids", JSON.stringify(myTicketIds));
+              
+              const limitKey = "pq_gen_count_" + targetStr;
+              localStorage.setItem(
+                limitKey,
+                (parseInt(localStorage.getItem(limitKey) || "0") + 1).toString(),
+              );
+              
+              myTickets.unshift({ id: ref.key, ...td });
+              renderTickets();
+              const bpt = phtParts(bookStr);
+              toast(
+                "Control #" + pad3(num) + " for " +
+                MONTHS[bpt.getUTCMonth()].slice(0, 3) + " " + bpt.getUTCDate() + "!",
+              );
             document.getElementById("form-card").classList.remove("show");
             document.getElementById("slot-banner").classList.remove("show");
           } catch (e) {
-            console.error(e);
-            toast("Error. Please try again.");
-          }
+                  console.error(e);
+                  if (!ticketSaved) await releaseIdentities(claimRefs);
+                  toast("Error. Please try again.");
+                }
           btn.disabled = false;
           btn.textContent = "Generate Control Number";
         }
 
         function updateSlotBanner() {
-          const amTaken = getTakenCountFromAtomic(targetStr, "AM");
-          const pmTaken = getTakenCountFromAtomic(targetStr, "PM");
-          const tot = amTaken + pmTaken;
-          setBar("total", tot, getLimitTotal());
-          setBar("am", amTaken, getLimitAm());
-          setBar("pm", pmTaken, getLimitPm());
+          const d = bookDate();
+          const am = getSessionStats(d, "AM"), pm = getSessionStats(d, "PM");
+          setBar("total", am.taken + pm.taken, am.capacity + pm.capacity);
+          setBar("am", am.taken, am.capacity);
+          setBar("pm", pm.taken, pm.capacity);
         }
         function setBar(id, used, max) {
-          const pct = Math.min((used / max) * 100, 100);
+          const pct = max > 0 ? Math.min((used / max) * 100, 100) : 100;
           const fill = document.getElementById("bar-" + id);
           const cnt = document.getElementById("count-" + id);
           fill.style.width = pct + "%";
@@ -3307,20 +3260,23 @@
           cnt.textContent = used + "/" + max;
         }
 
-        function isTicketValid(t) {
-          const n = toPHT(getServerTime());
-          const cur = n.getUTCHours() * 60 + n.getUTCMinutes();
-          const ts = toDateStr(n);
-          const td = new Date(t.date + "T00:00:00"),
-            today = new Date(ts + "T00:00:00");
-          if (td < today) return "expired";
-          if (td > today) return "future";
-          const sk = t.time === "AM" ? "amStart" : "pmStart",
-            ek = t.time === "AM" ? "amEnd" : "pmEnd";
-          if (cur < toMin(scheduleSettings[sk])) return "not-yet";
-          if (cur >= toMin(scheduleSettings[ek])) return "expired";
-          return "active";
-        }
+       function isTicketValid(t) {
+        // Current Philippine time (UTC+8), computed once
+        const p = new Date(getServerTime().getTime() + PHT_OFFSET_MS);
+        const today = p.getUTCFullYear() + "-" + pad(p.getUTCMonth() + 1) + "-" + pad(p.getUTCDate());
+        const cur = p.getUTCHours() * 60 + p.getUTCMinutes();
+      
+        // 1. Selected date decides first
+        if (t.date < today) return "expired";   // past date
+        if (t.date > today) return "future";    // not their day yet, never "NOW SERVING"
+      
+        // 2. Only on the selected date does the AM/PM window matter
+        const sk = t.time === "AM" ? "amStart" : "pmStart";
+        const ek = t.time === "AM" ? "amEnd" : "pmEnd";
+        if (cur < toMin(scheduleSettings[sk])) return "not-yet";
+        if (cur >= toMin(scheduleSettings[ek])) return "expired";
+        return "active";   // NOW SERVING
+      }
 
         function renderTickets() {
           if (ticketsLoading) return;
@@ -3333,7 +3289,7 @@
           const sorted = [...myTickets].sort((a, b) => {
             const order = { active: 0, "not-yet": 1, future: 2, expired: 3 };
             return (
-              (order[isTicketValid(a)] || 3) - (order[isTicketValid(b)] || 3) ||
+              (order[isTicketValid(a)] ?? 3) - (order[isTicketValid(b)] ?? 3) ||
               a.number - b.number
             );
           });
@@ -3411,7 +3367,7 @@
                 pad3(t.number) +
                 '</div><div class="ticket-divider"></div>' +
                 '<div class="ticket-info"><div class="ticket-name">' +
-                t.name +
+                esc(t.name) +
                 "</div>" +
                 '<span class="ticket-time-badge">' +
                 t.time +
@@ -3422,10 +3378,10 @@
                 il +
                 "</div>" +
                 (ben1Line
-                  ? '<div class="ticket-id-row">' + ben1Line + "</div>"
+                  ? '<div class="ticket-id-row">' + esc(ben1Line) + "</div>"
                   : "") +
                 (ben2Line
-                  ? '<div class="ticket-id2-row">' + ben2Line + "</div>"
+                  ? '<div class="ticket-id2-row">' + esc(ben2Line) + "</div>"
                   : "") +
                 '<div class="ticket-window-row">' +
                 wl +
@@ -3741,5 +3697,137 @@
           }
         }
       </script>
+
+<script type="text/plain" data-app>
+// ─── CLAIMANT DATE SELECTION (global) ───
+let selectedDate = null;
+let rangeRefs = [], rangeKey = null;
+
+function dateSelectOn() { return scheduleSettings.dateSelectEnabled === true; }
+
+function bookDate(fallback) {
+  if (editingTicketId) {
+    const t = myTickets.find((x) => x.id === editingTicketId);
+    if (t) return t.date;
+  }
+  if (dateSelectOn() && selectedDate) return selectedDate;
+  return fallback || targetStr;
+}
+
+function getWeekDates() {
+  const first = getTargetDate(getServerTime());
+  const dow = toPHT(first).getUTCDay();
+  const out = [];
+  if (dow < 1 || dow > 5) return out;
+  for (let i = 0; i <= 5 - dow; i++)
+    out.push(toDateStr(new Date(first.getTime() + i * 86400000)));
+  return out;
+}
+
+function isOpenDay(ds) {
+  const s = calDateSettings[ds] || {};
+  return !s.holiday && !(s.amEnabled === false && s.pmEnabled === false);
+}
+
+function phtParts(ds) { return toPHT(new Date(ds + "T00:00:00+08:00")); }
+
+function updateFormDateLabel() {
+  const p = phtParts(bookDate());
+  document.getElementById("form-date-label").textContent =
+    "For: " + DAYS[p.getUTCDay()] + ", " + MONTHS[p.getUTCMonth()] + " " +
+    p.getUTCDate() + ", " + p.getUTCFullYear();
+}
+
+function renderDatePicker() {
+  const field = document.getElementById("field-appt-date");
+  if (!field) return;
+if (!dateSelectOn() || editingTicketId) {
+  field.style.display = "none";
+  renderCalendar();
+  return;
+}
+  field.style.display = "";
+  const week = getWeekDates();
+  if (!selectedDate || !week.includes(selectedDate) || !isOpenDay(selectedDate))
+    selectedDate = week.find(isOpenDay) || null;
+  document.getElementById("appt-date-chips").innerHTML = week.map((ds) => {
+    const p = phtParts(ds), open = isOpenDay(ds);
+    const dow = DAYS[p.getUTCDay()].slice(0, 3);
+    const label = MONTHS[p.getUTCMonth()].slice(0, 3) + " " + p.getUTCDate();
+    const s = calDateSettings[ds] || {};
+    return '<button type="button" class="date-chip' + (ds === selectedDate ? " active" : "") +
+      (open ? "" : " off") + '"' + (open ? ' onclick="pickDate(\'' + ds + "')\"" : " disabled") + ">" +
+      '<span class="dc-dow">' + dow + '</span><span class="dc-day">' +
+      (open ? label : (s.holiday ? "Holiday" : "Closed")) + "</span></button>";
+  }).join("");
+
+  renderCalendar();
+}
+
+function pickDate(ds) {
+  if (!isOpenDay(ds)) return;
+  selectedDate = ds;
+  renderDatePicker();
+  updateFormDateLabel();
+  applySlotButtonStates(ds, null);
+  updateSlotBanner();
+  renderCard();
+}
+
+function onRangeData() {
+  renderDatePicker();
+  renderCard();
+  updateSlotBanner();
+  renderTickets();
+  const formOpen = document.getElementById("form-card").classList.contains("show");
+  if (formOpen && !editingTicketId) applySlotButtonStates(bookDate(), selectedTime);
+}
+
+function detachRangeListeners() {
+  rangeRefs.forEach((q) => q.off());
+  rangeRefs = [];
+  rangeKey = null;
+}
+
+function attachRangeListeners() {
+  const week = getWeekDates();
+  if (!week.length) return;
+  const key = week[0] + "|" + week[week.length - 1];
+  if (key === rangeKey) return;
+  detachRangeListeners();
+  rangeKey = key;
+  const hook = (path, store) => {
+    const q = db.ref(path).orderByKey().startAt(week[0]).endAt(week[week.length - 1]);
+    q.on("value", (s) => {
+      const v = s.val() || {};
+      week.forEach((d) => { store[d] = v[d] || {}; });
+      onRangeData();
+    });
+    rangeRefs.push(q);
+  };
+  hook("takenNumbers", takenNumbersData);
+  hook("disabledNumbers", disabledNumbers);
+  hook("dateSettings", calDateSettings);
+}
+
+function refreshDateSelect() {
+  if (!serverTimeSynced) return;
+  if (!dateSelectOn()) {
+    detachRangeListeners();
+    selectedDate = null;
+    renderDatePicker();
+    renderCard();
+    updateSlotBanner();
+    return;
+  }
+  attachRangeListeners();
+  renderDatePicker();
+}
+
+const _dsWait = setInterval(() => {
+  if (serverTimeSynced) { clearInterval(_dsWait); refreshDateSelect(); }
+}, 300);
+</script>
+
     </body>
   </html>
